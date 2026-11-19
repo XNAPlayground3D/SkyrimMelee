@@ -70,11 +70,11 @@ Both hands are attached to the sword rig and travel with the hilt; the primitive
 
 **Camera presets:** third-person duel (default, over the player's right shoulder at `(-6.0, 3.1, 2.4)` looking at `(-0.2, 1.0, 0)`), profile (`(0, 1.9, −7.5)`), top-down debug. Idle sway ±0.6°, impact shake 0.15 s decay, small FOV punch on power attacks.
 
-**VFX:** pooled 256 box shards and expanding torus rings — amber sparks for hits, blue ring for blocks, red shards and flash for guard breaks, dark disc for grounding. Zero allocations in combat.
+**VFX:** hit parts tint coral for 180 ms; pooled 256 box shards and expanding torus rings add the blue block ring, red guard-break shards, and dark grounding disc. Zero allocations in combat.
 
 ## Physics
 
-Bepu is used as a collision **query** engine: no gravity, no dynamics, no `Timestep` in combat. `CombatWorld` owns one `Simulation`, a floor box, and four static hurtboxes per fighter. Hurtbox poses are rewritten from `BodyTransform * fighterRoot` whenever the rigid body reaction changes, so the statues and their collidables stay aligned. A guard-blade capsule is added when the guard completes and removed as soon as the guard drops. `HurtboxSet` maps each `StaticHandle` back to `FighterId` + `HurtboxKind`, and `F2` draws every registered shape (green body, amber guard blade, coral for a hit this flash window). A confirmed hit also tints the matching body primitive for `HitFlashDuration`.
+Bepu is used as a collision **query** engine: no gravity, no dynamics, no `Timestep` in combat. `CombatWorld` owns one `Simulation`, a floor box, and four static hurtboxes per fighter. Hurtbox poses are rewritten from `BodyTransform * fighterRoot` whenever the rigid body reaction changes, so the statues and their collidables stay aligned. A guard-blade capsule is added when the guard completes and removed as soon as the guard drops. `HurtboxSet` maps each `StaticHandle` back to `FighterId` + `HurtboxKind`, and `F2` draws every registered shape (green body, amber guard blade).
 
 | Hurtbox | Shape | Radius / half-length | Centre |
 | --- | --- | --- | --- |
@@ -94,7 +94,9 @@ per tick, while Active:
 
 Bepu call: `Sweep(shape, poseAtPrevious, current − previous, 1, pool, handler)` — a pose plus a velocity over `maximumT`, not a from/to pair. The handler leaves `maximumT` untouched so every hurtbox on the path is reported, then `BladeSweep` deduplicates per hurtbox and sorts by time-of-impact. Contacts carry `Hurtbox` (fighter + kind), world point, normal, and TOI. A contact that starts inside a shape (`OnHitAtZeroT`) is recorded without a point or normal.
 
-The 0.35 m substep cap prevents tunneling and is asserted in debug builds. Contacts are classified by shape ownership: guard blade → block, body → hit, floor → graze. Ties within 1e-4 s favour the defender. Each swing keeps a hit set so a hurtbox is damaged at most once.
+The 0.35 m substep cap prevents tunneling and is asserted in debug builds. Contacts are classified by shape ownership: guard blade → block, body → hit, floor → graze. Ties within 1e-4 s favour the defender.
+
+`SwingHitSet` owns the per-attack hit set. It turns the first `BladeHit` for each `(fighter, hurtbox)` into a `HitEvent` carrying the attacker, target, hurtbox kind, point, normal, attack definition, and active-window progress; later contacts in the same swing are ignored, and the next attack clears the set. A confirmed hit tints the matching body primitive (and its `F2` outline) for `HitFlashDuration`.
 
 The guard hitbox is frozen when the guard completes; the 1.2° visual breathing is not reflected in physics (~3 cm divergence, accepted).
 

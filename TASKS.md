@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T3.3`
+> **Next up:** `T3.4`
 
 ---
 
@@ -234,15 +234,17 @@
 - Hard cap on sweep distance per substep; assert if exceeded.
 - `BladeSweep` reuses its collections and deduplicates per hurtbox per call; zero-TOI contacts are recorded without a point/normal.
 - Test: `PowerSlash` against a torso at 60 Hz and with six fixed steps per simulated 10 FPS frame; the torso is the first hit and is reported once.
-- Dev feedback: a confirmed contact tints the hit body primitive (and its `F2` outline) for `HitFlashDuration`.
 
 **Done when:** a scripted max-speed power swing against a torso always registers exactly one first-contact event, at 60 Hz and at simulated 10 FPS.
 
-### [ ] T3.3 — Swing damage bookkeeping
+### [x] T3.3 — Swing damage bookkeeping
 **Goal:** one hit per target per swing, with correct contact data.
 - Per-swing `HashSet` of already-hit hurtboxes; independent set per attack (not per fighter).
 - `HitEvent` record: attacker, target, hurtbox kind, world point, normal, attack definition, active-window progress.
-- Sparks spawn at contact point and orient to the normal.
+- A confirmed hit tints the hit body primitive (and its `F2` outline) for `HitFlashDuration`.
+- `SwingHitSet` begins on each attack and deduplicates `(fighter, hurtbox)`.
+- Tests: torso-then-head yields two events, repeats are ignored, a new swing clears, different targets are separate, progress clamps.
+- Contact feedback is the hit-part tint; no spark particles.
 
 **Done when:** a swing that passes through torso then head produces two hits (different hurtboxes) but only one per hurtbox; the hit set resets on the next attack.
 
@@ -403,7 +405,7 @@
 
 ### [ ] T8.1 — Hit VFX from primitives
 **Goal:** contact reads clearly without art assets.
-- Spark burst (small boxes with velocity + gravity + lifetime), block ring (torus flash), guard-break shatter (deformed box shards), subtle hit-flash on the struck fighter's material color.
+- Block ring (torus flash), guard-break shatter (deformed box shards).
 - Pooled, capped at ~256 particles, zero allocations during combat.
 
 **Done when:** clean hit / block / guard break are distinguishable from a still frame; particle count never exceeds the cap.
@@ -493,3 +495,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.10 — Reaction clips | 2026-11-19 | `d9f4d14` | developer |
 | T3.1 — Bepu hurtboxes + primitive body | 2026-11-19 | `588a8f4` | developer |
 | T3.2 — Swept blade cast + hit tint | 2026-11-19 | `12c6f98` | developer |
+| T3.3 — Swing hit events | 2026-11-19 | `PENDING` | developer |

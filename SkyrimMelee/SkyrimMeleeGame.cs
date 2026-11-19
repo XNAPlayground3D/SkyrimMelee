@@ -47,6 +47,7 @@ public sealed class SkyrimMeleeGame : Game
 	private DrMaterial? _hitDebug;
 	private CombatWorld? _combatWorld;
 	private BladeSweep? _bladeSweep;
+	private readonly SwingHitSet _swingHits = new();
 	private BladeGeometry? _lastBlade;
 	private readonly float[] _hitFlashes = new float[2 * 5];
 	private bool _guardHurtbox;
@@ -351,15 +352,21 @@ public sealed class SkyrimMeleeGame : Game
 
 		foreach (var hit in _bladeSweep.Sweep(previous, current, step))
 		{
-			if (hit.Hurtbox.Fighter != FighterId.Opponent ||
-				hit.Hurtbox.Kind == HurtboxKind.GuardBlade)
+			if (!_swingHits.TryRegister(hit, FighterId.Player, _combat.AttackTime,
+					out var hitEvent))
 			{
 				continue;
 			}
 
-			_hitFlashes[HitIndex(hit.Hurtbox.Fighter, hit.Hurtbox.Kind)] =
+			if (hitEvent.Target != FighterId.Opponent ||
+				hitEvent.Hurtbox == HurtboxKind.GuardBlade)
+			{
+				continue;
+			}
+
+			_hitFlashes[HitIndex(hitEvent.Target, hitEvent.Hurtbox)] =
 				CombatTuning.HitFlashDuration;
-			_opponent?.SetBodyPartColor(hit.Hurtbox.Kind, HitFlashColor);
+			_opponent?.SetBodyPartColor(hitEvent.Hurtbox, HitFlashColor);
 		}
 	}
 
@@ -541,6 +548,7 @@ public sealed class SkyrimMeleeGame : Game
 			return;
 		}
 
+		_swingHits.Begin(_slashAttack);
 		PlayClip("SlashLeft");
 	}
 
@@ -552,6 +560,7 @@ public sealed class SkyrimMeleeGame : Game
 			return;
 		}
 
+		_swingHits.Begin(_slashRightAttack);
 		PlayClip("SlashRight");
 	}
 
@@ -563,6 +572,7 @@ public sealed class SkyrimMeleeGame : Game
 			return;
 		}
 
+		_swingHits.Begin(_powerSlashAttack);
 		PlayClip("PowerSlash");
 	}
 
@@ -667,6 +677,7 @@ public sealed class SkyrimMeleeGame : Game
 		_combatWorld?.UnregisterGuardBlade();
 		_guardHurtbox = false;
 		_lastBlade = null;
+		_swingHits.Reset();
 		ClearHitFlashes();
 		_swordMotion.ResetTo(_swordClips[0]);
 		ApplySwordPose();

@@ -111,6 +111,8 @@ Rounded once at the end (`AwayFromZero`), minimum 1 on any connecting hit. Examp
 | Guard break | 16 |
 | Power slash clean | 29 |
 
+Each attack owns a `SwingHitSet`. The first contact with a hurtbox produces a `HitEvent` (attacker, target, hurtbox kind, world point, normal, attack definition, active-window progress); later contacts with that same hurtbox in the same swing are ignored. The next attack starts with a clean set. A confirmed hit tints the hit primitive for `HitFlashDuration`. Damage is applied separately.
+
 ## Blocking
 
 A hit is blocked only if the defender is in `GuardHold`, the guard shape is registered, contact is with the guard blade, and the attacker is inside the front 120° cone.
