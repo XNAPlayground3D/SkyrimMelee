@@ -9,14 +9,14 @@ A Skyrim-inspired greatsword duel between two white capsule fighters — with a 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, capsule fighters, swords, HUD, clip player, attack tuning, orbit-cut SlashLeft · **Next:** `T2.3`
+**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, capsule fighters, swords, HUD, clip player, attack tuning, orbit-cut SlashLeft, guard clips · **Next:** `T2.4`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 45 passing |
+| Tests | ✅ xUnit project, 52 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
@@ -26,8 +26,9 @@ A Skyrim-inspired greatsword duel between two white capsule fighters — with a 
 | HUD from Myra markup | ✅ `T1.5` |
 | Sword clip system | ✅ `T2.1` |
 | SlashLeft clip | ✅ `T2.2` |
-| Guard clips | ⬜ `T2.3` |
+| Guard clips | ✅ `T2.3` |
 | Other attack clips | ⬜ `T2.6`–`T2.9` |
+| Reaction clips | ⬜ `T2.10` |
 | Combat rules | ⬜ `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |
 | HUD & menus | ⬜ `T7.1` |

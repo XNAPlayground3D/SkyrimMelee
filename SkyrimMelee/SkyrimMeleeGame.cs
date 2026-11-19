@@ -48,6 +48,7 @@ public sealed class SkyrimMeleeGame : Game
 	private bool _minusWasDown;
 	private bool _plusWasDown;
 	private bool _leftMouseWasDown;
+	private bool _rightMouseWasDown;
 
 	public SkyrimMeleeGame(GameOptions options)
 	{
@@ -189,10 +190,22 @@ public sealed class SkyrimMeleeGame : Game
 		var leftMouseDown = mouse.LeftButton == ButtonState.Pressed;
 		if (leftMouseDown && !_leftMouseWasDown)
 		{
-			RestartSwordClip();
+			PlaySlash();
 		}
 
 		_leftMouseWasDown = leftMouseDown;
+
+		var rightMouseDown = mouse.RightButton == ButtonState.Pressed;
+		if (rightMouseDown && !_rightMouseWasDown)
+		{
+			PlayGuardRaise();
+		}
+		else if (!rightMouseDown && _rightMouseWasDown)
+		{
+			PlayGuardLower();
+		}
+
+		_rightMouseWasDown = rightMouseDown;
 
 		var steps = _clock.Advance(elapsed);
 		for (var i = 0; i < steps; i++)
@@ -205,6 +218,7 @@ public sealed class SkyrimMeleeGame : Game
 			if (!_swordClipPaused)
 			{
 				_swordMotion.Update((float)elapsed * _swordClipSpeed);
+				AdvanceGuard();
 			}
 
 			ApplySwordPose();
@@ -280,15 +294,83 @@ public sealed class SkyrimMeleeGame : Game
 		_plusWasDown = faster;
 	}
 
-	private void RestartSwordClip()
+	private SwordClip? FindClip(string name) =>
+		_swordClips.FirstOrDefault(clip => clip.Name == name);
+
+	private void PlayClip(string name)
 	{
-		if (_swordMotion is null || _swordClips.Count == 0)
+		if (_swordMotion is null)
+		{
+			return;
+		}
+
+		var clip = FindClip(name);
+		if (clip is null)
+		{
+			return;
+		}
+
+		_swordMotion.Play(clip, restart: true);
+		ApplySwordPose();
+	}
+
+	private void PlaySlash()
+	{
+		_swordClipPaused = false;
+		PlayClip("SlashLeft");
+	}
+
+	private void PlayGuardRaise()
+	{
+		var current = _swordMotion?.Clip?.Name;
+		if (current is "GuardRaise" or "GuardHold")
 		{
 			return;
 		}
 
 		_swordClipPaused = false;
-		_swordMotion.Play(_swordClips[0], restart: true);
+		PlayClip("GuardRaise");
+	}
+
+	private void PlayGuardLower()
+	{
+		var current = _swordMotion?.Clip?.Name;
+		if (current is not ("GuardRaise" or "GuardHold"))
+		{
+			return;
+		}
+
+		_swordClipPaused = false;
+		PlayClip("GuardLower");
+	}
+
+	private void AdvanceGuard()
+	{
+		if (_swordMotion?.Clip is not { } clip || !_swordMotion.IsFinished)
+		{
+			return;
+		}
+
+		if (clip.Name == "GuardRaise")
+		{
+			PlayClip("GuardHold");
+		}
+		else if (clip.Name == "GuardLower")
+		{
+			PlayClip("SlashLeft");
+			_swordClipPaused = true;
+		}
+	}
+
+	private void RestartSwordClip()
+	{
+		if (_swordMotion?.Clip is not { } clip)
+		{
+			return;
+		}
+
+		_swordClipPaused = false;
+		_swordMotion.Play(clip, restart: true);
 		ApplySwordPose();
 	}
 

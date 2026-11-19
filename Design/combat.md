@@ -21,7 +21,7 @@ Weapon: Iron Greatsword, base damage 20, reach 1.47 m.
 | Overhead | `3` | 400 / 140 / 450 | 18 | 1.20 | 20 |
 | Power slash | Shift+LMB | 600 / 160 / 700 | 30 | 1.80 | 45 |
 | Power overhead | Shift+`3` | 750 / 180 / 850 | 40 | 2.20 | 70 |
-| Guard raise / hold / lower | hold RMB | 100 / — / 150 | 0 | — | — |
+| Guard raise / hold / lower | hold RMB | 200 / — / 150 | 0 | — | — |
 
 `1` and `2` force left/right arcs for practice. LMB alternates arcs and starts with right-to-left.
 
@@ -46,7 +46,11 @@ T2.2's dev harness plays the single authored clip: `Space` / `P` pauses, `R` res
 
 T2.2 authors **only** `SlashLeft` and its `AttackDefinition`. `SlashRight`, `Overhead`, `PowerSlash`, and `PowerOverhead` are separate tasks (T2.6–T2.9) so each can be perfected on its own. All phase timings, stamina costs, damage multipliers, and stagger values live in `CombatTuning.cs` and mirror the action table above. Each attack holds its telegraph pose for at least 100 ms before the active window; the validator in `AttackDefinitionTests` enforces it.
 
-`SlashLeft` starts and ends in the idle pose: the hand sits at the right hip and the blade stands nearly vertical, matching Skyrim's standing greatsword idle. The clip is a body-orbit cut: the hands orbit a chest-height pivot at ~0.75 m radius, and the blade points radially outward, so the hands move tangentially while the tip cuts a wide arc through the opponent's space. The wind-up draws the hands behind the right shoulder with the tip high and right, then holds for 100 ms. The blade rolls on the way back so the **cutting edge** leads the sweep, not the flat. The active window is 220 ms so the cut is readable in slow motion; it carries the hands forward and across the chest, the tip drives ~1.0 m forward, and the hilt travels ~1.5 m to the left. The cut finishes low-left and returns to idle. The cut sweeps across the body in the fighter's Z axis, which is the screen plane from the third-person back camera. The blade's broad face is rolled toward the camera on every key so the sweep stays readable. Both hands are part of the sword rig and travel with the hilt; the white capsule body stays static.
+`SlashLeft` starts and ends in the idle pose: the hand sits at the right hip and the blade stands nearly vertical, matching Skyrim's standing greatsword idle. The clip is a body-orbit cut: the hands orbit a chest-height pivot at ~0.75 m radius, and the blade points radially outward, so the hands move tangentially while the tip cuts a wide arc through the opponent's space. The wind-up draws the hands behind the right shoulder with the tip high and right, then holds for 100 ms. The blade rolls on the way back so the **cutting edge** leads the sweep, not the flat. The active window is 220 ms so the cut is readable in slow motion; it carries the hands forward and across the chest, the tip drives ~1.0 m forward, and the hilt travels ~1.5 m to the left. The cut finishes low-left and returns to idle.
+
+### Guard clips
+
+`GuardRaise` (200 ms) starts at the idle, pulls back slightly, then settles into the guard; `GuardHold` loops for 2 s with ~1.8° of blade breathing; `GuardLower` (150 ms) drops with a small follow-through and settles back to idle. The guard pose puts the hands centered in front of the chest and the blade diagonally across the torso, flat toward the opponent, so the blade sits between the fighters. The dev harness raises on RMB press, holds while RMB is down, and lowers on release. The cut sweeps across the body in the fighter's Z axis, which is the screen plane from the third-person back camera. The blade's broad face is rolled toward the camera on every key so the sweep stays readable. Both hands are part of the sword rig and travel with the hilt; the white capsule body stays static.
 
 | State | Clip | Exits |
 | --- | --- | --- |

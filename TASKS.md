@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T2.3`
+> **Next up:** `T2.4`
 
 ---
 
@@ -145,11 +145,11 @@
 
 **Done when:** developer approval of the SlashLeft arc, timing, and hilt/hand motion.
 
-### [ ] T2.3 — Guard clips
+### [x] T2.3 — Guard clips
 **Goal:** blocking looks like a greatsword guard, not a T-pose.
 - `GuardRaise` / `GuardHold` (loop, subtle 1–2° breathing) / `GuardLower`.
 - Guard pose physically covers the torso from the front and places the blade between the fighters.
-- `StaggerSmall` / `StaggerLarge` / `Death` / `Victory` clips.
+- Dev harness: hold RMB to raise/hold, release to lower.
 
 **Done when:** raising/lowering guard has visible anticipation and follow-through; guard blade genuinely occludes the torso from the opponent's direction.
 
@@ -164,7 +164,7 @@
 **Goal:** input-less, damage-less sequencing: idle → wind-up → active → recovery → idle; idle → guard → idle; interruption by stagger.
 - `CombatStateMachine` with explicit states, timers, and a transition table.
 - Commit lock: no transition out of an attack except stagger/death.
-- Guard raise/held/lower with 100 ms raise and 150 ms lower.
+- Guard raise/held/lower with 200 ms raise and 150 ms lower.
 
 **Done when:** FSM debug view shows correct state/timer transitions; forced transitions cannot skip wind-up or active phases.
 
@@ -195,6 +195,13 @@
 - Add it to `SwordClips` / `AttackCatalog`; extend tests.
 
 **Done when:** developer approval of the PowerOverhead arc, timing, and hilt/hand motion.
+
+### [ ] T2.10 — Reaction clips
+**Goal:** add the non-guard reaction animations as their own deliverable (split out of T2.3).
+- `StaggerSmall`, `StaggerLarge`, `Death`, `Victory` clips.
+- Route them through the same `SwordPose`/`SwordClip` authoring; keep the body static.
+
+**Done when:** each reaction reads clearly from the back camera and the developer approves the set.
 
 ---
 
@@ -462,3 +469,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T1.5 — HUD + debug markup | 2026-11-19 | `6b5a248` | developer |
 | T2.1 — sword clip system | 2026-11-19 | `266c883` | developer |
 | T2.2 — SlashLeft clip | 2026-11-19 | `5602692` | developer |
+| T2.3 — guard clips | 2026-11-19 | `PENDING` | developer |

@@ -14,8 +14,21 @@ public static class SwordClips
 
 	public static IReadOnlyList<SwordClip> Create() => new[]
 	{
-		SlashLeft()
+		SlashLeft(),
+		GuardRaise(),
+		GuardHold(),
+		GuardLower()
 	};
+
+	private static SwordPose IdlePose() => Pose(
+		new Vector3(0.40f, 1.02f, 0.28f),
+		new Vector3(-0.05f, 0.999f, 0f),
+		new Vector3(0f, 0f, 1f));
+
+	private static SwordPose GuardPose() => Pose(
+		new Vector3(0.55f, 1.05f, 0.08f),
+		new Vector3(0.15f, 0.88f, -0.45f),
+		new Vector3(0f, 0f, -1f));
 
 	private static SwordClip SlashLeft()
 	{
@@ -23,12 +36,8 @@ public static class SwordClips
 		var windupEnd = CombatTuning.Slash.Windup / duration;
 		var activeEnd = (CombatTuning.Slash.Windup + CombatTuning.Slash.Active) / duration;
 
-		// Skyrim-style idle: hand at the right hip, blade nearly vertical. The edge
-		// hint keeps the broad face toward the back camera at rest.
-		var guard = Pose(
-			new Vector3(0.40f, 1.02f, 0.28f),
-			new Vector3(-0.05f, 0.999f, 0f),
-			new Vector3(0f, 0f, 1f));
+		// Skyrim-style idle: hand at the right hip, blade nearly vertical.
+		var guard = IdlePose();
 
 		// The hands orbit the chest. The blade points radially outward, so the hilt
 		// moves tangentially and the tip cuts a wide arc through the opponent's space.
@@ -74,6 +83,45 @@ public static class SwordClips
 			Key(activeEnd, activeEndPose, Easing.SmoothStep),
 			Key(0.62f / duration, follow),
 			Key(1f, guard));
+	}
+
+	private static SwordClip GuardRaise()
+	{
+		var anticipation = Pose(
+			new Vector3(0.36f, 1.00f, 0.32f),
+			new Vector3(-0.10f, 0.99f, 0.04f),
+			new Vector3(0f, 0f, 1f));
+
+		return new SwordClip("GuardRaise", CombatTuning.GuardRaiseDuration, false,
+			Key(0f, IdlePose(), Easing.EaseOut),
+			Key(0.3f, anticipation, Easing.EaseIn),
+			Key(1f, GuardPose()));
+	}
+
+	private static SwordClip GuardHold()
+	{
+		var breath = Pose(
+			new Vector3(0.55f, 1.06f, 0.075f),
+			new Vector3(0.17f, 0.885f, -0.435f),
+			new Vector3(0f, 0f, -1f));
+
+		return new SwordClip("GuardHold", CombatTuning.GuardHoldDuration, true,
+			Key(0f, GuardPose()),
+			Key(0.5f, breath),
+			Key(1f, GuardPose()));
+	}
+
+	private static SwordClip GuardLower()
+	{
+		var settle = Pose(
+			new Vector3(0.38f, 1.00f, 0.31f),
+			new Vector3(0.01f, 0.999f, -0.03f),
+			new Vector3(0f, 0f, 1f));
+
+		return new SwordClip("GuardLower", CombatTuning.GuardLowerDuration, false,
+			Key(0f, GuardPose(), Easing.EaseIn),
+			Key(0.7f, settle, Easing.EaseOut),
+			Key(1f, IdlePose()));
 	}
 
 	private static SwordKey Key(float time, SwordPose pose, Easing ease = Easing.SmoothStep) =>

@@ -18,7 +18,9 @@ public static class CombatTuning
 {
 	public const float CrossfadeDuration = 0.1f;
 	public const float IdleDuration = 2.5f;
-	public const float GuardRaiseDuration = 0.35f;
+	public const float GuardRaiseDuration = 0.20f;
+	public const float GuardHoldDuration = 2.0f;
+	public const float GuardLowerDuration = 0.15f;
 
 	public const float WeaponBaseDamage = 20f;
 	public const float BladeReach = 1.47f;
