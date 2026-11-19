@@ -407,4 +407,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T0.2 — solution skeleton + xUnit | 2026-11-19 | `9bd499d` | developer |
 | T0.3 — Myra host + debug label | 2026-11-19 | `e927166` | developer |
 | T0.4 — clock, flags, overlay | 2026-11-19 | `7e66931` | developer |
-| T1.1 — primitive cache + showcase | 2026-11-19 | _pending_ | developer |
+| T1.1 — primitive cache + showcase | 2026-11-19 | `80917e4` | developer |
