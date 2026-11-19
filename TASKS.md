@@ -427,4 +427,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T1.3 — fighter rigs & palettes | 2026-11-19 | `fa3ce24` | developer |
 | T1.4 — greatswords & hand pivot | 2026-11-19 | `6b5a248` | developer |
 | T1.5 — HUD + debug markup | 2026-11-19 | `6b5a248` | developer |
-| T2.1 — sword clip system | 2026-11-19 | _pending_ | developer |
+| T2.1 — sword clip system | 2026-11-19 | `266c883` | developer |
