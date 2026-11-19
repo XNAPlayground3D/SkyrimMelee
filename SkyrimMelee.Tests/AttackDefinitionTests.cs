@@ -7,14 +7,18 @@ public class AttackDefinitionTests
 {
 	private static IReadOnlyList<SwordClip> Clips => SwordClips.Create();
 	private static IReadOnlyList<AttackDefinition> Attacks => AttackCatalog.Create(Clips);
+	private static AttackDefinition Attack(string name) => Attacks.Single(a => a.Name == name);
+	private static AttackDefinition SlashLeftAttack => Attack("SlashLeft");
+	private static AttackDefinition SlashRightAttack => Attack("SlashRight");
 
 	[Fact]
-	public void CatalogContainsOnlySlashLeftForThisTask()
+	public void CatalogContainsBothSlashes()
 	{
-		var attacks = Attacks;
+		var names = Attacks.Select(a => a.Name).ToArray();
 
-		Assert.Single(attacks);
-		Assert.Equal("SlashLeft", attacks[0].Name);
+		Assert.Equal(2, names.Length);
+		Assert.Contains("SlashLeft", names);
+		Assert.Contains("SlashRight", names);
 	}
 
 	[Fact]
@@ -87,7 +91,7 @@ public class AttackDefinitionTests
 	[Fact]
 	public void IdleSwordStandsNearlyVertical()
 	{
-		var idle = Attacks.Single().Clip.Keys[0].Pose;
+		var idle = SlashLeftAttack.Clip.Keys[0].Pose;
 		var blade = Vector3.TransformNormal(Vector3.UnitY, Matrix.CreateFromQuaternion(idle.Rotation));
 
 		Assert.True(blade.Y > 0.98f, $"idle blade={blade}");
@@ -96,7 +100,7 @@ public class AttackDefinitionTests
 	[Fact]
 	public void SlashLeftWindsUpBehindThenSweepsLeft()
 	{
-		var keys = Attacks.Single().Clip.Keys;
+		var keys = SlashLeftAttack.Clip.Keys;
 		var windup = keys[2].Pose;
 		var tip = BladeGeometry.FromPose(windup, Matrix.Identity).Tip;
 		var follow = keys[^2].Pose.GripOffset;
@@ -110,7 +114,7 @@ public class AttackDefinitionTests
 	[Fact]
 	public void SlashLeftDrivesTowardTheOpponent()
 	{
-		var keys = Attacks.Single().Clip.Keys;
+		var keys = SlashLeftAttack.Clip.Keys;
 		var windup = keys[2].Pose.GripOffset;
 		var contact = keys[5].Pose.GripOffset;
 
@@ -122,7 +126,7 @@ public class AttackDefinitionTests
 	[Fact]
 	public void SlashLeftHiltTravelsABodyScaleArc()
 	{
-		var keys = Attacks.Single().Clip.Keys;
+		var keys = SlashLeftAttack.Clip.Keys;
 		var maxTravel = 0f;
 
 		for (var i = 0; i < keys.Count; i++)
@@ -141,7 +145,7 @@ public class AttackDefinitionTests
 	[Fact]
 	public void BladeDirectionRoundTripsThroughThePoseBasis()
 	{
-		var hold = Attacks.Single().Clip.Keys[3].Pose;
+		var hold = SlashLeftAttack.Clip.Keys[3].Pose;
 		var blade = Vector3.TransformNormal(Vector3.UnitY, Matrix.CreateFromQuaternion(hold.Rotation));
 
 		var expected = Vector3.Normalize(new Vector3(-0.25f, 0.95f, 0.18f));
@@ -151,7 +155,7 @@ public class AttackDefinitionTests
 	[Fact]
 	public void SlashLeftSweepsTheBladeThroughAWideArc()
 	{
-		var directions = Attacks.Single().Clip.Keys
+		var directions = SlashLeftAttack.Clip.Keys
 			.Select(k => Vector3.TransformNormal(Vector3.UnitY, Matrix.CreateFromQuaternion(k.Pose.Rotation)))
 			.ToArray();
 
@@ -166,6 +170,55 @@ public class AttackDefinitionTests
 		}
 
 		Assert.True(maxAngle > 2f, $"SlashLeft blade sweeps only {MathHelper.ToDegrees(maxAngle):0} degrees.");
+	}
+
+	[Fact]
+	public void SlashRightIsTheMirrorOfSlashLeft()
+	{
+		var left = SlashLeftAttack.Clip;
+		var right = SlashRightAttack.Clip;
+
+		Assert.Equal(left.Duration, right.Duration, 5);
+		Assert.Equal(left.Keys.Count, right.Keys.Count);
+
+		var mirror = Matrix.CreateScale(1f, 1f, -1f);
+
+		for (var i = 0; i < left.Keys.Count; i++)
+		{
+			var leftPose = left.Keys[i].Pose;
+			var rightPose = right.Keys[i].Pose;
+
+			if (i == 0 || i == left.Keys.Count - 1)
+			{
+				Assert.True(SamePose(leftPose, rightPose),
+					"SlashRight must start and end in the same right-side idle");
+				continue;
+			}
+
+			var leftGrip = leftPose.GripOffset + SwordClips.HandAnchor;
+			var rightGrip = rightPose.GripOffset + SwordClips.HandAnchor;
+
+			Assert.Equal(leftGrip.X, rightGrip.X, 4);
+			Assert.Equal(leftGrip.Y, rightGrip.Y, 4);
+			Assert.Equal(-leftGrip.Z, rightGrip.Z, 4);
+
+			var expected = mirror * Matrix.CreateFromQuaternion(leftPose.Rotation) * mirror;
+			var actual = Matrix.CreateFromQuaternion(rightPose.Rotation);
+
+			AssertVec(Vector3.TransformNormal(Vector3.UnitX, expected),
+				Vector3.TransformNormal(Vector3.UnitX, actual));
+			AssertVec(Vector3.TransformNormal(Vector3.UnitY, expected),
+				Vector3.TransformNormal(Vector3.UnitY, actual));
+			AssertVec(Vector3.TransformNormal(Vector3.UnitZ, expected),
+				Vector3.TransformNormal(Vector3.UnitZ, actual));
+		}
+	}
+
+	private static void AssertVec(Vector3 expected, Vector3 actual)
+	{
+		Assert.Equal(expected.X, actual.X, 4);
+		Assert.Equal(expected.Y, actual.Y, 4);
+		Assert.Equal(expected.Z, actual.Z, 4);
 	}
 
 	private static bool SamePose(SwordPose a, SwordPose b) =>

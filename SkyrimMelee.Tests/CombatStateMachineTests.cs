@@ -5,7 +5,7 @@ namespace SkyrimMelee.Tests;
 public class CombatStateMachineTests
 {
 	private static AttackDefinition Slash() =>
-		AttackCatalog.Create(SwordClips.Create()).Single();
+		AttackCatalog.Create(SwordClips.Create()).Single(a => a.Name == "SlashLeft");
 
 	[Fact]
 	public void StartsIdle()

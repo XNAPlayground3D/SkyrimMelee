@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T2.6`
+> **Next up:** `T2.7`
 
 ---
 
@@ -170,10 +170,11 @@
 
 **Done when:** FSM debug view shows correct state/timer transitions; forced transitions cannot skip wind-up or active phases.
 
-### [ ] T2.6 — SlashRight clip
+### [x] T2.6 — SlashRight clip
 **Goal:** add the mirrored slash as its own deliverable.
-- Author `SlashRight` from the approved `SlashLeft`, mirrored, with the same timing and telegraph-hold rules.
-- Add it to `SwordClips` / `AttackCatalog`; extend the catalog tests.
+- Author `SlashRight` as the mirror of the approved `SlashLeft`: grip Z and Euler pitch/yaw negated, same 250 / 220 / 350 ms timing and 110 ms telegraph hold.
+- Add it to `SwordClips` / `AttackCatalog`; tests assert the mirror and the generic rules.
+- Dev harness: `1` / LMB plays `SlashLeft`, `2` plays `SlashRight`.
 
 **Done when:** developer approval of the SlashRight arc, timing, and hilt/hand motion.
 
@@ -474,3 +475,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.3 — guard clips | 2026-11-19 | `01819f2` | developer |
 | T2.4 — clip → blade segment | 2026-11-19 | `71c3ac4` | developer |
 | T2.5 — combat state machine | 2026-11-19 | `a7954ae` | developer |
+| T2.6 — SlashRight clip | 2026-11-19 | `PENDING` | developer |

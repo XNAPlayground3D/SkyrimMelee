@@ -14,9 +14,13 @@ public static class SwordClips
 
 	private const float DegreesToRadians = MathF.PI / 180f;
 
+	/// <summary>Fighter-local sword-hand attachment; the mirror uses it to reflect around the body centre.</summary>
+	public static Vector3 HandAnchor => SwordHand;
+
 	public static IReadOnlyList<SwordClip> Create() => new[]
 	{
 		SlashLeft(),
+		SlashRight(),
 		GuardRaise(),
 		GuardHold(),
 		GuardLower()
@@ -73,6 +77,33 @@ public static class SwordClips
 			Key(activeEnd, activeEndPose, Easing.SmoothStep),
 			Key(0.62f / duration, follow),
 			Key(1f, guard));
+	}
+
+	private static SwordClip SlashRight()
+	{
+		var left = SlashLeft();
+		var last = left.Keys.Count - 1;
+		var keys = left.Keys
+			.Select((key, index) => new SwordKey(
+				key.Time,
+				index == 0 || index == last ? IdlePose() : MirrorPose(key.Pose),
+				key.EaseToNext))
+			.ToArray();
+
+		return new SwordClip("SlashRight", left.Duration, false, keys);
+	}
+
+	/// <summary>Reflects a pose across the fighter's X-Y plane.</summary>
+	private static SwordPose MirrorPose(SwordPose pose)
+	{
+		var offset = new Vector3(
+			pose.GripOffset.X,
+			pose.GripOffset.Y,
+			-pose.GripOffset.Z - 2f * SwordHand.Z);
+		var mirror = Matrix.CreateScale(1f, 1f, -1f);
+		var rotation = mirror * Matrix.CreateFromQuaternion(pose.Rotation) * mirror;
+
+		return new SwordPose(offset, Quaternion.CreateFromRotationMatrix(rotation));
 	}
 
 	private static SwordClip GuardRaise()

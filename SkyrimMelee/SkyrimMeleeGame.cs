@@ -46,8 +46,10 @@ public sealed class SkyrimMeleeGame : Game
 	private SwordMotion? _swordMotion;
 	private IReadOnlyList<SwordClip> _swordClips = Array.Empty<SwordClip>();
 	private AttackDefinition? _slashAttack;
+	private AttackDefinition? _slashRightAttack;
 	private readonly CombatStateMachine _combat = new();
-	private bool _swordClipPaused;
+	private bool _paused;
+	private double _baseTimeScale = 1.0;
 	private float _swordClipSpeed = 1f;
 	private float _fps;
 	private double _fpsWindowTime;
@@ -55,10 +57,12 @@ public sealed class SkyrimMeleeGame : Game
 	private double _labelTimer;
 	private bool _f1WasDown;
 	private bool _f2WasDown;
-	private bool _spaceWasDown;
+	private bool _pauseWasDown;
 	private bool _rWasDown;
 	private bool _minusWasDown;
 	private bool _plusWasDown;
+	private bool _d1WasDown;
+	private bool _d2WasDown;
 	private bool _leftMouseWasDown;
 	private bool _rightMouseWasDown;
 
@@ -72,10 +76,8 @@ public sealed class SkyrimMeleeGame : Game
 			SynchronizeWithVerticalRetrace = true
 		};
 
-		if (options.SlowMotion)
-		{
-			_clock.TimeScale = 0.25;
-		}
+		_baseTimeScale = options.SlowMotion ? 0.25 : 1.0;
+		_clock.TimeScale = _baseTimeScale;
 
 		// Draw at the display rate; the simulation advances through GameClock.
 		IsFixedTimeStep = false;
@@ -124,10 +126,16 @@ public sealed class SkyrimMeleeGame : Game
 		_axisZ = _primitives.CreateMaterial(AxisZColor);
 
 		_swordClips = SwordClips.Create();
-		_slashAttack = AttackCatalog.Create(_swordClips).Single(attack => attack.Name == "SlashLeft");
+		var attacks = AttackCatalog.Create(_swordClips);
+		_slashAttack = attacks.Single(attack => attack.Name == "SlashLeft");
+		_slashRightAttack = attacks.Single(attack => attack.Name == "SlashRight");
 		_swordMotion = new SwordMotion();
 		_swordMotion.ResetTo(_swordClips[0], _options.ClipTime ?? 0f);
-		_swordClipPaused = true;
+
+		if (_options.ClipTime is not null)
+		{
+			SetPaused(true);
+		}
 
 		ApplySwordPose();
 
@@ -231,7 +239,7 @@ public sealed class SkyrimMeleeGame : Game
 
 		if (_swordMotion is not null)
 		{
-			if (!_swordClipPaused)
+			if (!_paused)
 			{
 				AdvanceGuard();
 			}
@@ -256,14 +264,19 @@ public sealed class SkyrimMeleeGame : Game
 
 	private void StepSimulation()
 	{
-		if (_swordClipPaused)
+		if (_paused)
 		{
 			return;
 		}
 
 		var step = (float)_clock.DeltaTime * _swordClipSpeed;
+
+		if (_combat.State != CombatState.Idle)
+		{
+			_swordMotion?.Update(step);
+		}
+
 		_combat.Update(step);
-		_swordMotion?.Update(step);
 	}
 
 	private void UpdateFps(double elapsed)
@@ -283,13 +296,29 @@ public sealed class SkyrimMeleeGame : Game
 
 	private void UpdateSwordClipInput(KeyboardState keyboard)
 	{
-		var pause = keyboard.IsKeyDown(Keys.Space) || keyboard.IsKeyDown(Keys.P);
-		if (pause && !_spaceWasDown)
+		var leftSlash = keyboard.IsKeyDown(Keys.D1) || keyboard.IsKeyDown(Keys.NumPad1);
+		if (leftSlash && !_d1WasDown)
 		{
-			_swordClipPaused = !_swordClipPaused;
+			PlaySlash();
 		}
 
-		_spaceWasDown = pause;
+		_d1WasDown = leftSlash;
+
+		var rightSlash = keyboard.IsKeyDown(Keys.D2) || keyboard.IsKeyDown(Keys.NumPad2);
+		if (rightSlash && !_d2WasDown)
+		{
+			PlaySlashRight();
+		}
+
+		_d2WasDown = rightSlash;
+
+		var pause = keyboard.IsKeyDown(Keys.P);
+		if (pause && !_pauseWasDown)
+		{
+			SetPaused(!_paused);
+		}
+
+		_pauseWasDown = pause;
 
 		var restart = keyboard.IsKeyDown(Keys.R);
 		if (restart && !_rWasDown)
@@ -338,35 +367,51 @@ public sealed class SkyrimMeleeGame : Game
 
 	private void PlaySlash()
 	{
-		if (_swordMotion is null || _slashAttack is null || !_combat.TryStartAttack(_slashAttack))
+		if (_paused || _swordMotion is null || _slashAttack is null ||
+			!_combat.TryStartAttack(_slashAttack))
 		{
 			return;
 		}
 
-		_swordClipPaused = false;
 		PlayClip("SlashLeft");
+	}
+
+	private void PlaySlashRight()
+	{
+		if (_paused || _swordMotion is null || _slashRightAttack is null ||
+			!_combat.TryStartAttack(_slashRightAttack))
+		{
+			return;
+		}
+
+		PlayClip("SlashRight");
 	}
 
 	private void PlayGuardRaise()
 	{
-		if (_swordMotion is null || !_combat.TryStartGuard())
+		if (_paused || _swordMotion is null || !_combat.TryStartGuard())
 		{
 			return;
 		}
 
-		_swordClipPaused = false;
 		PlayClip("GuardRaise");
 	}
 
 	private void PlayGuardLower()
 	{
-		if (_swordMotion is null || !_combat.TryReleaseGuard())
+		if (_paused || _swordMotion is null || !_combat.TryReleaseGuard())
 		{
 			return;
 		}
 
-		_swordClipPaused = false;
 		PlayClip("GuardLower");
+	}
+
+	private void SetPaused(bool paused)
+	{
+		_paused = paused;
+		_clock.TimeScale = paused ? 0.0 : _baseTimeScale;
+		_hud?.UpdatePause(_paused);
 	}
 
 	private void AdvanceGuard()
@@ -383,7 +428,6 @@ public sealed class SkyrimMeleeGame : Game
 		else if (clip.Name == "GuardLower")
 		{
 			PlayClip("SlashLeft");
-			_swordClipPaused = true;
 		}
 	}
 
@@ -395,7 +439,6 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_combat.Reset();
-		_swordClipPaused = true;
 		_swordMotion.ResetTo(_swordClips[0]);
 		ApplySwordPose();
 	}
@@ -583,6 +626,7 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_hud.UpdateStats(_fps, _renderer?.DrawCalls ?? 0, _renderer?.PrimitivesDrawn ?? 0);
+		_hud.UpdatePause(_paused);
 		_overlay?.Update(_clock, _combat, _swordMotion?.Clip?.Name ?? "-",
 			_swordMotion?.NormalizedTime ?? 0f);
 	}
