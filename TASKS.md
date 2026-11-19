@@ -404,4 +404,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | Task | Date | Commit | Confirmed by |
 | --- | --- | --- | --- |
 | T0.1 — toolchain verification | 2026-11-19 | `8b19835` | developer |
-| T0.2 — solution skeleton + xUnit | 2026-11-19 | _pending_ | developer |
+| T0.2 — solution skeleton + xUnit | 2026-11-19 | `9bd499d` | developer |
