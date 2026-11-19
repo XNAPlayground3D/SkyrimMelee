@@ -51,7 +51,7 @@ Intent tracks use absolute sim times. Output is one `PASS/FAIL` line per scenari
 - [ ] Both fighters framed in every camera preset; arcs read left / right / overhead.
 - [ ] Telegraphs visible in real time, not just slow motion.
 - [ ] Hurtbox wireframes match the statue; VFX appear at contact points.
-- [ ] Alt-tab mid-swing pauses and resumes; resize keeps HUD and aspect.
+- [ ] Alt-tab mid-swing pauses and resumes; resize re-anchors the HUD without clipping.
 - [ ] Timed block, guard break, and stagger are distinguishable in one glance.
 - [ ] Every menu works by mouse and keyboard; Resume never swings.
 - [ ] Pause freezes the blade mid-air; results numbers match debug counters.

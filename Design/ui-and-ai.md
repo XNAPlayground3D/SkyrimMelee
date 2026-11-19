@@ -2,9 +2,10 @@
 
 ## UI
 
-Myra runs on a virtual **1600 × 900** canvas, letterboxed and integer-scaled. Minimum window 1280 × 720; resizing never reflows the HUD. World renders first, Myra last.
+Myra renders at the window's **native resolution**. The HUD anchors to the edges and centre, so it adapts to any window size without a virtual canvas or scaling layer. Minimum window 1280 × 720. World renders first, Myra last.
 
-- Myra ships an embedded FontStashSharp font; no content pipeline and no font files. Extra sizes, if a screen needs them, come from a `FontSystem` plus one redistributable TTF (or a scaled wrapper) — still no image assets.
+- Myra embeds Inter-Regular.ttf and exposes it through `DefaultAssets.DebugFontSystem`; any size comes from `GetFont(size)`. No content pipeline, no font files, no image assets.
+- `MyraHost` is a thin owner of `MyraEnvironment` + `Desktop`. The desktop uses the window bounds directly, so mouse input needs no remapping.
 - `UiSkin` builds a flat style from colours and runtime 1×1 textures; Myra defaults that need atlases are overridden.
 - Palette: ink `#12141A`, panel `#1B1E26`, text `#E6DCC8`, accent `#8FA6C0`, health `#B03A34`, stamina `#6FA76F`, danger `#C4553F`.
 
@@ -23,7 +24,7 @@ Boot → MainMenu → Duel → Pause → Options
 | Results | Outcome, score, hits, damage, blocks, timed blocks, guard breaks, Rematch |
 | Options | Volume, screen shake, debug default, difficulty; session-only |
 
-HUD layout: player bars top-left (health 420 × 18, stamina 340 × 10), opponent mirrored top-right, round pips centre-top, banner centred. Bars animate; text is cached; zero allocations per frame.
+HUD layout: player bars anchored top-left (health at most 420 × 18, stamina at most 340 × 10, both in a 24 px inset), opponent mirrored top-right, round pips centre-top, banner centred. Bars animate; text is cached; zero allocations per frame. On narrow windows bars shrink with their anchor; they never overlap the centre.
 
 **Input ownership:** blocking screens give Myra all input; the HUD never captures. Closing a screen sets a release latch so the click that resumed the game cannot swing. Losing focus auto-pauses, clears the intent buffer, and latches. `Esc` belongs to the UI.
 

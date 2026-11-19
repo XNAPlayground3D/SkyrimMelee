@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T0.3`
+> **Next up:** `T0.4`
 
 ---
 
@@ -50,13 +50,13 @@
 
 **Done when:** build and tests are warning-free, window opens and closes cleanly, `.gitignore` keeps the working tree clean.
 
-### [ ] T0.3 — Myra host and UI text
+### [x] T0.3 — Myra host and UI text
 **Goal:** text can be drawn on screen.
-- `Ui/MyraHost.cs`: a `MyraEnvironment` + root `Desktop` that survives resizing, letterboxed to a virtual 1600×900 resolution.
+- `Ui/MyraHost.cs`: a `MyraEnvironment` + root `Desktop` at the native window resolution; anchored layout survives resizing without a virtual canvas.
 - Use Myra's embedded FontStashSharp font. No `.spritefont`, no content pipeline; add a `FontSystem` + one TTF only if a screen needs sizes the embedded font cannot provide.
 - Top-left debug label showing FPS, build config, and fixed-step drift.
 
-**Done when:** the label renders crisply at 1600×900 and after resizing; no content pipeline or font files are required.
+**Done when:** the label renders crisply at the default size and after resizing; no content pipeline or font files are required.
 
 ### [ ] T0.4 — Debug flags and the run loop
 **Goal:** the developer can inspect the game from day one.
@@ -405,3 +405,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | --- | --- | --- | --- |
 | T0.1 — toolchain verification | 2026-11-19 | `8b19835` | developer |
 | T0.2 — solution skeleton + xUnit | 2026-11-19 | `9bd499d` | developer |
+| T0.3 — Myra host + debug label | 2026-11-19 | _pending_ | developer |

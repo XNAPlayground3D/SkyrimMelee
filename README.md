@@ -9,7 +9,7 @@ A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 0 — skeleton running · **Code:** `.slnx` + fixed 60 Hz loop · **Next:** `T0.3`
+**Last updated:** 2026-11-19 · **Phase:** 0 — text on screen · **Code:** solution, fixed 60 Hz loop, Myra host · **Next:** `T0.4`
 
 | Area | State |
 | --- | --- |
@@ -17,10 +17,11 @@ A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the 
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
 | Tests | ✅ xUnit project, 11 passing |
+| UI host & debug label | ✅ `T0.3` |
 | Primitive rendering | ⬜ `T1.1` |
 | Sword motion & combat | ⬜ `T2.1` / `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |
-| Myra UI | ⬜ `T7.1` |
+| HUD & menus | ⬜ `T7.1` |
 
 ## Stack
 
