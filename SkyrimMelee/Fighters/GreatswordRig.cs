@@ -12,12 +12,13 @@ public sealed class GreatswordRig : IDisposable
 {
 	public const float BladeTipY = 1.47f;
 
-	public GreatswordRig(PrimitiveLibrary primitives)
+	public GreatswordRig(PrimitiveLibrary primitives, Color handColor)
 	{
 		var steel = primitives.CreateMaterial(new Color(0xAE, 0xB7, 0xC2));
 		var steelDark = primitives.CreateMaterial(new Color(0x6E, 0x7A, 0x88));
 		var leather = primitives.CreateMaterial(new Color(0x4A, 0x35, 0x27));
 		var brass = primitives.CreateMaterial(new Color(0xC9, 0xA2, 0x4B));
+		var skin = primitives.CreateMaterial(handColor);
 
 		var bones = new List<DrModelBone>();
 
@@ -40,6 +41,10 @@ public sealed class GreatswordRig : IDisposable
 		Add("BladeUpper", primitives.Box, steel, new Vector3(0f, 1.06f, 0f), new Vector3(0.070f, 0.48f, 0.020f));
 		Add("Tip", primitives.Cone, steel, new Vector3(0f, 1.385f, 0f), new Vector3(0.07f, 0.17f, 0.07f));
 		Add("Fuller", primitives.Box, steelDark, new Vector3(0f, 0.72f, 0f), new Vector3(0.018f, 0.80f, 0.026f));
+
+		// Hands are part of the sword rig so they travel with the hilt; the arms stay static.
+		Add("HandR", primitives.Box, skin, new Vector3(0f, 0.02f, 0f), new Vector3(0.09f, 0.13f, 0.07f));
+		Add("HandL", primitives.Box, skin, new Vector3(0f, -0.10f, 0f), new Vector3(0.09f, 0.13f, 0.07f));
 
 		Model = new DrModel(new DrModelBone("Sword") { Children = bones.ToArray() });
 		Instance = new DrModelInstance(Model);

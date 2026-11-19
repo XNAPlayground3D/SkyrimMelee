@@ -17,11 +17,11 @@ The game recreates Skyrim's **melee rules**, not its world: stamina economy, att
 | # | Constraint | Consequence |
 | --- | --- | --- |
 | 1 | **No 3D model files.** Everything is generated at runtime from primitives. | Fighters, sword, arena, and VFX are boxes, capsules, spheres, cylinders, cones, discs, and lines. No non-code assets are required: Myra embeds its default UI font. |
-| 2 | **No skeletal animation.** The body is a statue. | Motion is a keyframed transform of the sword on a hand pivot. No joints, no skinning, no IK. |
+| 2 | **No skeletal animation.** The body is a static white capsule. | Motion is a keyframed transform of the sword on a hand pivot. No joints, no skinning, no IK. |
 
 ### The two-handed grip
 
-A second hand cannot follow a moving hilt without arm animation, so the greatsword is held one-handed by the right hand pivot; the left arm is posed across the torso as a bracing off-hand. If that reads poorly at T1.4, the fallback is attaching two hand primitives to the sword rig rather than animating arms.
+The body is a single white capsule, so there are no static arms for a moving hilt to disconnect from. The hands are still **part of the sword rig**: both hand boxes are attached to the grip and travel with it. The capsule never moves; this keeps the sword readable without pretending the body can swing it.
 
 ## Scope
 
@@ -73,8 +73,8 @@ Verified end-to-end on 2026-11-19 with .NET SDK 10.0.401 (T0.1): window + render
 | R2 | Bepu `Sweep` API differs from assumptions | ✅ Retired: `Sweep(shape, pose, velocity, maxT, pool, handler)` verified |
 | R3 | Myra font/content pipeline on .NET 10 | ✅ Retired: Myra ships a `DynamicSpriteFont`; no content pipeline needed |
 | R4 | Blade tunneling at high swing speed | Open — T3.2 / T3.5 |
-| R5 | Primitive statue reads as a pile of boxes | Open — T1.3 |
-| R6 | Off-hand gap visible during wide arcs | Open — T1.4 |
+| R5 | Primitive statue reads as a pile of boxes | ✅ Retired: the body is a single white capsule |
+| R6 | Off-hand gap visible during wide arcs | ✅ Retired: the capsule has no arms to gap against |
 
 ## Open questions (defaults already assumed)
 

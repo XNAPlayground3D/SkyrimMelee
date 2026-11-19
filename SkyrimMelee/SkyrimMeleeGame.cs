@@ -35,7 +35,6 @@ public sealed class SkyrimMeleeGame : Game
 	private ScreenGradient? _backdrop;
 	private SwordMotion? _swordMotion;
 	private IReadOnlyList<SwordClip> _swordClips = Array.Empty<SwordClip>();
-	private int _swordClipIndex;
 	private bool _swordClipPaused;
 	private float _swordClipSpeed = 1f;
 	private float _fps;
@@ -45,11 +44,10 @@ public sealed class SkyrimMeleeGame : Game
 	private bool _f1WasDown;
 	private bool _f2WasDown;
 	private bool _spaceWasDown;
-	private bool _leftBracketWasDown;
-	private bool _rightBracketWasDown;
 	private bool _rWasDown;
 	private bool _minusWasDown;
 	private bool _plusWasDown;
+	private bool _leftMouseWasDown;
 
 	public SkyrimMeleeGame(GameOptions options)
 	{
@@ -100,10 +98,10 @@ public sealed class SkyrimMeleeGame : Game
 		_primitives = new PrimitiveLibrary(GraphicsDevice);
 		_renderer = new ForwardRenderer(GraphicsDevice) { Wireframe = _options.Debug };
 		_arena = new Arena(_primitives);
-		_player = new FighterRig(_primitives, FighterVisuals.Player, new Vector3(-1f, 0f, 0f), 0f);
-		_opponent = new FighterRig(_primitives, FighterVisuals.Opponent, new Vector3(1f, 0f, 0f), MathHelper.Pi);
-		_playerSword = new GreatswordRig(_primitives);
-		_opponentSword = new GreatswordRig(_primitives);
+		_player = new FighterRig(_primitives, new Vector3(-1f, 0f, 0f), 0f);
+		_opponent = new FighterRig(_primitives, new Vector3(1f, 0f, 0f), MathHelper.Pi);
+		_playerSword = new GreatswordRig(_primitives, FighterVisuals.PlayerHand);
+		_opponentSword = new GreatswordRig(_primitives, FighterVisuals.OpponentHand);
 		_gizmoGrip = _primitives.CreateMaterial(new Color(0xFF, 0x6B, 0x4A));
 		_gizmoMid = _primitives.CreateMaterial(new Color(0x9F, 0xD8, 0xFF));
 		_gizmoTip = _primitives.CreateMaterial(new Color(0xFF, 0xD2, 0x7A));
@@ -111,6 +109,13 @@ public sealed class SkyrimMeleeGame : Game
 		_swordClips = SwordClips.Create();
 		_swordMotion = new SwordMotion();
 		_swordMotion.Play(_swordClips[0]);
+		_swordClipPaused = true;
+
+		if (_options.SlowMotion)
+		{
+			_swordClipSpeed = 0.25f;
+		}
+
 		ApplySwordPose();
 
 		_backdrop = new ScreenGradient(GraphicsDevice);
@@ -180,6 +185,15 @@ public sealed class SkyrimMeleeGame : Game
 		UpdateFps(elapsed);
 		UpdateSwordClipInput(keyboard);
 
+		var mouse = Mouse.GetState();
+		var leftMouseDown = mouse.LeftButton == ButtonState.Pressed;
+		if (leftMouseDown && !_leftMouseWasDown)
+		{
+			RestartSwordClip();
+		}
+
+		_leftMouseWasDown = leftMouseDown;
+
 		var steps = _clock.Advance(elapsed);
 		for (var i = 0; i < steps; i++)
 		{
@@ -233,22 +247,6 @@ public sealed class SkyrimMeleeGame : Game
 
 	private void UpdateSwordClipInput(KeyboardState keyboard)
 	{
-		var previous = keyboard.IsKeyDown(Keys.Q) || keyboard.IsKeyDown(Keys.OemOpenBrackets);
-		if (previous && !_leftBracketWasDown)
-		{
-			SelectSwordClip(-1);
-		}
-
-		_leftBracketWasDown = previous;
-
-		var next = keyboard.IsKeyDown(Keys.E) || keyboard.IsKeyDown(Keys.OemCloseBrackets);
-		if (next && !_rightBracketWasDown)
-		{
-			SelectSwordClip(1);
-		}
-
-		_rightBracketWasDown = next;
-
 		var pause = keyboard.IsKeyDown(Keys.Space) || keyboard.IsKeyDown(Keys.P);
 		if (pause && !_spaceWasDown)
 		{
@@ -268,7 +266,7 @@ public sealed class SkyrimMeleeGame : Game
 		var slower = keyboard.IsKeyDown(Keys.Z) || keyboard.IsKeyDown(Keys.OemMinus);
 		if (slower && !_minusWasDown)
 		{
-			_swordClipSpeed = MathF.Max(0.1f, _swordClipSpeed - 0.1f);
+			_swordClipSpeed = MathF.Max(0.05f, _swordClipSpeed - 0.1f);
 		}
 
 		_minusWasDown = slower;
@@ -282,19 +280,6 @@ public sealed class SkyrimMeleeGame : Game
 		_plusWasDown = faster;
 	}
 
-	private void SelectSwordClip(int delta)
-	{
-		if (_swordMotion is null || _swordClips.Count == 0)
-		{
-			return;
-		}
-
-		_swordClipIndex = (_swordClipIndex + delta + _swordClips.Count) % _swordClips.Count;
-		_swordClipPaused = false;
-		_swordMotion.Play(_swordClips[_swordClipIndex], restart: true);
-		ApplySwordPose();
-	}
-
 	private void RestartSwordClip()
 	{
 		if (_swordMotion is null || _swordClips.Count == 0)
@@ -303,7 +288,7 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_swordClipPaused = false;
-		_swordMotion.Play(_swordClips[_swordClipIndex], restart: true);
+		_swordMotion.Play(_swordClips[0], restart: true);
 		ApplySwordPose();
 	}
 

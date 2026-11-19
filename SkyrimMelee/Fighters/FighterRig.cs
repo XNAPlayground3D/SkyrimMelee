@@ -4,14 +4,14 @@ using SkyrimMelee.Graphics;
 
 namespace SkyrimMelee.Fighters;
 
-/// <summary>A static fighter statue plus its placement in the arena.</summary>
+/// <summary>A white capsule placeholder plus its placement in the arena.</summary>
 public sealed class FighterRig : IDisposable
 {
 	private readonly int _rightHandIndex;
 
-	public FighterRig(PrimitiveLibrary primitives, FighterPalette palette, Vector3 position, float facingYaw)
+	public FighterRig(PrimitiveLibrary primitives, Vector3 position, float facingYaw)
 	{
-		Model = FighterRigBuilder.Build(primitives, palette);
+		Model = FighterRigBuilder.Build(primitives);
 		Instance = new DrModelInstance(Model);
 		Transform = Matrix.CreateRotationY(facingYaw) * Matrix.CreateTranslation(position);
 

@@ -18,12 +18,11 @@
                         Margin="0,20,24,0" Spacing="2" Padding="10" Background="#00000066">
       <Label Text="CONTROLS" TextColor="#8FA6C0" />
       <Label Text="amber = not yet implemented" TextColor="#7A7A86" />
-      <Label Text="LMB              Slash" TextColor="#C9A24B" />
+      <Label Text="LMB              Slash" TextColor="#E6DCC8" />
       <Label Text="Shift + LMB      Power slash" TextColor="#C9A24B" />
       <Label Text="1 / 2 / 3        Left / right / overhead" TextColor="#C9A24B" />
       <Label Text="Shift + 3        Power overhead" TextColor="#C9A24B" />
       <Label Text="RMB (hold)       Block" TextColor="#C9A24B" />
-      <Label Text="Q / E or [ ]     Cycle clip (dev)" TextColor="#E6DCC8" />
       <Label Text="Space or P       Pause clip (dev)" TextColor="#E6DCC8" />
       <Label Text="R                Restart clip (dev)" TextColor="#E6DCC8" />
       <Label Text="Z / X or - =     Clip speed (dev)" TextColor="#E6DCC8" />

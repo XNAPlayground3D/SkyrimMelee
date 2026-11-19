@@ -17,7 +17,7 @@ Weapon: Iron Greatsword, base damage 20, reach 1.47 m.
 
 | Action | Input | Wind-up / Active / Recovery | Stamina | Damage × | Stagger |
 | --- | --- | --- | --- | --- | --- |
-| Slash | LMB | 250 / 120 / 350 | 12 | 1.00 | 10 |
+| Slash | LMB | 250 / 220 / 350 | 12 | 1.00 | 10 |
 | Overhead | `3` | 400 / 140 / 450 | 18 | 1.20 | 20 |
 | Power slash | Shift+LMB | 600 / 160 / 700 | 30 | 1.80 | 45 |
 | Power overhead | Shift+`3` | 750 / 180 / 850 | 40 | 2.20 | 70 |
@@ -42,7 +42,11 @@ Clips: `Idle`, `GuardRaise`, `GuardHold`, `GuardLower`, `SlashLeft`, `SlashRight
 
 Each attack clip covers its full wind-up + active + recovery and holds the telegraph pose for ≥ 100 ms. The active window is the only time the blade can hit. Poses are sampled at simulation time, so mesh and hitbox are identical. Clips cross-fade over 100 ms when the state changes.
 
-T2.1 ships a dev clip player: `Q` / `E` (or `[` / `]`) cycles the placeholder clips, `Space` (or `P`) pauses, `R` restarts, `Z` / `X` (or `-` / `=`) changes speed. The HUD shows the current clip name, speed multiplier, and progress (`50ms/120ms`); the F1 overlay shows the clip name and normalized time. The authored attack clips arrive in T2.2.
+T2.2's dev harness plays the single authored clip: `Space` / `P` pauses, `R` restarts, `Z` / `X` (or `-` / `=`) changes speed. The HUD shows the current clip name, speed multiplier, and progress (`50ms/120ms`); the F1 overlay shows the clip name and normalized time.
+
+T2.2 authors **only** `SlashLeft` and its `AttackDefinition`. `SlashRight`, `Overhead`, `PowerSlash`, and `PowerOverhead` are separate tasks (T2.6–T2.9) so each can be perfected on its own. All phase timings, stamina costs, damage multipliers, and stagger values live in `CombatTuning.cs` and mirror the action table above. Each attack holds its telegraph pose for at least 100 ms before the active window; the validator in `AttackDefinitionTests` enforces it.
+
+`SlashLeft` starts and ends in the idle pose: the hand sits at the right hip and the blade stands nearly vertical, matching Skyrim's standing greatsword idle. The clip is a body-orbit cut: the hands orbit a chest-height pivot at ~0.75 m radius, and the blade points radially outward, so the hands move tangentially while the tip cuts a wide arc through the opponent's space. The wind-up draws the hands behind the right shoulder with the tip high and right, then holds for 100 ms. The blade rolls on the way back so the **cutting edge** leads the sweep, not the flat. The active window is 220 ms so the cut is readable in slow motion; it carries the hands forward and across the chest, the tip drives ~1.0 m forward, and the hilt travels ~1.5 m to the left. The cut finishes low-left and returns to idle. The cut sweeps across the body in the fighter's Z axis, which is the screen plane from the third-person back camera. The blade's broad face is rolled toward the camera on every key so the sweep stays readable. Both hands are part of the sword rig and travel with the hilt; the white capsule body stays static.
 
 | State | Clip | Exits |
 | --- | --- | --- |

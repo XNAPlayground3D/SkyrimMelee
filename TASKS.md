@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T2.2`
+> **Next up:** `T2.3`
 
 ---
 
@@ -20,7 +20,7 @@
 ## Invariants (do not delete or weaken)
 
 1. No 3D model files, ever. Everything is built from `MeshPrimitives` primitives or hand-written vertex data.
-2. No skeletal animation, no skinning, no rig hierarchy with animated joints. The body is a statue; only the sword (and its hand pivot) moves.
+2. No skeletal animation, no skinning, no rig hierarchy with animated joints. The body is a static white capsule; only the sword (and its hand pivot) moves.
 3. Combat numbers live in `CombatTuning.cs`, not inline in logic.
 4. Combat resolution is deterministic and runnable headless (`--self-test`).
 5. `dotnet build SkyrimMelee.slnx` is green before any task is reported finished.
@@ -132,13 +132,18 @@
 
 **Done when:** dev harness can play any clip at any speed and the sword motion looks continuous (no snapping) across clip changes.
 
-### [ ] T2.2 — Attack clips and definitions
-**Goal:** the five attacks from [Design/combat](Design/combat.md#actions) exist, are readable, and are tunable.
-- Clips: `SlashLeft`, `SlashRight`, `Overhead`, `PowerSlash`, `PowerOverhead` authored to match the timings table.
-- `AttackDefinition`: clip, wind-up/active/recovery split, stamina cost, damage multiplier, stagger power, allowed hit windows.
-- Wind-up must visually sit at the end of a telegraph pose for ≥100 ms before the active window opens.
+### [x] T2.2 — SlashLeft clip (perfection pass)
+**Goal:** author `SlashLeft` until the developer explicitly approves it.
+- Only `SlashLeft` is in `SwordClips` / `AttackCatalog` for this task; every other attack has its own task (T2.6–T2.9).
+- Fighters are a single white capsule plus invisible `HandR` / `HandL` pivots; the visible hands stay on the sword rig.
+- Idle/guard uses the Skyrim standing greatsword pose: hand at the right hip, blade nearly vertical with a slight backward lean.
+- Camera is a third-person view over the player's right shoulder; the idle sword stands on that right side and the slash sweeps across the screen in the fighter's Z axis.
+- Timing matches `CombatTuning.Slash` (250 / 220 / 350 ms); 100 ms telegraph hold.
+- The cut is a body orbit: the hands circle a chest-height pivot at ~0.75 m radius. The wind-up draws them behind the right shoulder; the 220 ms active sweep carries the hilt ~1.5 m forward/left and the tip cuts ~1.0 m through the opponent's space. The blade rolls edge-first.
+- Iterate on arc, hilt travel, hand placement, and readability from developer feedback.
+- Do not mark done until the developer says the clip is perfect.
 
-**Done when:** slow-motion playback makes every attack's wind-up readable; timing constants match `CombatTuning.cs` exactly.
+**Done when:** developer approval of the SlashLeft arc, timing, and hilt/hand motion.
 
 ### [ ] T2.3 — Guard clips
 **Goal:** blocking looks like a greatsword guard, not a T-pose.
@@ -162,6 +167,34 @@
 - Guard raise/held/lower with 100 ms raise and 150 ms lower.
 
 **Done when:** FSM debug view shows correct state/timer transitions; forced transitions cannot skip wind-up or active phases.
+
+### [ ] T2.6 — SlashRight clip
+**Goal:** add the mirrored slash as its own deliverable.
+- Author `SlashRight` from the approved `SlashLeft`, mirrored, with the same timing and telegraph-hold rules.
+- Add it to `SwordClips` / `AttackCatalog`; extend the catalog tests.
+
+**Done when:** developer approval of the SlashRight arc, timing, and hilt/hand motion.
+
+### [ ] T2.7 — Overhead clip
+**Goal:** add the vertical chop as its own deliverable.
+- Author `Overhead` with the 400 / 140 / 450 ms phases, 100 ms hold, hilt translation.
+- Add it to `SwordClips` / `AttackCatalog`; extend tests.
+
+**Done when:** developer approval of the Overhead arc, timing, and hilt/hand motion.
+
+### [ ] T2.8 — PowerSlash clip
+**Goal:** add the wide power cleave as its own deliverable.
+- Author `PowerSlash` with 600 / 160 / 700 ms, `RequiresStamina`, 100 ms hold, larger hilt travel.
+- Add it to `SwordClips` / `AttackCatalog`; add the stamina requirement test.
+
+**Done when:** developer approval of the PowerSlash arc, timing, and hilt/hand motion.
+
+### [ ] T2.9 — PowerOverhead clip
+**Goal:** add the crushing overhead slam as its own deliverable.
+- Author `PowerOverhead` with 750 / 180 / 850 ms, `RequiresStamina`, 100 ms hold, largest hilt travel.
+- Add it to `SwordClips` / `AttackCatalog`; extend tests.
+
+**Done when:** developer approval of the PowerOverhead arc, timing, and hilt/hand motion.
 
 ---
 
@@ -428,3 +461,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T1.4 — greatswords & hand pivot | 2026-11-19 | `6b5a248` | developer |
 | T1.5 — HUD + debug markup | 2026-11-19 | `6b5a248` | developer |
 | T2.1 — sword clip system | 2026-11-19 | `266c883` | developer |
+| T2.2 — SlashLeft clip | 2026-11-19 | `PENDING` | developer |

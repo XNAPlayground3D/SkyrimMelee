@@ -6,7 +6,7 @@ namespace SkyrimMelee.Combat;
 /// </summary>
 public sealed class SwordMotion
 {
-	public const float CrossfadeDuration = 0.1f;
+	public const float CrossfadeDuration = CombatTuning.CrossfadeDuration;
 
 	private SwordClip? _clip;
 	private float _time;

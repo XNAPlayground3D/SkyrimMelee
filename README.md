@@ -1,31 +1,34 @@
 # SkyrimMelee
 
-A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the body never moves.** No rig, no limbs, no walking. Only the sword does. Every attack, block, stagger and kill is expressed through the blade's arc, and all geometry is generated at runtime from 3D primitives.
+A Skyrim-inspired greatsword duel between two white capsule fighters — with a twist: **the body never moves.** No rig, no limbs, no walking. Only the sword does. Every attack, block, stagger and kill is expressed through the blade's arc, and all geometry is generated at runtime from 3D primitives.
 
 **Hard rules**
 
 - **No 3D models.** Everything is built from DigitalRiseModel primitives (box, capsule, sphere, cylinder, cone, disc, plane).
-- **No skeletal animation.** The body is a statue; a keyframed hand pivot moves the sword and nothing else.
+- **No skeletal animation.** The body is a static white capsule; a keyframed hand pivot moves the sword and nothing else.
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, camera, fighters, swords, HUD, clip player · **Next:** `T2.2`
+**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, capsule fighters, swords, HUD, clip player, attack tuning, orbit-cut SlashLeft · **Next:** `T2.3`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 34 passing |
+| Tests | ✅ xUnit project, 45 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
 | Arena & camera | ✅ `T1.2` |
-| Fighter rigs & palettes | ✅ `T1.3` |
+| Capsule fighter & hand pivots | ✅ `T1.3` (capsule placeholder) |
 | Greatswords & hand pivot | ✅ `T1.4` |
 | HUD from Myra markup | ✅ `T1.5` |
 | Sword clip system | ✅ `T2.1` |
-| Sword motion & combat | ⬜ `T2.2` / `T4.1` |
+| SlashLeft clip | ✅ `T2.2` |
+| Guard clips | ⬜ `T2.3` |
+| Other attack clips | ⬜ `T2.6`–`T2.9` |
+| Combat rules | ⬜ `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |
 | HUD & menus | ⬜ `T7.1` |
 

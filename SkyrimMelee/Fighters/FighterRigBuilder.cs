@@ -5,122 +5,40 @@ using SkyrimMelee.Graphics;
 namespace SkyrimMelee.Fighters;
 
 /// <summary>
-/// Builds the static humanoid statue as a DrModel. Local space: +X forward, +Y up,
-/// +Z side-to-side; the root transform supplies position and facing.
+/// Builds the fighter placeholder: one white capsule plus invisible hand pivots.
+/// Local space: +X forward, +Y up, +Z side-to-side; the root transform supplies
+/// position and facing.
 /// </summary>
 public static class FighterRigBuilder
 {
-	public static DrModel Build(PrimitiveLibrary primitives, FighterPalette palette)
+	public static DrModel Build(PrimitiveLibrary primitives)
 	{
-		var skin = primitives.CreateMaterial(palette.Skin);
-		var cloth = primitives.CreateMaterial(palette.Cloth);
-		var clothDark = primitives.CreateMaterial(palette.ClothDark);
-		var leather = primitives.CreateMaterial(palette.Leather);
-
+		var white = primitives.CreateMaterial(Color.White);
 		var bones = new List<DrModelBone>();
 
-		void Add(string name, DrMeshPart source, DrMaterial material, Vector3 position,
-			Vector3 scale, Quaternion? rotation = null)
+		// Total height 1.8 m: 1.24 m cylinder + two 0.28 m caps.
+		var bodyPart = primitives.GetCapsule(1.24f, 0.28f).Clone();
+		bodyPart.Material = white;
+
+		var body = new DrMesh(bodyPart) { Name = "Body" };
+		bones.Add(new DrModelBone("Body", body)
 		{
-			var part = source.Clone();
-			part.Material = material;
+			DefaultPose = new SrtTransform(new Vector3(0f, 0.9f, 0f), Quaternion.Identity, Vector3.One)
+		});
 
-			var mesh = new DrMesh(part) { Name = name };
-			bones.Add(new DrModelBone(name, mesh)
-			{
-				DefaultPose = new SrtTransform(position, rotation ?? Quaternion.Identity, scale)
-			});
-		}
-
-		void AddSegment(string name, Vector3 start, Vector3 end, float radius, DrMaterial material)
+		// Scale-free attachment points; the visible hands belong to the sword rig.
+		void AddHandPivot(string name, Vector3 position)
 		{
-			var delta = end - start;
-			var length = MathF.Max(0.02f, delta.Length() - 2f * radius);
-			Add(name, primitives.GetCapsule(length, radius), material,
-				(start + end) * 0.5f, Vector3.One, RotationFromY(delta));
-		}
-
-		// A scale-free hand pivot with the hand box as a scaled child, so attached
-		// objects (the sword) do not inherit the box scale.
-		void AddHand(string name, Vector3 position)
-		{
-			var part = primitives.Box.Clone();
-			part.Material = skin;
-
-			var boxMesh = new DrMesh(part) { Name = name + "Box" };
-			var boxBone = new DrModelBone(name + "Box", boxMesh)
-			{
-				DefaultPose = new SrtTransform(Vector3.Zero, Quaternion.Identity,
-					new Vector3(0.09f, 0.13f, 0.07f))
-			};
-
 			bones.Add(new DrModelBone(name)
 			{
-				DefaultPose = new SrtTransform(position, Quaternion.Identity, Vector3.One),
-				Children = new[] { boxBone }
+				DefaultPose = new SrtTransform(position, Quaternion.Identity, Vector3.One)
 			});
 		}
 
-		// Head and torso. The camera sees the fighters in profile, so keep some chest depth on X.
-		Add("Head", primitives.Sphere, skin, new Vector3(0f, 1.67f, 0f), new Vector3(0.21f));
-		Add("Neck", primitives.Cylinder, skin, new Vector3(0f, 1.55f, 0f), new Vector3(0.10f, 0.09f, 0.10f));
-		Add("Chest", primitives.Box, cloth, new Vector3(0f, 1.28f, 0f), new Vector3(0.30f, 0.50f, 0.44f));
-		Add("Abdomen", primitives.Box, clothDark, new Vector3(0f, 1.00f, 0f), new Vector3(0.26f, 0.20f, 0.33f));
-		Add("Pelvis", primitives.Box, clothDark, new Vector3(0f, 0.845f, 0f), new Vector3(0.28f, 0.20f, 0.36f));
-
-		// Right arm reaches forward to the future sword grip.
-		var shoulderR = new Vector3(0.02f, 1.46f, -0.24f);
-		var elbowR = new Vector3(0.30f, 1.20f, -0.26f);
-		var wristR = new Vector3(0.50f, 1.00f, -0.26f);
-		AddSegment("UpperArmR", shoulderR, elbowR, 0.06f, cloth);
-		AddSegment("ForearmR", elbowR, wristR, 0.05f, cloth);
-		AddHand("HandR", wristR + new Vector3(0.04f, -0.02f, 0f));
-
-		// Left arm braces across the torso; it does not grip the hilt.
-		var shoulderL = new Vector3(0.02f, 1.46f, 0.24f);
-		var elbowL = new Vector3(0.24f, 1.18f, 0.12f);
-		var wristL = new Vector3(0.40f, 1.02f, -0.02f);
-		AddSegment("UpperArmL", shoulderL, elbowL, 0.06f, cloth);
-		AddSegment("ForearmL", elbowL, wristL, 0.05f, cloth);
-		AddHand("HandL", wristL + new Vector3(0.04f, -0.02f, 0f));
-
-		// Legs in a bladed stance: left foot forward, right foot back.
-		var hipL = new Vector3(0f, 0.90f, 0.11f);
-		var kneeL = new Vector3(0.06f, 0.48f, 0.11f);
-		var ankleL = new Vector3(0.10f, 0.12f, 0.11f);
-		AddSegment("ThighL", hipL, kneeL, 0.09f, clothDark);
-		AddSegment("ShinL", kneeL, ankleL, 0.075f, clothDark);
-		Add("BootL", primitives.Box, leather,
-			new Vector3(0.15f, 0.045f, 0.11f), new Vector3(0.26f, 0.09f, 0.15f));
-
-		var hipR = new Vector3(0f, 0.90f, -0.11f);
-		var kneeR = new Vector3(-0.05f, 0.48f, -0.11f);
-		var ankleR = new Vector3(-0.08f, 0.12f, -0.11f);
-		AddSegment("ThighR", hipR, kneeR, 0.09f, clothDark);
-		AddSegment("ShinR", kneeR, ankleR, 0.075f, clothDark);
-		Add("BootR", primitives.Box, leather,
-			new Vector3(-0.03f, 0.045f, -0.11f), new Vector3(0.26f, 0.09f, 0.15f));
+		AddHandPivot("HandR", new Vector3(0.54f, 0.98f, 0.26f));
+		AddHandPivot("HandL", new Vector3(0.54f, 0.98f, 0.18f));
 
 		var root = new DrModelBone("Fighter") { Children = bones.ToArray() };
 		return new DrModel(root);
-	}
-
-	private static Quaternion RotationFromY(Vector3 direction)
-	{
-		var dir = Vector3.Normalize(direction);
-		var dot = Math.Clamp(Vector3.Dot(Vector3.UnitY, dir), -1f, 1f);
-
-		if (dot > 0.9999f)
-		{
-			return Quaternion.Identity;
-		}
-
-		if (dot < -0.9999f)
-		{
-			return Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
-		}
-
-		var axis = Vector3.Normalize(Vector3.Cross(Vector3.UnitY, dir));
-		return Quaternion.CreateFromAxisAngle(axis, MathF.Acos(dot));
 	}
 }
