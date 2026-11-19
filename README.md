@@ -9,7 +9,7 @@ A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 1 — primitives · **Code:** solution, clock, Myra host, flags · **Next:** `T1.1`
+**Last updated:** 2026-11-19 · **Phase:** 1 — primitives · **Code:** solution, clock, Myra, primitive renderer · **Next:** `T1.2`
 
 | Area | State |
 | --- | --- |
@@ -19,7 +19,7 @@ A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the 
 | Tests | ✅ xUnit project, 20 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
-| Primitive rendering | ⬜ `T1.1` |
+| Primitive library & showcase | ✅ `T1.1` |
 | Sword motion & combat | ⬜ `T2.1` / `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |
 | HUD & menus | ⬜ `T7.1` |

@@ -5,6 +5,7 @@ using Myra;
 using Myra.Graphics2D.UI;
 using SkyrimMelee.Core;
 using SkyrimMelee.Debug;
+using SkyrimMelee.Graphics;
 using SkyrimMelee.Ui;
 
 namespace SkyrimMelee;
@@ -27,6 +28,9 @@ public sealed class SkyrimMeleeGame : Game
 	private MyraHost? _ui;
 	private Label? _debugLabel;
 	private DebugOverlay? _overlay;
+	private PrimitiveLibrary? _primitives;
+	private PrimitiveRenderer? _renderer;
+	private PrimitiveShowcase? _showcase;
 	private float _fps;
 	private double _fpsWindowTime;
 	private int _fpsWindowFrames;
@@ -91,11 +95,23 @@ public sealed class SkyrimMeleeGame : Game
 			_ui.Root = root;
 		}
 
+		_primitives = new PrimitiveLibrary(GraphicsDevice);
+		_renderer = new PrimitiveRenderer(GraphicsDevice);
+		_showcase = new PrimitiveShowcase(_primitives);
+
 		base.LoadContent();
 	}
 
 	protected override void UnloadContent()
 	{
+		_showcase = null;
+
+		_renderer?.Dispose();
+		_renderer = null;
+
+		_primitives?.Dispose();
+		_primitives = null;
+
 		_ui?.Dispose();
 		_ui = null;
 		base.UnloadContent();
@@ -179,6 +195,24 @@ public sealed class SkyrimMeleeGame : Game
 	protected override void Draw(GameTime gameTime)
 	{
 		GraphicsDevice.Clear(BackgroundColor);
+
+		if (_renderer is not null && _showcase is not null)
+		{
+			var width = GraphicsDevice.PresentationParameters.BackBufferWidth;
+			var height = GraphicsDevice.PresentationParameters.BackBufferHeight;
+			var aspect = width / (float)Math.Max(1, height);
+
+			var view = Matrix.CreateLookAt(
+				new Vector3(0f, 4.5f, -11f),
+				new Vector3(0f, 0.9f, 0f),
+				Vector3.Up);
+			var projection = Matrix.CreatePerspectiveFieldOfView(
+				MathHelper.ToRadians(50f), aspect, 0.1f, 100f);
+
+			_renderer.Begin(view, projection);
+			_showcase.Draw(_renderer);
+			_renderer.End();
+		}
 
 		_ui?.Draw();
 

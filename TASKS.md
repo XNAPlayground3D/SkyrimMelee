@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T1.1`
+> **Next up:** `T1.2`
 
 ---
 
@@ -70,10 +70,10 @@
 
 ## M1 — Primitive scene
 
-### [ ] T1.1 — Primitive mesh cache
+### [x] T1.1 — Primitive mesh cache
 **Goal:** one place that owns every generated mesh.
-- `Graphics/PrimitiveLibrary.cs` wrapping `MeshPrimitives`: unit box, cylinder, cone, sphere, capsule, disc, plane, plus a line-box and line-sphere for debugging.
-- Instance-based API: `MeshInstance` = `DrMeshPart` + color + world transform (+ optional scalar scale).
+- `Graphics/PrimitiveLibrary.cs` wrapping `MeshPrimitives`: unit box, cylinder, cone, sphere, capsule, disc, plane, plus line versions for debugging.
+- Draw calls take a `DrMeshPart` + world matrix; colour comes from `part.Material` (`DrMaterial`, created through `PrimitiveLibrary.CreateMaterial`).
 - Tessellation tuned low (sphere 16, cylinder 16) — this is a stylized game, not a CAD viewer.
 
 **Done when:** a test scene draws all primitives at once with correct winding, correct lighting, and no leaked GPU resources across restarts.
@@ -407,3 +407,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T0.2 — solution skeleton + xUnit | 2026-11-19 | `9bd499d` | developer |
 | T0.3 — Myra host + debug label | 2026-11-19 | `e927166` | developer |
 | T0.4 — clock, flags, overlay | 2026-11-19 | `7e66931` | developer |
+| T1.1 — primitive cache + showcase | 2026-11-19 | _pending_ | developer |
