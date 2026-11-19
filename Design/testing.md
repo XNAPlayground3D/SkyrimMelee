@@ -19,7 +19,7 @@ Given identical initial state and intents, tick _n_ must be byte-identical: same
 
 `--self-test` runs without a window using the real state machines, tuning, clips, and physics. `SelfTestRunner` builds a fresh `CombatWorld` per scenario and scripts blade sweeps / FSM transitions directly, so every run starts from identical state. Output is one `PASS/FAIL` line per scenario; a failure exits non-zero. The xUnit project asserts all scenarios pass and that 10 consecutive runs are identical.
 
-Current scenarios: clean hit, blocked hit, timed block, power rejected, power stagger, poise stagger, bash, guard break, stagger interrupt, whiff, one hit per swing, tunneling stress.
+Current scenarios: clean hit, blocked hit, timed block, power rejected, power stagger, poise stagger, bash, defense outcomes, guard break, stagger interrupt, whiff, one hit per swing, tunneling stress.
 
 ## Scenarios
 
@@ -35,6 +35,7 @@ Current scenarios: clean hit, blocked hit, timed block, power rejected, power st
 | `ST-18` | `HitEvent` carries attacker/target/kind/point/normal/attack/progress; one hit per hurtbox per swing; a new swing resets the set |
 | `ST-19` | Guard in front blocks; behind/lowering/body-first are clean; ties favour the guard; a fresh guard is a timed block |
 | `ST-20` | Stamina spend/regen delay, guard freeze, poise regen, and power-attack rejection with no cost or state change |
+| `ST-21` | Same attack yields clean, block, timed block, and guard break by timing/stamina; micro-stagger locks the attacker |
 | `ST-01/02` | Clean hit lands; attack with no hurtboxes whiffs and recovers |
 | `ST-03/04` | Normal block reduction and drain; timed block at 180 ms after raise |
 | `ST-05` | Power slash into 5 stamina ⇒ guard break, guard removed, 1000 ms stagger |

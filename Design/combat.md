@@ -64,6 +64,7 @@ The moveset has exactly three attacks: `SlashLeft`, `SlashRight`, and `PowerSlas
 
 Reaction durations live in `CombatTuning` (`StaggerSmallDuration` 0.60 s, `StaggerLargeDuration` 1.00 s, `DeathDuration` 1.20 s, `VictoryDuration` 1.60 s).
 
+- `StaggerMicro` (250 ms): a tiny timed-block recoil; the blade dips and recovers.
 - `StaggerSmall` (600 ms): a light hit snaps the blade ~25° off vertical to the fighter's right and dips the hilt, then the sword settles back to the idle guard.
 - `StaggerLarge` (1000 ms): a power hit throws the blade ~45° out, droops it almost horizontal, then hauls it back up to idle.
 - `Death` (1200 ms): the blade is knocked up, falls forward and down, and holds with the tip on the floor. The final pose is permanent until a reset.
@@ -131,6 +132,8 @@ A hit is blocked only if the defender is in `GuardHold`, the guard shape is regi
 | From outside the cone, or while raising/lowering | Clean hit |
 
 Stamina drain on a blocked hit is paid by the defender. A timed block is the reward for reading, not reacting.
+
+`DefenseResolver` applies the same incoming attack to a defender: a block or timed block spends its stamina cost (0.6× / 0.3× armored). If the cost exceeds the defender's remaining stamina, the guard breaks instead: full armored damage, stamina drained to 0, guard force-lowered, and a 1000 ms stagger. A successful timed block also gives the attacker a 250 ms `StaggerMicro`; the guard cannot be re-raised while staggered.
 
 ## Poise and stagger
 

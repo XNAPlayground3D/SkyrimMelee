@@ -85,6 +85,7 @@ public sealed class SkyrimMeleeGame : Game
 	private bool _d5WasDown;
 	private bool _d6WasDown;
 	private bool _d7WasDown;
+	private bool _d8WasDown;
 	private bool _fWasDown;
 	private bool _reactionAdvance;
 	private bool _leftMouseWasDown;
@@ -506,6 +507,14 @@ public sealed class SkyrimMeleeGame : Game
 
 		_d7WasDown = victory;
 
+		var microStagger = keyboard.IsKeyDown(Keys.D8) || keyboard.IsKeyDown(Keys.NumPad8);
+		if (microStagger && !_d8WasDown)
+		{
+			PlayMicroStagger();
+		}
+
+		_d8WasDown = microStagger;
+
 		var pause = keyboard.IsKeyDown(Keys.P);
 		if (pause && !_pauseWasDown)
 		{
@@ -670,6 +679,22 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		PlayClip(large ? "StaggerLarge" : "StaggerSmall");
+	}
+
+	private void PlayMicroStagger()
+	{
+		if (_paused || _swordMotion is null)
+		{
+			return;
+		}
+
+		_combat.ApplyStagger(CombatTuning.StaggerMicroDuration);
+		if (_combat.State != CombatState.Stagger)
+		{
+			return;
+		}
+
+		PlayClip("StaggerMicro");
 	}
 
 	private void PlayDeath()

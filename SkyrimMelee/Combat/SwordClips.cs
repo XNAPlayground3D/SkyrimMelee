@@ -26,6 +26,7 @@ public static class SwordClips
 		GuardRaise(),
 		GuardHold(),
 		GuardLower(),
+		StaggerMicro(),
 		StaggerSmall(),
 		StaggerLarge(),
 		Death(),
@@ -218,6 +219,21 @@ public static class SwordClips
 		return new SwordClip("GuardLower", CombatTuning.GuardLowerDuration, false,
 			Key(0f, GuardPose(), Easing.EaseIn),
 			Key(0.7f, settle, Easing.EaseOut),
+			Key(1f, IdlePose()));
+	}
+
+	private static SwordClip StaggerMicro()
+	{
+		var duration = CombatTuning.StaggerMicroDuration;
+
+		// A short recoil after a timed block: a small dip and a quick recovery.
+		var jolt = Pose(
+			new Vector3(0.38f, 1.00f, 0.36f),
+			new Vector3(3f, -90f, -8f));
+
+		return new SwordClip("StaggerMicro", duration, false,
+			Key(0f, IdlePose(), Easing.EaseOut),
+			Key(0.08f / duration, jolt),
 			Key(1f, IdlePose()));
 	}
 

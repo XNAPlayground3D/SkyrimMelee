@@ -39,6 +39,7 @@
       <Label Text="5                Stagger large" TextColor="#E6DCC8" />
       <Label Text="6                Death" TextColor="#E6DCC8" />
       <Label Text="7                Victory" TextColor="#E6DCC8" />
+      <Label Text="8                Stagger micro" TextColor="#E6DCC8" />
       <Label Text="RMB (hold)       Block" TextColor="#E6DCC8" />
       <Label Text="F / LMB (block)  Bash" TextColor="#E6DCC8" />
       <Label Text="P                Pause sim (dev)" TextColor="#E6DCC8" />

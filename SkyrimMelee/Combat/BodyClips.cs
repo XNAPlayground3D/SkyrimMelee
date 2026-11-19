@@ -12,11 +12,23 @@ public static class BodyClips
 
 	public static IReadOnlyList<BodyClip> Create() => new[]
 	{
+		StaggerMicro(),
 		StaggerSmall(),
 		StaggerLarge(),
 		Death(),
 		Victory()
 	};
+
+	private static BodyClip StaggerMicro()
+	{
+		var duration = CombatTuning.StaggerMicroDuration;
+		var jolt = Pose(-3f, 0f, 2f);
+
+		return new BodyClip("StaggerMicro", duration,
+			Key(0f, BodyPose.Identity, Easing.EaseOut),
+			Key(0.08f / duration, jolt),
+			Key(1f, BodyPose.Identity));
+	}
 
 	private static BodyClip StaggerSmall()
 	{

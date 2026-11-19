@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T4.4`
+> **Next up:** `T4.5`
 
 ---
 
@@ -303,11 +303,13 @@
 
 **Done when:** scripted trades produce the expected interrupt windows, a staggered fighter cannot act until the timer expires, and the bash reads clearly from the back camera.
 
-### [ ] T4.4 — Timed block and guard break
+### [x] T4.4 — Timed block and guard break
 **Goal:** the two skill-expressive defensive outcomes.
-- Timed block: +0.15 reduction (cap 0.85), half stamina drain, 150 ms attacker micro-stagger.
+- Timed block: +0.15 reduction (cap 0.85), half stamina drain, 250 ms attacker micro-stagger (`StaggerMicro`).
 - Guard break: stamina cost > remaining stamina → full damage, guard force-lowered, long stagger, distinct VFX/sound cue.
 - Guard cannot be re-raised while staggered.
+- `DefenseResolver` applies the incoming attack to the defender's stamina and returns the damage, stamina spend, both stagger durations, and the break flag.
+- Tests: clean/block/timed/guard-break from the same attack, half-stamina timed block, guard-break lock, micro-stagger lock; `StaggerMicro` clip/body 250 ms; self-test defense outcomes.
 
 **Done when:** all three defensive outcomes (clean hit / block / guard break) are reproducible from the same incoming attack by varying guard timing and stamina.
 
@@ -512,3 +514,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.1 — Stats, stamina, vitals HUD | 2026-11-19 | `0bc4c85` | developer |
 | T4.2 — Damage pipeline | 2026-11-19 | `0c4d6d4` | developer |
 | T4.3 — Poise, stagger, block bash | 2026-11-20 | `521ebce` | developer |
+| T4.4 — Timed block & guard break | 2026-11-20 | `PENDING` | developer |

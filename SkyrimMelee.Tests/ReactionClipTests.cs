@@ -12,6 +12,7 @@ public class ReactionClipTests
 	private static Vector3 Tip(SwordPose pose) => BladeGeometry.FromPose(pose, Hand).Tip;
 
 	[Theory]
+	[InlineData("StaggerMicro", 0.25f)]
 	[InlineData("StaggerSmall", 0.60f)]
 	[InlineData("StaggerLarge", 1.00f)]
 	[InlineData("Death", 1.20f)]

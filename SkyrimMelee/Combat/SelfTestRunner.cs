@@ -22,6 +22,7 @@ public static class SelfTestRunner
 		PowerStagger(),
 		PoiseStagger(),
 		Bash(),
+		DefenseOutcomes(),
 		GuardBreak(),
 		StaggerInterrupt(),
 		Whiff(),
@@ -155,6 +156,43 @@ public static class SelfTestRunner
 
 		return new SelfTestResult("bash", passed,
 			$"accepted={accepted} stamina={stats.Stamina:0.0} stagger={stagger.Staggered}");
+	}
+
+	private static SelfTestResult DefenseOutcomes()
+	{
+		var attack = AttackCatalog.Create(SwordClips.Create())
+			.Single(candidate => candidate.Name == "SlashLeft");
+		var attacker = new FighterStats();
+
+		var block = DefenseResolver.Resolve(
+			attack, attacker,
+			new FighterStats { Armor = 300f, BlockSkill = 50f },
+			HitOutcome.Block);
+
+		var timed = DefenseResolver.Resolve(
+			attack, attacker,
+			new FighterStats { Armor = 300f, BlockSkill = 50f },
+			HitOutcome.TimedBlock);
+
+		var broken = DefenseResolver.Resolve(
+			attack, attacker,
+			new FighterStats(stamina: 5f) { Armor = 300f, BlockSkill = 50f },
+			HitOutcome.Block);
+
+		var fsm = new CombatStateMachine();
+		fsm.ApplyStagger(broken.DefenderStagger);
+		var locked = fsm.State == CombatState.Stagger && !fsm.TryResumeGuard();
+
+		var passed = block.Damage.Kind == DamageKind.Block &&
+					 !block.GuardBroken &&
+					 timed.Damage.Kind == DamageKind.TimedBlock &&
+					 MathF.Abs(timed.AttackerStagger - CombatTuning.StaggerMicroDuration) < 1e-4f &&
+					 broken.GuardBroken &&
+					 broken.Damage.Kind == DamageKind.GuardBreak &&
+					 locked;
+
+		return new SelfTestResult("defense outcomes", passed,
+			$"block={block.Damage.Final} timed={timed.Damage.Final} broken={broken.GuardBroken}");
 	}
 
 	private static SelfTestResult GuardBreak()

@@ -9,6 +9,7 @@ public class BodyClipTests
 	private static BodyClip Clip(string name) => Clips.Single(c => c.Name == name);
 
 	[Theory]
+	[InlineData("StaggerMicro", 0.25f)]
 	[InlineData("StaggerSmall", 0.60f)]
 	[InlineData("StaggerLarge", 1.00f)]
 	[InlineData("Death", 1.20f)]
