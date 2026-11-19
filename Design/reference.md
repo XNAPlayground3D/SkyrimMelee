@@ -42,7 +42,7 @@ Notes:
 - Blocking is a hold, not a toggle. There is **no timed-block, parry, or riposte
   window** anywhere in Skyrim's melee system.
 - The view toggle is `F` **or** the wheel, which is why `F` cannot stay bound to
-  bash in this project (T5.3 moves bash to `B`).
+  bash in this project; bash is on `B` (or `LMB` while blocking).
 
 ## 2. Normal attacks
 
@@ -60,8 +60,11 @@ Notes:
   (0.6) and hit harder.
 - A normal attack is a committed animation: input during wind-up/active is
   ignored, and only stagger or death interrupt it.
-- The swing alternates sides when the button is pressed repeatedly; holding the
-  button does **not** repeat attacks — it charges a power attack.
+- The swing direction follows the blade: from the resting right-side stance a
+  tap always starts the same cut; pressing again while that cut is still playing
+  answers from the other side (the blade finished there). It is **not** a fixed
+  every-second-press alternation — pause and the next swing starts from rest.
+- Holding the button does **not** repeat attacks — it charges a power attack.
 
 ## 3. Power attacks
 
@@ -193,10 +196,10 @@ arena pacing, which has no Skyrim equivalent.
 
 | Mechanic | Skyrim | SkyrimMelee today | Status |
 | --- | --- | --- | --- |
-| Attack button | `LMB` tap, alternating sides | `LMB` tap, alternating sides (`SlashLeft`/`SlashRight`); `1`/`2` force a side | ✅ matches |
+| Attack button | `LMB` tap; the arc follows the blade (rest = same cut, chained press = other side) | `LMB` tap; rest = `SlashLeft`, chained press = the other side (`SlashCombo`); `1`/`2` force a side | ✅ matches |
 | Power attack | Hold `LMB` | Hold `LMB` for `PowerSlashHoldTime` (350 ms) | ✅ matches |
 | Power damage | ×2 | ×2 | ✅ matches |
-| Bash input | Tap `LMB` while blocking | Tap `LMB` (or `F`) while blocking | ✅ matches (input), `F` moves to `B` in T5.3 |
+| Bash input | Tap `LMB` while blocking | Tap `LMB` (or `B`) while blocking | ✅ matches |
 | Bash damage | ×0.5 | ×0.5 | ✅ matches |
 | Bash movement | Planted | `LocksMovement` roots the fighter | ✅ matches |
 | Attack movement | Reduced, not stopped | 0.25× walk | 🚧 tuned lower than Skyrim |
@@ -207,8 +210,8 @@ arena pacing, which has no Skyrim equivalent.
 | Stamina costs | 74 power / 35 bash of a 100 pool with slow regen | 30 power / 15 bash of 100 with 25/s regen | ⚠️ deliberate (arena pacing) |
 | Stagger | Chance-based, interrupt | Poise meter: light hits chip, power always staggers | ⚠️ deliberate (deterministic) |
 | Directional power attacks | Forward dash, backstep, sidestep | Not implemented | ⬜ T5.6 |
-| Camera toggle | `F` / wheel | Not implemented | ⬜ T5.3 |
-| First/third person | Both | Third only | ⬜ T5.3 |
+| Camera toggle | `F` / wheel | `F` toggles view; wheel zooms (Skyrim's wheel toggle deferred) | ✅ matches (zoom) |
+| First/third person | Both | Both: eye-level first person with the capsule hidden | ✅ matches |
 | Death | Ragdoll, no rounds | Rigid topple + best-of-three rounds | ⚠️ deliberate |
 
 ## Deliberate divergences
@@ -242,8 +245,6 @@ These are choices, not gaps. Each one is kept because of a project constraint.
 - **T4.6 — Guard coverage cone.** Skyrim blocks in a 35° cone; the project
   currently only blocks when the blade capsule intersects, so a visually correct
   block can still be a clean hit.
-- **T5.3 — First/third person and wheel zoom.** Reference input is `F` or wheel;
-  bash moves to `B`.
 - **T5.6 — Directional power attacks.** Forward dash, backstep, and sidestep
   variants chosen by movement input, per §3.
 - **Power bash** and **sprint power attacks** are listed in

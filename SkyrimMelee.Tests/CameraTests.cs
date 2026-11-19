@@ -49,6 +49,36 @@ public class CameraTests
 	}
 
 	[Fact]
+	public void ToggleSwitchesBetweenThirdAndFirstPerson()
+	{
+		var camera = new Camera();
+		Assert.False(camera.FirstPerson);
+
+		camera.ToggleMode();
+		Assert.True(camera.FirstPerson);
+
+		camera.ToggleMode();
+		Assert.False(camera.FirstPerson);
+	}
+
+	[Fact]
+	public void FirstPersonSitsAtEyeHeightLookingForward()
+	{
+		var camera = new Camera();
+		camera.ToggleMode();
+		camera.Update(Focus, 0f);
+
+		Assert.Equal(Focus.X, camera.Eye.X, 3);
+		Assert.Equal(Focus.Z, camera.Eye.Z, 3);
+		Assert.Equal(Focus.Y + Camera.FirstPersonEyeHeight, camera.Eye.Y, 3);
+		Assert.True(camera.LookAt.X > camera.Eye.X);
+
+		var third = new Camera();
+		third.Update(Focus, 0f);
+		Assert.NotEqual(third.Eye.Y, camera.Eye.Y, 3);
+	}
+
+	[Fact]
 	public void DistanceClampsToTheZoomRange()
 	{
 		var camera = new Camera
@@ -60,5 +90,39 @@ public class CameraTests
 
 		camera.Distance = -5f;
 		Assert.Equal(Camera.MinDistance, camera.Distance, 3);
+	}
+
+	[Fact]
+	public void WheelZoomsTheThirdPersonDistance()
+	{
+		var camera = new Camera();
+		var start = camera.Distance;
+
+		camera.Zoom(1f);
+		Assert.True(camera.Distance < start);
+
+		camera.Zoom(1000f);
+		Assert.Equal(Camera.MinDistance, camera.Distance, 3);
+
+		camera.Zoom(-1000f);
+		Assert.Equal(Camera.MaxDistance, camera.Distance, 3);
+	}
+
+	[Fact]
+	public void WheelZoomsTheFirstPersonFov()
+	{
+		var camera = new Camera();
+		camera.ToggleMode();
+
+		Assert.Equal(Camera.FirstPersonFov, camera.FieldOfView, 4);
+
+		camera.Zoom(1f);
+		Assert.True(camera.FieldOfView < Camera.FirstPersonFov);
+
+		camera.Zoom(1000f);
+		Assert.Equal(Camera.MinFirstPersonFov, camera.FieldOfView, 4);
+
+		camera.Zoom(-1000f);
+		Assert.Equal(Camera.MaxFirstPersonFov, camera.FieldOfView, 4);
 	}
 }

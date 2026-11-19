@@ -55,7 +55,6 @@ public sealed class SkyrimMeleeGame : Game
 	private readonly SwingHitSet _swingHits = new();
 	private readonly InputRouter _input = new();
 	private readonly AttackCharge _attackCharge = new();
-	private readonly SlashCombo _slashCombo = new();
 	private int _hitCount;
 	private string _lastHit = "-";
 	private string _lastRejection = "-";
@@ -92,6 +91,8 @@ public sealed class SkyrimMeleeGame : Game
 	private double _labelTimer;
 	private bool _f1WasDown;
 	private bool _f2WasDown;
+	private bool _viewWasDown;
+	private int _scrollWheelValue;
 	private bool _pauseWasDown;
 	private bool _rWasDown;
 	private bool _minusWasDown;
@@ -103,7 +104,7 @@ public sealed class SkyrimMeleeGame : Game
 	private bool _d6WasDown;
 	private bool _d7WasDown;
 	private bool _d8WasDown;
-	private bool _fWasDown;
+	private bool _bashKeyWasDown;
 	private bool _reactionAdvance;
 	private bool _rightMouseWasDown;
 
@@ -272,6 +273,22 @@ public sealed class SkyrimMeleeGame : Game
 		var elapsed = gameTime.ElapsedGameTime.TotalSeconds;
 		var uiCaptured = _ui?.CapturesInput == true;
 
+		var viewToggle = keyboard.IsKeyDown(Keys.F);
+		if (viewToggle && !_viewWasDown && !uiCaptured && !_paused)
+		{
+			_camera.ToggleMode();
+		}
+
+		_viewWasDown = viewToggle;
+
+		var mouseState = Mouse.GetState();
+		var scrollDelta = mouseState.ScrollWheelValue - _scrollWheelValue;
+		_scrollWheelValue = mouseState.ScrollWheelValue;
+		if (scrollDelta != 0 && !uiCaptured && !_paused)
+		{
+			_camera.Zoom(scrollDelta / 120f);
+		}
+
 		var moveX = (keyboard.IsKeyDown(Keys.D) ? 1f : 0f) -
 					(keyboard.IsKeyDown(Keys.A) ? 1f : 0f);
 		var moveY = (keyboard.IsKeyDown(Keys.W) ? 1f : 0f) -
@@ -300,7 +317,7 @@ public sealed class SkyrimMeleeGame : Game
 			{
 				_input.Push(_combat.State is CombatState.GuardRaise or CombatState.GuardHold
 					? CombatIntent.Bash
-					: _slashCombo.Next());
+					: SlashCombo.Next(_combat.State, _combat.Attack));
 			}
 		}
 		else
@@ -635,13 +652,13 @@ public sealed class SkyrimMeleeGame : Game
 
 		_d5WasDown = staggerLarge;
 
-		var bash = keyboard.IsKeyDown(Keys.F);
-		if (bash && !_fWasDown && !_paused && !uiCaptured)
+		var bash = keyboard.IsKeyDown(Keys.B);
+		if (bash && !_bashKeyWasDown && !_paused && !uiCaptured)
 		{
 			_input.Push(CombatIntent.Bash);
 		}
 
-		_fWasDown = bash;
+		_bashKeyWasDown = bash;
 
 		var death = keyboard.IsKeyDown(Keys.D6) || keyboard.IsKeyDown(Keys.NumPad6);
 		if (death && !_d6WasDown)
@@ -1011,7 +1028,6 @@ public sealed class SkyrimMeleeGame : Game
 		_hitCount = 0;
 		_lastHit = "-";
 		_input.Clear();
-		_slashCombo.Reset();
 		_swordMotion.ResetTo(_swordClips[0]);
 		_opponentSwordMotion?.ResetTo(_swordClips[0]);
 		_opponentBodyMotion?.Reset();
@@ -1369,7 +1385,12 @@ public sealed class SkyrimMeleeGame : Game
 
 			if (_player is not null)
 			{
-				_renderer.Draw(_player.Instance, _player.DrawTransform);
+				// First person sits inside the player's head; hide the capsule
+				// but keep the sword, exactly like Skyrim.
+				if (!_camera.FirstPerson)
+				{
+					_renderer.Draw(_player.Instance, _player.DrawTransform);
+				}
 
 				if (_playerSword is not null)
 				{

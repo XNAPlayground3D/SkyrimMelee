@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T5.3`
+> **Next up:** `T5.4`
 
 ---
 
@@ -357,19 +357,20 @@
 - Third-person camera follows the player; the opponent stays static until AI movement (T6).
 - Only the player's sword/body reacts to input; the opponent holds its idle sword pose (hit tint is still feedback).
 - Hit feedback flashes the defender's whole body coral for 300 ms, and one swing deals damage once even if the sweep crosses hips and legs. The opponent plays its own stagger/death reaction when hit, so the end of a round is visible; the F1 overlay shows `hits N`, the last hurtbox/time, and the opponent's health.
-- LMB tap plays an alternating combo (`SlashLeft` first, then `SlashRight`), like Skyrim; `1` / `2` force a side. Holding LMB for 350 ms fires `PowerSlash` (real-time charge, even in slow motion). `Shift+LMB` is no longer used.
+- LMB tap starts `SlashLeft` from rest; a tap chained during the swing answers with the other side (`SlashCombo` follows the blade, not a counter). `1` / `2` force a side. Holding LMB for 350 ms fires `PowerSlash` (real-time charge, even in slow motion). `Shift+LMB` is no longer used.
 - Stamina follows the Skyrim gate: any stamina starts the attack; at zero a power attack degrades to `SlashLeft` with a stamina flash. Power ×2 and bash ×0.5 damage now match the reference.
-- Tests: arena clamp, facing math, camera follow, zoom/pitch clamps, tap/hold charge, combo alternation, stamina gate.
+- Tests: arena clamp, facing math, camera follow, zoom/pitch clamps, tap/hold charge, blade-side slash selection, stamina gate.
 - The F1 overlay shows the move input, player position, and camera yaw.
 
 **Done when:** WASD + mouse look move smoothly at 60 Hz, attacks still land, and the opponent stays framed.
 
-### [ ] T5.3 — First/third person and zoom
+### [x] T5.3 — First/third person and zoom
 **Goal:** the Skyrim camera feel.
-- `F` toggles third/first person; move the Bash key from `F` to `B` (LMB while blocking still bashes).
-- Mouse wheel zooms the third-person distance and adjusts first-person FOV.
-- First person sits at head height and hides the player capsule; the sword stays visible.
-- Tests/visual: both modes, full zoom range, no capsule clipping into the first-person view.
+- `F` toggles third/first person; bash moved from `F` to `B` (LMB tap while blocking still bashes). HUD shows `F First / third`, `Wheel Zoom`, `B / LMB (block) Bash`.
+- Mouse wheel zooms: third-person distance steps 0.4 m per notch, clamped 2.5–7 m; first-person FOV steps 2° per notch, clamped 55–90° (default 70°). Third person keeps its 44° FOV.
+- First person sits at the player's head (1.60 m), uses the same yaw/pitch look, hides the player capsule but keeps the sword and hands visible.
+- Tests: mode toggle, first-person eye/look-at, both zoom clamps (xUnit).
+- Visual: both modes, both zoom extremes, bash on `B`, and no capsule in the first-person view.
 
 **Done when:** `F` switches modes cleanly and the wheel zooms without clipping or losing the opponent.
 
@@ -586,4 +587,5 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.5 — Death, rounds, reset | 2026-11-20 | `b47d3ee` | developer |
 | T5.1 — Input intent buffer | 2026-11-20 | `e220f9a` | developer |
 | T5.2 — Skyrim locomotion, camera, input feel, hit feedback | 2026-11-20 | `0b6c643` | developer |
+| T5.3 — First/third person, zoom, bash key (and blade-side slash fix) | 2026-11-20 | PENDING | developer |
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |

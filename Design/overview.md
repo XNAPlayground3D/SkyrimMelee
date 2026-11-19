@@ -43,7 +43,7 @@ The full research summary is in [reference.md](reference.md). Short version:
 | Timed block | None | 250 ms window, core skill expression |
 | Stagger | Chance-based | Poise meter, deterministic |
 | Stamina | Any stamina starts the action; power falls back at 0 | Same (`StaminaRules`) |
-| Camera | `F`/wheel toggle + zoom, over-the-shoulder | Third-person follow now, first person in T5.3 |
+| Camera | `F`/wheel toggle + zoom, over-the-shoulder | `F` toggles first/third person, wheel zooms; first person hides the capsule and keeps the sword |
 
 Deliberate divergences and their reasons are listed in
 [reference.md](reference.md#deliberate-divergences).

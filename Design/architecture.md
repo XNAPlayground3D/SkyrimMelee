@@ -72,7 +72,7 @@ The arena is a `DrModel`: a root bone plus one bone/mesh per item (floor, each r
 
 Both hands are attached to the sword rig and travel with the hilt; the primitive body only takes a rigid reaction pose ([rationale](overview.md#the-two-handed-grip)).
 
-**Camera:** third-person orbit over the player's right shoulder. Mouse look drives yaw/pitch, the target follows the player at chest height with a 1 m look-ahead, and the default distance is 5 m. `F` toggles first person and the wheel zooms (T5.3); `F3` presets and impact shake are T5.4.
+**Camera:** Skyrim-style first/third person. Third person is an orbit over the player's right shoulder; mouse look drives yaw/pitch, the target follows the player at chest height with a 1 m look-ahead, and the default distance is 5 m. `F` toggles first person (eye at 1.60 m, same look, player capsule hidden, sword visible); the wheel zooms the third-person distance (0.4 m/notch, 2.5–7 m) or the first-person FOV (2°/notch, 55–90°). `F3` presets and impact shake are T5.4.
 
 **VFX:** a hit flashes the defender's whole body coral for 300 ms; pooled 256 box shards and expanding torus rings add the blue block ring, red guard-break shards, and dark grounding disc. Zero allocations in combat.
 

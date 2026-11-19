@@ -35,6 +35,8 @@
       <Label Text="amber = not yet implemented" TextColor="#7A7A86" />
       <Label Text="WASD             Move" TextColor="#E6DCC8" />
       <Label Text="Mouse            Look" TextColor="#E6DCC8" />
+      <Label Text="Wheel            Zoom" TextColor="#E6DCC8" />
+      <Label Text="F                First / third" TextColor="#E6DCC8" />
       <Label Text="LMB (tap)        Slash combo" TextColor="#E6DCC8" />
       <Label Text="Hold LMB         Power slash" TextColor="#E6DCC8" />
       <Label Text="1 / 2            Force left / right" TextColor="#E6DCC8" />
@@ -44,7 +46,7 @@
       <Label Text="7                Victory" TextColor="#E6DCC8" />
       <Label Text="8                Stagger micro" TextColor="#E6DCC8" />
       <Label Text="RMB (hold)       Block" TextColor="#E6DCC8" />
-      <Label Text="F / LMB (block)  Bash" TextColor="#E6DCC8" />
+      <Label Text="B / LMB (block)  Bash" TextColor="#E6DCC8" />
       <Label Text="P                Pause sim (dev)" TextColor="#E6DCC8" />
       <Label Text="R                Reset idle (dev)" TextColor="#E6DCC8" />
       <Label Text="Z / X or - =     Sim speed (dev)" TextColor="#E6DCC8" />

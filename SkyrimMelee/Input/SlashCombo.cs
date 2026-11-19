@@ -1,21 +1,30 @@
+using SkyrimMelee.Attacks;
 using SkyrimMelee.Combat;
 
 namespace SkyrimMelee.Input;
 
 /// <summary>
-/// Skyrim-style attack combo: each tap swings the other way, starting left.
-/// The numeric keys still force a side for practice.
+/// Skyrim's rule: the swing follows the blade, not a counter. From the idle
+/// right-side rest a tap always starts the same (left) cut; a tap pressed while
+/// a slash is still playing answers from the other side, because the blade is
+/// still on the side the cut finished on.
 /// </summary>
-public sealed class SlashCombo
+public static class SlashCombo
 {
-	private bool _right;
-
-	public CombatIntent Next()
+	public static CombatIntent Next(CombatState state, AttackDefinition? current)
 	{
-		var intent = _right ? CombatIntent.SlashRight : CombatIntent.SlashLeft;
-		_right = !_right;
-		return intent;
-	}
+		var chained = state is CombatState.Windup or CombatState.Active or CombatState.Recovery;
 
-	public void Reset() => _right = false;
+		if (chained && current?.Name == "SlashLeft")
+		{
+			return CombatIntent.SlashRight;
+		}
+
+		if (chained && current?.Name == "SlashRight")
+		{
+			return CombatIntent.SlashLeft;
+		}
+
+		return CombatIntent.SlashLeft;
+	}
 }
