@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T5.1`
+> **Next up:** `T5.2`
 
 ---
 
@@ -329,15 +329,35 @@
 
 ## M5 — Player, camera, feel
 
-### [ ] T5.1 — Player input and intent buffering
+### [x] T5.1 — Player input and intent buffering
 **Goal:** inputs feel responsive without breaking commitment.
-- `InputRouter` with UI-first capture (`MyraEnvironment` gets first claim when a screen is open).
-- 120 ms input buffer for attacks and guard raise; buffered intents fire on the first legal frame.
-- Rejected actions (insufficient stamina, mid-swing) surface in the debug overlay, not as silence.
+- `InputRouter` with UI-first capture (`MyraHost.CapturesInput` while a modal/focused widget is open).
+- 120 ms input buffer for attacks; one pending intent, newest wins; it fires on the first legal frame. Guard is level-triggered.
+- Rejected actions (stamina, bash without guard, expired buffer) surface in the F1 overlay.
+- Tests: newest wins, peek/clear, 120 ms expiry, buffered attack fires on the first legal frame, guard available on the first legal frame; self-test input buffer.
 
 **Done when:** mashing during recovery yields exactly one queued attack; holding block during recovery raises guard on the first legal frame.
 
-### [ ] T5.2 — Camera feel
+### [ ] T5.2 — Player locomotion and follow camera
+**Goal:** move the player around the arena with Skyrim-style camera-relative control.
+- Camera-relative WASD, mouse look, walk speed in `CombatTuning`, arena radius clamp, and a minimum separation from the opponent.
+- The rigid capsule slides and turns; no walk animation, no rig. Hurtboxes and sword follow the player root automatically.
+- Movement is allowed in `Idle`/`Recovery`; wind-up/active/guard lock the root for commitment.
+- Third-person camera follows the player; the opponent stays static until AI movement (T6).
+- Tests: arena clamp, speed/facing math, camera follow, hurtbox alignment.
+
+**Done when:** WASD + mouse look move smoothly at 60 Hz, attacks still land, and the opponent stays framed.
+
+### [ ] T5.3 — First/third person and zoom
+**Goal:** the Skyrim camera feel.
+- `F` toggles third/first person; move the Bash key from `F` to `B` (LMB while blocking still bashes).
+- Mouse wheel zooms the third-person distance and adjusts first-person FOV.
+- First person sits at head height and hides the player capsule; the sword stays visible.
+- Tests/visual: both modes, full zoom range, no capsule clipping into the first-person view.
+
+**Done when:** `F` switches modes cleanly and the wheel zooms without clipping or losing the opponent.
+
+### [ ] T5.4 — Camera feel
 **Goal:** impact is felt in the camera, not just seen.
 - Impact shake (health- and block-scaled), 3–5 frame decay, optional disable in settings.
 - Slight FOV punch on power attacks; slow drift during idle.
@@ -345,7 +365,7 @@
 
 **Done when:** shake is noticeable but never hides a wind-up; presets all frame both fighters.
 
-### [ ] T5.3 — Debug overlay v2
+### [ ] T5.5 — Debug overlay v2
 **Goal:** tune combat without a debugger.
 - Live: state + timer, stamina/health bars in text, current clip and normalized time, active-window flag, poise.
 - Collision: swept capsule trail for the last 20 substeps, contact points, block classification reason.
@@ -520,3 +540,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.3 — Poise, stagger, block bash | 2026-11-20 | `521ebce` | developer |
 | T4.4 — Timed block & guard break | 2026-11-20 | `8f5fc89` | developer |
 | T4.5 — Death, rounds, reset | 2026-11-20 | `b47d3ee` | developer |
+| T5.1 — Input intent buffer | 2026-11-20 | `PENDING` | developer |

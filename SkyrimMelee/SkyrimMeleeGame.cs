@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Input;
 using Myra;
 using SkyrimMelee.Combat;
 using SkyrimMelee.Core;
+using SkyrimMelee.Input;
 using SkyrimMelee.Fighters;
 using SkyrimMelee.Graphics;
 using SkyrimMelee.Ui;
@@ -48,6 +49,8 @@ public sealed class SkyrimMeleeGame : Game
 	private CombatWorld? _combatWorld;
 	private BladeSweep? _bladeSweep;
 	private readonly SwingHitSet _swingHits = new();
+	private readonly InputRouter _input = new();
+	private string _lastRejection = "-";
 	private readonly FighterStats _playerStats = new();
 	private readonly FighterStats _opponentStats = new();
 	private BladeGeometry? _lastBlade;
@@ -248,47 +251,44 @@ public sealed class SkyrimMeleeGame : Game
 		_f2WasDown = f2Down;
 
 		var elapsed = gameTime.ElapsedGameTime.TotalSeconds;
+		var uiCaptured = _ui?.CapturesInput == true;
+		if (_input.Tick((float)elapsed))
+		{
+			_lastRejection = "buffer expired";
+		}
+
 		UpdateFps(elapsed);
-		UpdateSwordClipInput(keyboard);
+		UpdateSwordClipInput(keyboard, uiCaptured);
 
 		var mouse = Mouse.GetState();
 		var leftMouseDown = mouse.LeftButton == ButtonState.Pressed;
-		if (leftMouseDown && !_leftMouseWasDown)
+		if (leftMouseDown && !_leftMouseWasDown && !_paused && !uiCaptured)
 		{
 			var shift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
 			if (shift)
 			{
-				PlayPowerSlash();
+				_input.Push(CombatIntent.PowerSlash);
 			}
 			else if (_combat.State is CombatState.GuardRaise or CombatState.GuardHold)
 			{
-				PlayBash();
+				_input.Push(CombatIntent.Bash);
 			}
 			else
 			{
-				PlaySlash();
+				_input.Push(CombatIntent.SlashLeft);
 			}
 		}
 
 		_leftMouseWasDown = leftMouseDown;
-
-		var rightMouseDown = mouse.RightButton == ButtonState.Pressed;
-		if (rightMouseDown && !_rightMouseWasDown)
-		{
-			PlayGuardRaise();
-		}
-		else if (!rightMouseDown && _rightMouseWasDown)
-		{
-			PlayGuardLower();
-		}
-
-		_rightMouseWasDown = rightMouseDown;
 
 		var steps = _clock.Advance(elapsed);
 		for (var i = 0; i < steps; i++)
 		{
 			StepSimulation();
 		}
+
+		ProcessIntent(uiCaptured);
+		UpdateGuardFromMouse(uiCaptured);
 
 		if (_swordMotion is not null)
 		{
@@ -466,20 +466,20 @@ public sealed class SkyrimMeleeGame : Game
 		_fpsWindowFrames = 0;
 	}
 
-	private void UpdateSwordClipInput(KeyboardState keyboard)
+	private void UpdateSwordClipInput(KeyboardState keyboard, bool uiCaptured)
 	{
 		var leftSlash = keyboard.IsKeyDown(Keys.D1) || keyboard.IsKeyDown(Keys.NumPad1);
-		if (leftSlash && !_d1WasDown)
+		if (leftSlash && !_d1WasDown && !_paused && !uiCaptured)
 		{
-			PlaySlash();
+			_input.Push(CombatIntent.SlashLeft);
 		}
 
 		_d1WasDown = leftSlash;
 
 		var rightSlash = keyboard.IsKeyDown(Keys.D2) || keyboard.IsKeyDown(Keys.NumPad2);
-		if (rightSlash && !_d2WasDown)
+		if (rightSlash && !_d2WasDown && !_paused && !uiCaptured)
 		{
-			PlaySlashRight();
+			_input.Push(CombatIntent.SlashRight);
 		}
 
 		_d2WasDown = rightSlash;
@@ -501,9 +501,9 @@ public sealed class SkyrimMeleeGame : Game
 		_d5WasDown = staggerLarge;
 
 		var bash = keyboard.IsKeyDown(Keys.F);
-		if (bash && !_fWasDown)
+		if (bash && !_fWasDown && !_paused && !uiCaptured)
 		{
-			PlayBash();
+			_input.Push(CombatIntent.Bash);
 		}
 
 		_fWasDown = bash;
@@ -598,45 +598,58 @@ public sealed class SkyrimMeleeGame : Game
 		ApplySwordPose();
 	}
 
-	private void PlaySlash()
+	private void ProcessIntent(bool uiCaptured)
 	{
-		if (_paused || _swordMotion is null || _slashAttack is null ||
-			!TryBeginAttack(_slashAttack))
+		if (uiCaptured)
+		{
+			_input.Clear();
+			return;
+		}
+
+		if (_paused || !_input.TryPeek(out var intent))
 		{
 			return;
 		}
 
-		PlayClip("SlashLeft");
+		if (TryExecuteIntent(intent))
+		{
+			_input.Clear();
+		}
 	}
 
-	private void PlaySlashRight()
+	private bool TryExecuteIntent(CombatIntent intent)
 	{
-		if (_paused || _swordMotion is null || _slashRightAttack is null ||
-			!TryBeginAttack(_slashRightAttack))
+		if (_swordMotion is null)
 		{
-			return;
+			return true;
 		}
 
-		PlayClip("SlashRight");
-	}
-
-	private void PlayPowerSlash()
-	{
-		if (_paused || _swordMotion is null || _powerSlashAttack is null ||
-			!TryBeginAttack(_powerSlashAttack))
+		var attack = intent switch
 		{
-			return;
+			CombatIntent.SlashLeft => _slashAttack,
+			CombatIntent.SlashRight => _slashRightAttack,
+			CombatIntent.PowerSlash => _powerSlashAttack,
+			CombatIntent.Bash => _bashAttack,
+			_ => null
+		};
+
+		if (attack is null)
+		{
+			return true;
 		}
 
-		PlayClip("PowerSlash");
-	}
+		if (intent == CombatIntent.Bash &&
+			_combat.State is not (CombatState.GuardRaise or CombatState.GuardHold))
+		{
+			_lastRejection = "bash needs guard";
+			return true;
+		}
 
-	private bool TryBeginAttack(AttackDefinition attack)
-	{
 		if (!_playerStats.CanAfford(attack))
 		{
 			_staminaCue = 0.8f;
-			return false;
+			_lastRejection = "stamina";
+			return true;
 		}
 
 		if (!_combat.TryStartAttack(attack))
@@ -646,19 +659,28 @@ public sealed class SkyrimMeleeGame : Game
 
 		_playerStats.Spend(attack);
 		_swingHits.Begin(attack);
+		PlayClip(attack.Name);
+		_lastRejection = "-";
 		return true;
 	}
 
-	private void PlayBash()
+	private void UpdateGuardFromMouse(bool uiCaptured)
 	{
-		if (_paused || _swordMotion is null || _bashAttack is null ||
-			_combat.State is not (CombatState.GuardRaise or CombatState.GuardHold) ||
-			!TryBeginAttack(_bashAttack))
+		var right = Mouse.GetState().RightButton == ButtonState.Pressed;
+
+		if (!_paused && !uiCaptured)
 		{
-			return;
+			if (right)
+			{
+				PlayGuardRaise();
+			}
+			else if (_combat.State is CombatState.GuardRaise or CombatState.GuardHold)
+			{
+				PlayGuardLower();
+			}
 		}
 
-		PlayClip("Bash");
+		_rightMouseWasDown = right;
 	}
 
 	private void PlayGuardRaise()
@@ -801,6 +823,8 @@ public sealed class SkyrimMeleeGame : Game
 		_playerStats.Reset();
 		_opponentStats.Reset();
 		_staminaCue = 0f;
+		_lastRejection = "-";
+		_input.Clear();
 		_swordMotion.ResetTo(_swordClips[0]);
 		ApplySwordPose();
 	}
@@ -1120,8 +1144,10 @@ public sealed class SkyrimMeleeGame : Game
 		_hud.UpdateVitals(_playerStats.Health, _playerStats.MaxHealth,
 			_playerStats.Stamina, _playerStats.MaxStamina, _staminaCue > 0f);
 		_hud.UpdateDuel(_duel.Round, _duel.PlayerScore, _duel.OpponentScore);
+		var buffered = _input.IsPending ? $"buffered {_input.Pending}" : "idle";
+		var rejection = _lastRejection == "-" ? string.Empty : $"  reject {_lastRejection}";
 		_overlay?.Update(_clock, _combat, _swordMotion?.Clip?.Name ?? "-",
-			_swordMotion?.NormalizedTime ?? 0f);
+			_swordMotion?.NormalizedTime ?? 0f, $"intent {buffered}{rejection}");
 	}
 
 	protected override void Draw(GameTime gameTime)

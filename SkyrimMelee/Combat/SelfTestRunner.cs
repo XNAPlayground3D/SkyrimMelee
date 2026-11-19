@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Input;
 
 namespace SkyrimMelee.Combat;
 
@@ -24,6 +25,7 @@ public static class SelfTestRunner
 		Bash(),
 		DefenseOutcomes(),
 		BestOfThree(),
+		InputBuffer(),
 		GuardBreak(),
 		StaggerInterrupt(),
 		Whiff(),
@@ -249,6 +251,37 @@ public static class SelfTestRunner
 
 		return new SelfTestResult("best of three", passed,
 			$"round={duel.Round} score={duel.PlayerScore}-{duel.OpponentScore} phase={duel.Phase}");
+	}
+
+	private static SelfTestResult InputBuffer()
+	{
+		var slash = AttackCatalog.Create(SwordClips.Create())
+			.Single(candidate => candidate.Name == "SlashLeft");
+		var power = AttackCatalog.Create(SwordClips.Create())
+			.Single(candidate => candidate.Name == "PowerSlash");
+
+		var fsm = new CombatStateMachine();
+		fsm.TryStartAttack(slash);
+		fsm.Update(0.6f);
+
+		var router = new InputRouter();
+		router.Push(CombatIntent.SlashLeft);
+		router.Push(CombatIntent.PowerSlash);
+
+		var blocked = !fsm.TryStartAttack(power);
+		fsm.Update(0.4f);
+		var ready = fsm.State == CombatState.Idle &&
+					router.TryPeek(out var intent) &&
+					intent == CombatIntent.PowerSlash;
+		var fired = ready && fsm.TryStartAttack(power);
+		if (fired)
+		{
+			router.Clear();
+		}
+
+		var passed = blocked && ready && fired && !router.IsPending;
+		return new SelfTestResult("input buffer", passed,
+			$"blocked={blocked} ready={ready} fired={fired}");
 	}
 
 	private static SelfTestResult GuardBreak()

@@ -166,7 +166,8 @@ Stagger cancels any action and blocks all input, guard included. Damage can stil
 
 - Best of three, 5 s intro, 3 s post-death hold, full reset between rounds.
 - `DuelDirector` owns the round, score, phase, and match winner. A death scores the round and starts the 3 s hold; the first to 2 wins. A double KO replays the round without score. On a new round the caller resets stats, FSMs, clips, hit sets, and guard shapes.
-- Attack intents buffer for 120 ms; one pending intent, newest wins; blocked/rejected intents are consumed.
+- Attack intents buffer for 120 ms of real time; one pending intent, newest wins; it fires on the first legal frame and rejected intents (stamina, no guard) are consumed. Guard is level-triggered, so holding RMB through recovery raises on the first legal frame.
+- `InputRouter` owns the buffer. `MyraHost.CapturesInput` pauses gameplay input while a modal or keyboard-focused widget is open. The F1 overlay shows the buffered intent and the last rejection reason.
 - Guard is level-triggered, never buffered. Input is snapshotted once per simulation tick; UI captures first.
 
 All values live in `Combat/CombatTuning.cs`. Changing one requires updating the tables above in the same commit.

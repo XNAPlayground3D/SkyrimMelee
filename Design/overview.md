@@ -1,8 +1,8 @@
 # Overview
 
-SkyrimMelee is a fixed-footing duel between two humanoids with greatswords. The bodies never articulate — no locomotion, no limbs, no rig. Every attack, block, stagger, and kill is expressed through the blade's arc, and reaction clips may tip or topple the whole primitive body as one rigid piece.
+SkyrimMelee is a duel between two humanoids with greatswords, with free player movement and a Skyrim-style camera. The bodies never articulate — no rig, no limbs, no walk cycle. Every attack, block, stagger, and kill is expressed through the blade's arc, and reaction clips may tip or topple the whole primitive body as one rigid piece.
 
-The game recreates Skyrim's **melee rules**, not its world: stamina economy, attack commitment, front-facing blocks, timed blocks, guard breaks, and poise. Combat depth comes from timing and resource management, because there is no movement to play with.
+The game recreates Skyrim's **melee rules**, not its world: stamina economy, attack commitment, front-facing blocks, timed blocks, guard breaks, and poise. Combat depth comes from timing, resource management, spacing, and camera control.
 
 ## Pillars
 
@@ -25,9 +25,9 @@ The body is a small rigid assembly of white primitives, so there are no static a
 
 ## Scope
 
-**In v1:** one arena, one weapon class, player vs AI, best of three, four attacks (SlashLeft, SlashRight, PowerSlash, Bash), block / timed block / guard break / stagger / death, health–stamina–armor–skills–poise, primitive VFX, full Myra UI.
+**In v1:** one arena, one weapon class, player vs AI, best of three, four attacks (SlashLeft, SlashRight, PowerSlash, Bash), free player movement with mouse look, first/third-person camera with wheel zoom, block / timed block / guard break / stagger / death, health–stamina–armor–skills–poise, primitive VFX, full Myra UI.
 
-**Out:** locomotion, dodging, jumping, shields, one-handed weapons, ranged, magic, perks, inventory, save files, multiplayer, gamepad.
+**Out:** dodging, jumping, shields, one-handed weapons, ranged, magic, perks, inventory, save files, multiplayer, gamepad.
 
 ## From Skyrim
 

@@ -19,6 +19,10 @@ public sealed class MyraHost : IDisposable
 
 	public Desktop Desktop => _desktop;
 
+	/// <summary>True while a modal or keyboard-focused widget owns input.</summary>
+	public bool CapturesInput =>
+		_desktop.HasModalWidget || _desktop.FocusedKeyboardWidget is not null;
+
 	public Widget? Root
 	{
 		get => _desktop.Root;

@@ -30,7 +30,7 @@ HUD layout: player bars anchored top-left (health at most 420 × 18, stamina at 
 
 The current dev HUD already has a separate **VITALS** block at the bottom-left (24 px inset): a `ROUND 1  0 - 0` line, then a label above each `HorizontalProgressBar` (`Health 150/150`, `Stamina 88/100`). The bars use the palette's health red and stamina green; a denied power attack appends `POWER DENIED` to the stamina label.
 
-**Input ownership:** blocking screens give Myra all input; the HUD never captures. Closing a screen sets a release latch so the click that resumed the game cannot swing. Losing focus auto-pauses, clears the intent buffer, and latches. `Esc` belongs to the UI.
+**Input ownership:** blocking screens give Myra all input; the HUD never captures. `MyraHost.CapturesInput` is true while a modal or keyboard-focused widget is open, and gameplay intent collection is skipped and the buffer cleared. Closing a screen sets a release latch so the click that resumed the game cannot swing. Losing focus auto-pauses, clears the intent buffer, and latches. `Esc` belongs to the UI.
 
 **Accessibility:** no damage numbers by default; guard break and timed block have non-colour cues; shake toggle; no flashing above 3 Hz.
 
