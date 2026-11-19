@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T0.4`
+> **Next up:** `T1.1`
 
 ---
 
@@ -58,7 +58,7 @@
 
 **Done when:** the label renders crisply at the default size and after resizing; no content pipeline or font files are required.
 
-### [ ] T0.4 — Debug flags and the run loop
+### [x] T0.4 — Debug flags and the run loop
 **Goal:** the developer can inspect the game from day one.
 - CLI flags: `--debug`, `--god`, `--slowmo`, `--no-ui`, `--self-test` (stub that exits non-zero if assertions aren't implemented yet).
 - Deterministic clock: `GameClock` exposes `FrameIndex`, `SimTime`, `DeltaTime`, `TimeScale`.
@@ -406,3 +406,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T0.1 — toolchain verification | 2026-11-19 | `8b19835` | developer |
 | T0.2 — solution skeleton + xUnit | 2026-11-19 | `9bd499d` | developer |
 | T0.3 — Myra host + debug label | 2026-11-19 | `e927166` | developer |
+| T0.4 — clock, flags, overlay | 2026-11-19 | _pending_ | developer |

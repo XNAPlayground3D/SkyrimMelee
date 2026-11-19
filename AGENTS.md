@@ -44,7 +44,7 @@ Every task, minimum bar:
 ```powershell
 dotnet build SkyrimMelee.slnx          # zero warnings introduced
 dotnet test SkyrimMelee.slnx           # unit tests
-dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # combat tasks (stub until T0.4)
+dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # combat tasks (stub until T3.5)
 ```
 
 Then, depending on what the task touched:

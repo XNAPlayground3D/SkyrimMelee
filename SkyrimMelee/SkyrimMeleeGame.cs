@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Myra;
 using Myra.Graphics2D.UI;
 using SkyrimMelee.Core;
+using SkyrimMelee.Debug;
 using SkyrimMelee.Ui;
 
 namespace SkyrimMelee;
@@ -19,20 +20,22 @@ public sealed class SkyrimMeleeGame : Game
 	private const string BuildConfiguration = "Release";
 #endif
 
-	private readonly FixedStepLoop _loop = new();
+	private readonly GameOptions _options;
+	private readonly GameClock _clock = new();
 	private readonly GraphicsDeviceManager _graphics;
 
 	private MyraHost? _ui;
 	private Label? _debugLabel;
+	private DebugOverlay? _overlay;
 	private float _fps;
 	private double _fpsWindowTime;
 	private int _fpsWindowFrames;
-	private double _wallTime;
 	private double _labelTimer;
-	private long _droppedSteps;
+	private bool _f1WasDown;
 
-	public SkyrimMeleeGame()
+	public SkyrimMeleeGame(GameOptions options)
 	{
+		_options = options;
 		_graphics = new GraphicsDeviceManager(this)
 		{
 			PreferredBackBufferWidth = 1600,
@@ -40,7 +43,12 @@ public sealed class SkyrimMeleeGame : Game
 			SynchronizeWithVerticalRetrace = true
 		};
 
-		// Draw at the display rate; the simulation advances through FixedStepLoop.
+		if (options.SlowMotion)
+		{
+			_clock.TimeScale = 0.25;
+		}
+
+		// Draw at the display rate; the simulation advances through GameClock.
 		IsFixedTimeStep = false;
 		IsMouseVisible = true;
 
@@ -48,8 +56,8 @@ public sealed class SkyrimMeleeGame : Game
 		Window.AllowUserResizing = true;
 	}
 
-	/// <summary>Number of fixed 60 Hz simulation steps since launch.</summary>
-	public long SimulationSteps { get; private set; }
+	/// <summary>Number of fixed 60 Hz steps executed since launch.</summary>
+	public long SimulationSteps => _clock.FrameIndex;
 
 	protected override void Initialize()
 	{
@@ -59,23 +67,29 @@ public sealed class SkyrimMeleeGame : Game
 
 	protected override void LoadContent()
 	{
-		_ui = new MyraHost(this);
-
-		var font = DefaultAssets.DebugFontSystem.GetFont(20);
-		_debugLabel = new Label
+		if (!_options.NoUi)
 		{
-			Text = "SkyrimMelee",
-			Font = font,
-			TextColor = TextColor,
-			HorizontalAlignment = HorizontalAlignment.Left,
-			VerticalAlignment = VerticalAlignment.Top,
-			Left = 24,
-			Top = 20
-		};
+			_ui = new MyraHost(this);
 
-		var root = new Panel();
-		root.Widgets.Add(_debugLabel);
-		_ui.Root = root;
+			_debugLabel = new Label
+			{
+				Text = "SkyrimMelee",
+				Font = DefaultAssets.DebugFontSystem.GetFont(20),
+				TextColor = TextColor,
+				HorizontalAlignment = HorizontalAlignment.Left,
+				VerticalAlignment = VerticalAlignment.Top,
+				Left = 24,
+				Top = 20
+			};
+
+			_overlay = new DebugOverlay(_options);
+			_overlay.Visible = _options.Debug;
+
+			var root = new Panel();
+			root.Widgets.Add(_debugLabel);
+			root.Widgets.Add(_overlay.Widget);
+			_ui.Root = root;
+		}
 
 		base.LoadContent();
 	}
@@ -89,19 +103,26 @@ public sealed class SkyrimMeleeGame : Game
 
 	protected override void Update(GameTime gameTime)
 	{
-		if (Keyboard.GetState().IsKeyDown(Keys.Escape) ||
+		var keyboard = Keyboard.GetState();
+		if (keyboard.IsKeyDown(Keys.Escape) ||
 			GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
 		{
 			Exit();
 			return;
 		}
 
+		var f1Down = keyboard.IsKeyDown(Keys.F1);
+		if (f1Down && !_f1WasDown)
+		{
+			_overlay?.Toggle();
+		}
+
+		_f1WasDown = f1Down;
+
 		var elapsed = gameTime.ElapsedGameTime.TotalSeconds;
-		_wallTime += elapsed;
 		UpdateFps(elapsed);
 
-		var steps = _loop.Advance(elapsed);
-		_droppedSteps += _loop.DroppedSteps;
+		var steps = _clock.Advance(elapsed);
 		for (var i = 0; i < steps; i++)
 		{
 			StepSimulation();
@@ -111,7 +132,7 @@ public sealed class SkyrimMeleeGame : Game
 		if (_labelTimer >= 0.25)
 		{
 			_labelTimer = 0;
-			UpdateDebugLabel();
+			UpdateDebugText();
 		}
 
 		base.Update(gameTime);
@@ -119,9 +140,7 @@ public sealed class SkyrimMeleeGame : Game
 
 	private void StepSimulation()
 	{
-		SimulationSteps++;
-
-		// T0.3: still a skeleton. Round state, combat, physics and AI hook in from T1 onward.
+		// T0.4: still a skeleton. Round state, combat, physics and AI hook in from T1 onward.
 	}
 
 	private void UpdateFps(double elapsed)
@@ -139,19 +158,22 @@ public sealed class SkyrimMeleeGame : Game
 		_fpsWindowFrames = 0;
 	}
 
-	private void UpdateDebugLabel()
+	private void UpdateDebugText()
 	{
 		if (_debugLabel is null || _ui is null)
 		{
 			return;
 		}
 
-		var driftMs = (SimulationSteps * FixedStepLoop.StepDuration - _wallTime) * 1000.0;
 		var width = GraphicsDevice.PresentationParameters.BackBufferWidth;
 		var height = GraphicsDevice.PresentationParameters.BackBufferHeight;
+		var driftMs = _clock.Drift * 1000.0;
+		var god = _options.GodMode ? "  |  god" : string.Empty;
 
 		_debugLabel.Text = FormattableString.Invariant(
-			$"SkyrimMelee  |  {BuildConfiguration}  |  {_fps:0.0} FPS\n{width}x{height}  |  sim {SimulationSteps}  |  drift {driftMs:+0.0;-0.0;0.0} ms  |  dropped {_droppedSteps}");
+			$"SkyrimMelee  |  {BuildConfiguration}  |  {_fps:0.0} FPS\n{width}x{height}  |  sim {_clock.FrameIndex}  |  {_clock.TimeScale:0.00}x  |  drift {driftMs:+0.0;-0.0;0.0} ms  |  dropped {_clock.TotalDroppedSteps}{god}");
+
+		_overlay?.Update(_clock);
 	}
 
 	protected override void Draw(GameTime gameTime)

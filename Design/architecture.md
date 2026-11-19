@@ -96,6 +96,8 @@ The guard hitbox is frozen when the guard completes; the 1.2° visual breathing 
 
 ## Debug and flags
 
-`--debug` overlay + wireframes · `--god` · `--slowmo` · `--no-ui` · `--self-test`
+`--debug` overlay + wireframes · `--god` · `--slowmo` (0.25×) · `--no-ui` · `--self-test` · `--help`
+
+`GameClock` owns `FrameIndex`, `SimTime`, fixed `DeltaTime`, `TimeScale`, real/scaled time, accumulator and dropped steps. Slow motion scales incoming time, never the step duration.
 
 `F1` draws hurtboxes, the blade sphere chain, the last 20 swept segments, contact points and normals, plus the rejection reason for any ignored contact.

@@ -9,15 +9,16 @@ A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 0 — text on screen · **Code:** solution, fixed 60 Hz loop, Myra host · **Next:** `T0.4`
+**Last updated:** 2026-11-19 · **Phase:** 1 — primitives · **Code:** solution, clock, Myra host, flags · **Next:** `T1.1`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 11 passing |
+| Tests | ✅ xUnit project, 20 passing |
 | UI host & debug label | ✅ `T0.3` |
+| Loop, clock & flags | ✅ `T0.4` |
 | Primitive rendering | ⬜ `T1.1` |
 | Sword motion & combat | ⬜ `T2.1` / `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |
@@ -47,7 +48,7 @@ dotnet run --project SkyrimMelee/SkyrimMelee.csproj
 dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # headless combat tests
 ```
 
-`--debug` (overlay + hitboxes) · `--god` (infinite health) · `--slowmo` · `--no-ui`
+`--debug` (overlay on launch) · `--god` · `--slowmo` · `--no-ui` · `--self-test` · `--help`
 
 **Controls:** `LMB` slash · `Shift+LMB` power slash · `1`/`2`/`3` forced arcs · `RMB` hold to block · `Esc` pause · `F1` debug · `F2` slow motion · `F5` reset duel.
 
