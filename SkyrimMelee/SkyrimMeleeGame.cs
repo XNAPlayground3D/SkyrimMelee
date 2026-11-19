@@ -47,7 +47,6 @@ public sealed class SkyrimMeleeGame : Game
 	private IReadOnlyList<SwordClip> _swordClips = Array.Empty<SwordClip>();
 	private AttackDefinition? _slashAttack;
 	private AttackDefinition? _slashRightAttack;
-	private AttackDefinition? _overheadAttack;
 	private AttackDefinition? _powerSlashAttack;
 	private readonly CombatStateMachine _combat = new();
 	private bool _paused;
@@ -65,7 +64,6 @@ public sealed class SkyrimMeleeGame : Game
 	private bool _plusWasDown;
 	private bool _d1WasDown;
 	private bool _d2WasDown;
-	private bool _d3WasDown;
 	private bool _leftMouseWasDown;
 	private bool _rightMouseWasDown;
 
@@ -132,7 +130,6 @@ public sealed class SkyrimMeleeGame : Game
 		var attacks = AttackCatalog.Create(_swordClips);
 		_slashAttack = attacks.Single(attack => attack.Name == "SlashLeft");
 		_slashRightAttack = attacks.Single(attack => attack.Name == "SlashRight");
-		_overheadAttack = attacks.Single(attack => attack.Name == "Overhead");
 		_powerSlashAttack = attacks.Single(attack => attack.Name == "PowerSlash");
 		_swordMotion = new SwordMotion();
 		_swordMotion.ResetTo(_swordClips[0], _options.ClipTime ?? 0f);
@@ -325,14 +322,6 @@ public sealed class SkyrimMeleeGame : Game
 
 		_d2WasDown = rightSlash;
 
-		var overhead = keyboard.IsKeyDown(Keys.D3) || keyboard.IsKeyDown(Keys.NumPad3);
-		if (overhead && !_d3WasDown)
-		{
-			PlayOverhead();
-		}
-
-		_d3WasDown = overhead;
-
 		var pause = keyboard.IsKeyDown(Keys.P);
 		if (pause && !_pauseWasDown)
 		{
@@ -406,17 +395,6 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		PlayClip("SlashRight");
-	}
-
-	private void PlayOverhead()
-	{
-		if (_paused || _swordMotion is null || _overheadAttack is null ||
-			!_combat.TryStartAttack(_overheadAttack))
-		{
-			return;
-		}
-
-		PlayClip("Overhead");
 	}
 
 	private void PlayPowerSlash()

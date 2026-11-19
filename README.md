@@ -9,7 +9,7 @@ A Skyrim-inspired greatsword duel between two white capsule fighters — with a 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, capsule fighters, swords, HUD, clip player, attack tuning, orbit-cut SlashLeft, guard clips, shared blade geometry, combat FSM, SlashLeft/Right, Overhead, PowerSlash, pause status · **Next:** `T2.9`
+**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, capsule fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, three attack clips (SlashLeft, SlashRight, PowerSlash overhead), pause status · **Next:** `T2.10`
 
 | Area | State |
 | --- | --- |
@@ -30,9 +30,7 @@ A Skyrim-inspired greatsword duel between two white capsule fighters — with a 
 | Blade geometry | ✅ `T2.4` |
 | Combat state machine | ✅ `T2.5` |
 | SlashRight clip | ✅ `T2.6` |
-| Overhead clip | ✅ `T2.7` |
-| PowerSlash clip | ✅ `T2.8` |
-| PowerOverhead clip | ⬜ `T2.9` |
+| Three-attack moveset (PowerSlash overhead) | ✅ `T2.9` |
 | Reaction clips | ⬜ `T2.10` |
 | Combat rules | ⬜ `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |
@@ -66,7 +64,7 @@ dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # headless 
 
 UI markup lives in `SkyrimMelee/Ui/Hud.xmmp` and `DebugOverlay.xmmp`; after editing, run `myra-export <file>.xmmp`.
 
-**Controls:** `LMB` slash · `Shift+LMB` power slash · `1`/`2`/`3` forced arcs · `RMB` block · `F1` debug overlay · `F2` wireframe · `Esc` quit.
+**Controls:** `LMB` slash · `Shift+LMB` power slash · `1`/`2` forced arcs · `RMB` block · `F1` debug overlay · `F2` wireframe · `Esc` quit.
 
 ## License
 

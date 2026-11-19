@@ -41,9 +41,9 @@ The AI plays by the same rules: it emits `CombatIntent`s and cannot shorten a wi
 | Opponent winding up, time-to-active > reaction + 100 ms | Guard (timed-block chance per profile) |
 | Opponent winding up, too close to react | Guard anyway; trade if the opponent is low |
 | Opponent in recovery (≥ 300 ms left) | Punish with light, or power if affordable |
-| Opponent guarding, stamina below a power block cost | Power overhead for the guard break |
+| Opponent guarding, stamina below a power block cost | Power slash for the guard break |
 | Opponent guarding, healthy stamina | Chip with lights to drain block stamina |
-| Opponent staggered | Power overhead if it lands in time, else light |
+| Opponent staggered | Power slash if it lands in time, else light |
 | Own stamina < 25 or poise < 40 | Stop attacking, recover, block only when needed |
 
 | Parameter | Novice | Adept | Master |

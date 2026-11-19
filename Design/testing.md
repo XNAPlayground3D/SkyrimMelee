@@ -37,7 +37,7 @@ Intent tracks use absolute sim times. Output is one `PASS/FAIL` line per scenari
 | `CL-05` | Blade never intersects the fighter's own body (120 Hz sampling) |
 | `ST-01/02` | Clean hit lands; attack with no hurtboxes whiffs and recovers |
 | `ST-03/04` | Normal block reduction and drain; timed block at 180 ms after raise |
-| `ST-05` | Power overhead into 5 stamina ⇒ guard break, guard removed, 1000 ms stagger |
+| `ST-05` | Power slash into 5 stamina ⇒ guard break, guard removed, 1000 ms stagger |
 | `ST-06/07` | Off-axis hit is not blocked; hitting a wind-up interrupts the attack |
 | `ST-08/09` | One hit per hurtbox per swing; poses 1.2 m apart in one tick still connect |
 | `ST-10/11` | Double KO draws; equal-TOI guard beats body |

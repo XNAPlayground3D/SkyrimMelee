@@ -22,8 +22,6 @@
       <Label Text="LMB or 1         Slash left" TextColor="#E6DCC8" />
       <Label Text="2                Slash right" TextColor="#E6DCC8" />
       <Label Text="Shift + LMB      Power slash" TextColor="#E6DCC8" />
-      <Label Text="3                Overhead" TextColor="#E6DCC8" />
-      <Label Text="Shift + 3        Power overhead" TextColor="#C9A24B" />
       <Label Text="RMB (hold)       Block" TextColor="#E6DCC8" />
       <Label Text="P                Pause sim (dev)" TextColor="#E6DCC8" />
       <Label Text="R                Reset idle (dev)" TextColor="#E6DCC8" />

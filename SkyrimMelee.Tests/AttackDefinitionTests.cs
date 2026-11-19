@@ -16,10 +16,9 @@ public class AttackDefinitionTests
 	{
 		var names = Attacks.Select(a => a.Name).ToArray();
 
-		Assert.Equal(4, names.Length);
+		Assert.Equal(3, names.Length);
 		Assert.Contains("SlashLeft", names);
 		Assert.Contains("SlashRight", names);
-		Assert.Contains("Overhead", names);
 		Assert.Contains("PowerSlash", names);
 	}
 
@@ -35,12 +34,11 @@ public class AttackDefinitionTests
 	}
 
 	[Fact]
-	public void PowerSlashHasLargerHiltTravelThanSlashLeft()
+	public void PowerSlashHiltTravelsABodyScaleArc()
 	{
-		var slash = MaxHiltTravel(SlashLeftAttack.Clip);
-		var power = MaxHiltTravel(Attack("PowerSlash").Clip);
+		var travel = MaxHiltTravel(Attack("PowerSlash").Clip);
 
-		Assert.True(power > slash + 0.2f, $"power={power:0.00} slash={slash:0.00}");
+		Assert.True(travel > 0.5f, $"PowerSlash grip travels only {travel:0.000} m.");
 	}
 
 	[Fact]
@@ -195,9 +193,9 @@ public class AttackDefinitionTests
 	}
 
 	[Fact]
-	public void OverheadRaisesThenChops()
+	public void PowerSlashRaisesThenChops()
 	{
-		var clip = Attack("Overhead").Clip;
+		var clip = Attack("PowerSlash").Clip;
 		var hand = Matrix.CreateTranslation(SwordClips.HandAnchor);
 		var windup = BladeGeometry.FromPose(clip.Keys[2].Pose, hand).Tip;
 		var contact = BladeGeometry.FromPose(clip.Keys[5].Pose, hand).Tip;

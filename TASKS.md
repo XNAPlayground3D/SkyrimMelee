@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T2.9`
+> **Next up:** `T2.10`
 
 ---
 
@@ -194,12 +194,13 @@
 
 **Done when:** developer approval of the PowerSlash arc, timing, and hilt/hand motion.
 
-### [ ] T2.9 — PowerOverhead clip
-**Goal:** add the crushing overhead slam as its own deliverable.
-- Author `PowerOverhead` with 750 / 180 / 850 ms, `RequiresStamina`, 100 ms hold, largest hilt travel.
-- Add it to `SwordClips` / `AttackCatalog`; extend tests.
+### [x] T2.9 — Three-attack moveset
+**Goal:** keep exactly three attacks — `SlashLeft`, `SlashRight`, `PowerSlash` — with `PowerSlash` as the single overhead power slam.
+- Move the former power-overhead poses and timing into `PowerSlash`: 600 / 160 / 700 ms, 100 ms hold, high overhead raise, deep follow-through.
+- Remove `Overhead` and `PowerOverhead` from `SwordClips`, `CombatTuning`, `AttackCatalog`, input, HUD, tests, and docs.
+- Dev harness: `1` / LMB plays `SlashLeft`, `2` plays `SlashRight`, Shift+LMB plays `PowerSlash`.
 
-**Done when:** developer approval of the PowerOverhead arc, timing, and hilt/hand motion.
+**Done when:** developer approval of the three-attack set and of the `PowerSlash` overhead arc, timing, and hilt/hand motion.
 
 ### [ ] T2.10 — Reaction clips
 **Goal:** add the non-guard reaction animations as their own deliverable (split out of T2.3).
@@ -480,3 +481,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.6 — SlashRight clip | 2026-11-19 | `0667ba5` | developer |
 | T2.7 — Overhead clip | 2026-11-19 | `66b0bd8` | developer |
 | T2.8 — PowerSlash clip | 2026-11-19 | `0960141` | developer |
+| T2.9 — Three-attack moveset | 2026-11-19 | `PENDING` | developer |

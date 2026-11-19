@@ -12,7 +12,6 @@ public static class AttackCatalog
 		{
 			new AttackDefinition("SlashLeft", Find("SlashLeft"), CombatTuning.Slash),
 			new AttackDefinition("SlashRight", Find("SlashRight"), CombatTuning.Slash),
-			new AttackDefinition("Overhead", Find("Overhead"), CombatTuning.Overhead),
 			new AttackDefinition("PowerSlash", Find("PowerSlash"), CombatTuning.PowerSlash)
 		};
 	}
