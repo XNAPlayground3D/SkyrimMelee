@@ -479,4 +479,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.5 — combat state machine | 2026-11-19 | `a7954ae` | developer |
 | T2.6 — SlashRight clip | 2026-11-19 | `0667ba5` | developer |
 | T2.7 — Overhead clip | 2026-11-19 | `66b0bd8` | developer |
-| T2.8 — PowerSlash clip | 2026-11-19 | `PENDING` | developer |
+| T2.8 — PowerSlash clip | 2026-11-19 | `0960141` | developer |
