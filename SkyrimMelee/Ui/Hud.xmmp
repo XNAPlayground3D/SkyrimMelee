@@ -23,9 +23,9 @@
       <Label Text="1 / 2 / 3        Left / right / overhead" TextColor="#C9A24B" />
       <Label Text="Shift + 3        Power overhead" TextColor="#C9A24B" />
       <Label Text="RMB (hold)       Block" TextColor="#E6DCC8" />
-      <Label Text="Space or P       Pause clip (dev)" TextColor="#E6DCC8" />
-      <Label Text="R                Restart clip (dev)" TextColor="#E6DCC8" />
-      <Label Text="Z / X or - =     Clip speed (dev)" TextColor="#E6DCC8" />
+      <Label Text="Space or P       Pause sim (dev)" TextColor="#E6DCC8" />
+      <Label Text="R                Reset idle (dev)" TextColor="#E6DCC8" />
+      <Label Text="Z / X or - =     Sim speed (dev)" TextColor="#E6DCC8" />
       <Label Text="F1               Debug overlay" TextColor="#E6DCC8" />
       <Label Text="F2               Wireframe" TextColor="#E6DCC8" />
       <Label Text="Esc              Quit" TextColor="#E6DCC8" />

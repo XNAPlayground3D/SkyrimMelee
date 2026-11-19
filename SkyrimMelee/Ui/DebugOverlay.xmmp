@@ -12,5 +12,7 @@
     <Label Id="_mode" Text="mode" TextColor="#9FD8FF" />
     <Label Id="_clip" Text="clip -" TextColor="#9FD8FF" />
     <Label Id="_clipTime" Text="clip t 0.00" TextColor="#9FD8FF" />
+    <Label Id="_fsm" Text="fsm Idle 0.00s" TextColor="#9FD8FF" />
+    <Label Id="_fsmFlags" Text="active=no block=no lock=no" TextColor="#9FD8FF" />
   </VerticalStackPanel>
 </Project>

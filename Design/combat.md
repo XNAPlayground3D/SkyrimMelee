@@ -58,17 +58,19 @@ T2.2 authors **only** `SlashLeft` and its `AttackDefinition`. `SlashRight`, `Ove
 
 | State | Clip | Exits |
 | --- | --- | --- |
-| `Idle` | `Idle` | attack, guard |
+| `Idle` | `SlashLeft @ 0` | attack, guard, stagger, dead |
 | `Windup` | attack clip | `Active`, `Stagger`, `Dead` |
 | `Active` | attack clip | `Recovery`, `Stagger`, `Dead` |
 | `Recovery` | attack clip | `Idle`, `Stagger`, `Dead` |
-| `GuardRaise` | `GuardRaise` | `GuardHold` |
-| `GuardHold` | `GuardHold` | `GuardLower`, attack |
-| `GuardLower` | `GuardLower` | `Idle` |
+| `GuardRaise` | `GuardRaise` | `GuardHold`, `GuardLower`, attack, `Stagger`, `Dead` |
+| `GuardHold` | `GuardHold` | `GuardLower`, attack, `Stagger`, `Dead` |
+| `GuardLower` | `GuardLower` | `Idle`, `Stagger`, `Dead` |
 | `Stagger` | `StaggerMicro/Small/Large` | `Idle`, `Dead` |
-| `Dead` | `Death` | reset only |
+| `Dead` | `Death` | reset only (`Idle`) |
 
 Rules: wind-up/active/recovery can only be interrupted by stagger or death; facing is locked from wind-up to recovery end; only `GuardHold` blocks; guard may attack directly out of `GuardRaise/Hold`; death beats stagger.
+
+`CombatStateMachine` runs on the fixed 60 Hz step. `TryStartAttack`, `TryStartGuard`, and `TryReleaseGuard` return false when the transition table rejects them, so an attack cannot be cancelled into a guard or another attack (commit lock). `ApplyStagger` and `Kill` interrupt any non-dead state. The F1 overlay shows the state, state time, and the active/block/facing-lock flags.
 
 Blade hitbox: local `(0, 0.18, 0)` → `(0, 1.47, 0)`, transformed to world, approximated by three spheres (r 0.055 / 0.040 / 0.025). See [architecture](architecture.md#physics) for the sweep.
 

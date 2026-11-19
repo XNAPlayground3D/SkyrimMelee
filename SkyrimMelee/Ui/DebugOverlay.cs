@@ -1,3 +1,4 @@
+using SkyrimMelee.Combat;
 using SkyrimMelee.Core;
 
 namespace SkyrimMelee.Ui
@@ -17,7 +18,8 @@ namespace SkyrimMelee.Ui
 			Visible = !Visible;
 		}
 
-		public void Update(GameClock clock, string clipName, float clipNormalizedTime)
+		public void Update(GameClock clock, CombatStateMachine combat, string clipName,
+			float clipNormalizedTime)
 		{
 			if (!Visible)
 			{
@@ -32,6 +34,10 @@ namespace SkyrimMelee.Ui
 			_dropped.Text = $"dropped {clock.TotalDroppedSteps}";
 			_clip.Text = $"clip {clipName}";
 			_clipTime.Text = FormattableString.Invariant($"clip t {clipNormalizedTime:0.00}");
+			_fsm.Text = FormattableString.Invariant($"fsm {combat.State} {combat.StateTime:0.00}s");
+			_fsmFlags.Text = $"active={(combat.IsActive ? "yes" : "no")} " +
+							 $"block={(combat.Blocks ? "yes" : "no")} " +
+							 $"lock={(combat.IsFacingLocked ? "yes" : "no")}";
 		}
 	}
 }

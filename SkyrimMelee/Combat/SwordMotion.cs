@@ -47,6 +47,16 @@ public sealed class SwordMotion
 		_pose = clip.Sample(0f);
 	}
 
+	/// <summary>Snaps to a clip time without a cross-fade.</summary>
+	public void ResetTo(SwordClip clip, float timeSeconds = 0f)
+	{
+		_clip = clip;
+		_time = Math.Clamp(timeSeconds, 0f, clip.Duration);
+		_pose = clip.Sample(_time);
+		_blendFrom = _pose;
+		_blendRemaining = 0f;
+	}
+
 	public void Update(float elapsedSeconds)
 	{
 		if (_clip is null || elapsedSeconds <= 0f)

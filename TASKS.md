@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T2.5`
+> **Next up:** `T2.6`
 
 ---
 
@@ -161,11 +161,12 @@
 
 **Done when:** debug draw of the physics blade capsule overlaps the rendered blade within 1 cm at every sampled time across every clip.
 
-### [ ] T2.5 — Combat state machine (motion only)
+### [x] T2.5 — Combat state machine (motion only)
 **Goal:** input-less, damage-less sequencing: idle → wind-up → active → recovery → idle; idle → guard → idle; interruption by stagger.
-- `CombatStateMachine` with explicit states, timers, and a transition table.
+- `CombatStateMachine` with explicit states, timers, and a transition table; updates on the fixed 60 Hz step.
 - Commit lock: no transition out of an attack except stagger/death.
 - Guard raise/held/lower with 200 ms raise and 150 ms lower.
+- F1 overlay shows state, state time, and active/block/facing-lock flags; dev controls pause/reset/scale the simulation.
 
 **Done when:** FSM debug view shows correct state/timer transitions; forced transitions cannot skip wind-up or active phases.
 
@@ -472,3 +473,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.2 — SlashLeft clip | 2026-11-19 | `5602692` | developer |
 | T2.3 — guard clips | 2026-11-19 | `01819f2` | developer |
 | T2.4 — clip → blade segment | 2026-11-19 | `71c3ac4` | developer |
+| T2.5 — combat state machine | 2026-11-19 | `PENDING` | developer |
