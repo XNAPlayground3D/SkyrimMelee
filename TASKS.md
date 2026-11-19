@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T2.7`
+> **Next up:** `T2.8`
 
 ---
 
@@ -178,10 +178,11 @@
 
 **Done when:** developer approval of the SlashRight arc, timing, and hilt/hand motion.
 
-### [ ] T2.7 — Overhead clip
+### [x] T2.7 — Overhead clip
 **Goal:** add the vertical chop as its own deliverable.
-- Author `Overhead` with the 400 / 140 / 450 ms phases, 100 ms hold, hilt translation.
-- Add it to `SwordClips` / `AttackCatalog`; extend tests.
+- Author `Overhead` with the 400 / 140 / 450 ms phases, 100 ms hold, hilt rising above the head then chopping forward/down.
+- Add it to `SwordClips` / `AttackCatalog`; tests assert the raise/chop and the generic rules.
+- Dev harness: `3` plays Overhead.
 
 **Done when:** developer approval of the Overhead arc, timing, and hilt/hand motion.
 
@@ -476,3 +477,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.4 — clip → blade segment | 2026-11-19 | `71c3ac4` | developer |
 | T2.5 — combat state machine | 2026-11-19 | `a7954ae` | developer |
 | T2.6 — SlashRight clip | 2026-11-19 | `0667ba5` | developer |
+| T2.7 — Overhead clip | 2026-11-19 | `PENDING` | developer |

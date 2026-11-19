@@ -9,14 +9,14 @@ A Skyrim-inspired greatsword duel between two white capsule fighters — with a 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, capsule fighters, swords, HUD, clip player, attack tuning, orbit-cut SlashLeft, guard clips, shared blade geometry, combat FSM, SlashRight, pause status · **Next:** `T2.7`
+**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, capsule fighters, swords, HUD, clip player, attack tuning, orbit-cut SlashLeft, guard clips, shared blade geometry, combat FSM, SlashLeft/Right, Overhead, pause status · **Next:** `T2.8`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 67 passing |
+| Tests | ✅ xUnit project, 68 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
@@ -30,7 +30,8 @@ A Skyrim-inspired greatsword duel between two white capsule fighters — with a 
 | Blade geometry | ✅ `T2.4` |
 | Combat state machine | ✅ `T2.5` |
 | SlashRight clip | ✅ `T2.6` |
-| Overhead / power clips | ⬜ `T2.7`–`T2.9` |
+| Overhead clip | ✅ `T2.7` |
+| Power clips | ⬜ `T2.8`–`T2.9` |
 | Reaction clips | ⬜ `T2.10` |
 | Combat rules | ⬜ `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |

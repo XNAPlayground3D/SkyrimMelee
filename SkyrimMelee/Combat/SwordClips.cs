@@ -21,6 +21,7 @@ public static class SwordClips
 	{
 		SlashLeft(),
 		SlashRight(),
+		Overhead(),
 		GuardRaise(),
 		GuardHold(),
 		GuardLower()
@@ -104,6 +105,46 @@ public static class SwordClips
 		var rotation = mirror * Matrix.CreateFromQuaternion(pose.Rotation) * mirror;
 
 		return new SwordPose(offset, Quaternion.CreateFromRotationMatrix(rotation));
+	}
+
+	private static SwordClip Overhead()
+	{
+		var duration = CombatTuning.Overhead.Total;
+		var windupEnd = CombatTuning.Overhead.Windup / duration;
+		var activeEnd = (CombatTuning.Overhead.Windup + CombatTuning.Overhead.Active) / duration;
+
+		// Vertical chop in the fighter's X-Y plane: the hilt rises above the head
+		// with the blade back/up, holds, then drives forward and down. Roll-only
+		// Euler keeps the cutting edge in the chop plane instead of the flat.
+		var windupPull = Pose(
+			new Vector3(0.25f, 1.35f, 0.25f),
+			new Vector3(0f, 0f, 18f));
+		var windup = Pose(
+			new Vector3(0.10f, 1.70f, 0.20f),
+			new Vector3(0f, 0f, 35f));
+		var swingEarly = Pose(
+			new Vector3(0.45f, 1.60f, 0.20f),
+			new Vector3(0f, 0f, -30f));
+		var contact = Pose(
+			new Vector3(0.75f, 1.25f, 0.15f),
+			new Vector3(0f, 0f, -120f));
+		var activeEndPose = Pose(
+			new Vector3(0.70f, 1.00f, 0.15f),
+			new Vector3(0f, 0f, -130f));
+		var follow = Pose(
+			new Vector3(0.55f, 0.85f, 0.20f),
+			new Vector3(0f, 0f, -120f));
+
+		return new SwordClip("Overhead", duration, false,
+			Key(0f, IdlePose(), Easing.EaseIn),
+			Key(0.28f / duration, windupPull),
+			Key(0.30f / duration, windup, Easing.Linear),
+			Key(windupEnd, windup, Easing.EaseIn),   // 100 ms telegraph hold
+			Key(0.45f / duration, swingEarly, Easing.EaseIn),
+			Key(0.50f / duration, contact, Easing.EaseOut),
+			Key(activeEnd, activeEndPose, Easing.SmoothStep),
+			Key(0.72f / duration, follow),
+			Key(1f, IdlePose()));
 	}
 
 	private static SwordClip GuardRaise()

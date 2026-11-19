@@ -12,13 +12,14 @@ public class AttackDefinitionTests
 	private static AttackDefinition SlashRightAttack => Attack("SlashRight");
 
 	[Fact]
-	public void CatalogContainsBothSlashes()
+	public void CatalogContainsTheAttacks()
 	{
 		var names = Attacks.Select(a => a.Name).ToArray();
 
-		Assert.Equal(2, names.Length);
+		Assert.Equal(3, names.Length);
 		Assert.Contains("SlashLeft", names);
 		Assert.Contains("SlashRight", names);
+		Assert.Contains("Overhead", names);
 	}
 
 	[Fact]
@@ -170,6 +171,19 @@ public class AttackDefinitionTests
 		}
 
 		Assert.True(maxAngle > 2f, $"SlashLeft blade sweeps only {MathHelper.ToDegrees(maxAngle):0} degrees.");
+	}
+
+	[Fact]
+	public void OverheadRaisesThenChops()
+	{
+		var clip = Attack("Overhead").Clip;
+		var hand = Matrix.CreateTranslation(SwordClips.HandAnchor);
+		var windup = BladeGeometry.FromPose(clip.Keys[2].Pose, hand).Tip;
+		var contact = BladeGeometry.FromPose(clip.Keys[5].Pose, hand).Tip;
+
+		Assert.True(windup.Y > 2.5f, $"windup tip y={windup.Y:0.00}");
+		Assert.True(contact.Y < windup.Y - 1f, $"contact tip y={contact.Y:0.00}");
+		Assert.True(contact.X > windup.X + 1.5f, $"contact tip x={contact.X:0.00}");
 	}
 
 	[Fact]

@@ -11,7 +11,8 @@ public static class AttackCatalog
 		return new[]
 		{
 			new AttackDefinition("SlashLeft", Find("SlashLeft"), CombatTuning.Slash),
-			new AttackDefinition("SlashRight", Find("SlashRight"), CombatTuning.Slash)
+			new AttackDefinition("SlashRight", Find("SlashRight"), CombatTuning.Slash),
+			new AttackDefinition("Overhead", Find("Overhead"), CombatTuning.Overhead)
 		};
 	}
 }
