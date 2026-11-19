@@ -5,6 +5,7 @@ using Myra;
 using Myra.Graphics2D.UI;
 using SkyrimMelee.Core;
 using SkyrimMelee.Debug;
+using SkyrimMelee.Fighters;
 using SkyrimMelee.Graphics;
 using SkyrimMelee.Ui;
 
@@ -32,6 +33,8 @@ public sealed class SkyrimMeleeGame : Game
 	private PrimitiveLibrary? _primitives;
 	private ForwardRenderer? _renderer;
 	private Arena? _arena;
+	private FighterRig? _player;
+	private FighterRig? _opponent;
 	private ScreenGradient? _backdrop;
 	private float _fps;
 	private double _fpsWindowTime;
@@ -98,8 +101,10 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_primitives = new PrimitiveLibrary(GraphicsDevice);
-		_renderer = new ForwardRenderer(GraphicsDevice);
+		_renderer = new ForwardRenderer(GraphicsDevice) { Wireframe = _options.Debug };
 		_arena = new Arena(_primitives);
+		_player = new FighterRig(_primitives, FighterVisuals.Player, new Vector3(-1f, 0f, 0f), 0f);
+		_opponent = new FighterRig(_primitives, FighterVisuals.Opponent, new Vector3(1f, 0f, 0f), MathHelper.Pi);
 		_backdrop = new ScreenGradient(GraphicsDevice);
 		_camera.Update(_clock.SimTime, 0f);
 
@@ -108,6 +113,12 @@ public sealed class SkyrimMeleeGame : Game
 
 	protected override void UnloadContent()
 	{
+		_player?.Dispose();
+		_player = null;
+
+		_opponent?.Dispose();
+		_opponent = null;
+
 		_arena?.Dispose();
 		_arena = null;
 
@@ -139,6 +150,11 @@ public sealed class SkyrimMeleeGame : Game
 		if (f1Down && !_f1WasDown)
 		{
 			_overlay?.Toggle();
+
+			if (_renderer is not null)
+			{
+				_renderer.Wireframe = _overlay?.Visible == true;
+			}
 		}
 
 		_f1WasDown = f1Down;
@@ -215,6 +231,17 @@ public sealed class SkyrimMeleeGame : Game
 
 			_renderer.Begin(_camera.View, _camera.GetProjection(aspect));
 			_renderer.Draw(_arena.Instance, Matrix.Identity);
+
+			if (_player is not null)
+			{
+				_renderer.Draw(_player.Instance, _player.Transform);
+			}
+
+			if (_opponent is not null)
+			{
+				_renderer.Draw(_opponent.Instance, _opponent.Transform);
+			}
+
 			_renderer.End();
 		}
 

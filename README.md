@@ -9,7 +9,7 @@ A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 1 — arena · **Code:** solution, clock, Myra, forward renderer, arena, camera · **Next:** `T1.3`
+**Last updated:** 2026-11-19 · **Phase:** 1 — fighters · **Code:** solution, clock, Myra, renderer, arena, camera, fighter rigs · **Next:** `T1.4`
 
 | Area | State |
 | --- | --- |
@@ -21,6 +21,7 @@ A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the 
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
 | Arena & camera | ✅ `T1.2` |
+| Fighter rigs & palettes | ✅ `T1.3` |
 | Sword motion & combat | ⬜ `T2.1` / `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |
 | HUD & menus | ⬜ `T7.1` |

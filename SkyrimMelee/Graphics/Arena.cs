@@ -14,7 +14,6 @@ public sealed class Arena : IDisposable
 		var stone = primitives.CreateMaterial(new Color(0x4A, 0x4A, 0x52));
 		var darkStone = primitives.CreateMaterial(new Color(0x3A, 0x3A, 0x44));
 		var ring = primitives.CreateMaterial(new Color(0x6E, 0x6E, 0x7A));
-		var accent = primitives.CreateMaterial(new Color(0x8F, 0xA6, 0xC0));
 
 		var bones = new List<DrModelBone>();
 
@@ -36,10 +35,6 @@ public sealed class Arena : IDisposable
 			Add($"Ring{i}", primitives.LineCircle, ring,
 				World(new Vector3(0f, 0.01f, 0f), new Vector3(radii[i])));
 		}
-
-		// Duelling positions, kept visible until the fighter rigs exist (T1.3).
-		Add("MarkerLeft", primitives.LineCircle, accent, World(new Vector3(-1f, 0.012f, 0f), new Vector3(0.45f)));
-		Add("MarkerRight", primitives.LineCircle, accent, World(new Vector3(1f, 0.012f, 0f), new Vector3(0.45f)));
 
 		var pillars = new[] { (-4f, 4f), (4f, 4f), (-2f, 5.4f), (2f, 5.4f) };
 		for (var i = 0; i < pillars.Length; i++)

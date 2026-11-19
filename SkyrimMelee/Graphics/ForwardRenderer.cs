@@ -13,6 +13,11 @@ public sealed class ForwardRenderer : IDisposable
 	private static readonly RasterizerState CullBack = new() { CullMode = CullMode.CullCounterClockwiseFace };
 	private static readonly RasterizerState CullFront = new() { CullMode = CullMode.CullClockwiseFace };
 	private static readonly RasterizerState CullOff = new() { CullMode = CullMode.None };
+	private static readonly RasterizerState WireframeState = new()
+	{
+		CullMode = CullMode.None,
+		FillMode = FillMode.WireFrame
+	};
 
 	private readonly GraphicsDevice _device;
 	private readonly BasicEffect _lit;
@@ -20,6 +25,9 @@ public sealed class ForwardRenderer : IDisposable
 	private readonly DrMaterial _fallbackMaterial = new() { DiffuseColor = Color.White };
 	private Matrix _view;
 	private Matrix _projection;
+
+	/// <summary>Debug wireframe mode, toggled with the overlay.</summary>
+	public bool Wireframe { get; set; }
 
 	public ForwardRenderer(GraphicsDevice device)
 	{
@@ -88,12 +96,14 @@ public sealed class ForwardRenderer : IDisposable
 	public void Draw(DrMeshPart part, DrMaterial material, Matrix world,
 		CullMode cullMode = CullMode.CullCounterClockwiseFace)
 	{
-		_device.RasterizerState = cullMode switch
-		{
-			CullMode.None => CullOff,
-			CullMode.CullClockwiseFace => CullFront,
-			_ => CullBack
-		};
+		_device.RasterizerState = Wireframe
+			? WireframeState
+			: cullMode switch
+			{
+				CullMode.None => CullOff,
+				CullMode.CullClockwiseFace => CullFront,
+				_ => CullBack
+			};
 
 		_lit.World = world;
 		_lit.View = _view;

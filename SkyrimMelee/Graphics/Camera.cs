@@ -25,9 +25,9 @@ public sealed class Camera
 		_lookAt = Target;
 	}
 
-	public Vector3 Position { get; set; } = new(0.3f, 3.0f, -6.8f);
+	public Vector3 Position { get; set; } = new(0.3f, 2.6f, -5.2f);
 	public Vector3 Target { get; set; } = new(0f, 1.0f, 0f);
-	public float FieldOfView { get; set; } = MathHelper.ToRadians(46f);
+	public float FieldOfView { get; set; } = MathHelper.ToRadians(44f);
 	public float NearPlane { get; set; } = 0.1f;
 	public float FarPlane { get; set; } = 100f;
 

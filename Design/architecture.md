@@ -51,7 +51,7 @@ DigitalRiseModel builds `DrMesh`/`DrMeshPart` geometry and nothing else. We draw
 | Coordinates | Right-handed, `+Y` up |
 | Fighters | Player `(-1.0, 0, 0)` facing `+X`; opponent `(+1.0, 0, 0)` facing `-X` |
 | Gap | 2.0 m; the grip sits ~0.42 m forward, so full extension reaches into the torso |
-| Camera | `(0.3, 3.0, −6.8)` → `(0, 1.0, 0)`, FOV 46° |
+| Camera | `(0.3, 2.6, −5.2)` → `(0, 1.0, 0)`, FOV 44° |
 | Arena | Shallow stone cylinder radius 6, four rings, two duelling-position markers, four pillars, gradient backdrop |
 
 Meshes are cached in `PrimitiveLibrary` (unit box; sphere/cylinder/cone/disc/plane built from radius/length parameters; capsules keyed by length+radius; line versions for debug). Draw calls take a part, a `DrMaterial` (colour), and a world matrix. ~60 draw calls total; merging fighter parts is a later optimisation.
@@ -60,7 +60,7 @@ Two geometry quirks are handled in the library/renderer: DigitalRise line primit
 
 The arena is a `DrModel`: a root bone plus one bone/mesh per item (floor, each ring, each marker, each pillar). `ForwardRenderer.Draw(DrModelInstance, Matrix)` applies bone transforms, traverses the meshes, and picks the lit or unlit pass from `PrimitiveType`. Mesh parts are clones that share the library's vertex/index buffers.
 
-**Statue** (~1.78 m, 14 parts): head sphere, neck/chest/abdomen/pelvis boxes, arm and leg capsules, hand and boot boxes, permanent bladed stance, right hand owns the sword pivot.
+**Statue** (~1.78 m, 14 parts): head sphere, neck/chest/abdomen/pelvis boxes, arm and leg capsules, hand and boot boxes, permanent bladed stance, right hand owns the sword pivot. Fighters are `DrModel` rigs in local space (+X forward, +Z side) placed by a root transform; palettes come from `FighterVisuals`.
 
 **Greatsword** (1.64 m): grip cylinder, pommel sphere, crossguard box, two tapered blade boxes, cone tip, inset fuller. Local origin at the grip, blade along `+Y`, reach 1.47 m.
 

@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T1.3`
+> **Next up:** `T1.4`
 
 ---
 
@@ -87,12 +87,13 @@
 
 **Done when:** the arena renders from the gameplay camera with stable 60 FPS and no z-fighting; camera framing shows both fighter slots without clipping.
 
-### [ ] T1.3 — Fighter statue from primitives
+### [x] T1.3 — Fighter statue from primitives
 **Goal:** two recognizable humanoids, built only from boxes/capsules/spheres.
 - `FighterRigBuilder`: head (sphere), neck + torso + pelvis (boxes/capsule), upper/lower arms (capsules), hands (boxes), thighs/shins (capsules), boots (boxes).
-- One permanent combat stance pose, mirrored correctly, both facing each other at ±1.4 m on X.
+- One permanent combat stance pose, mirrored by the root transform, both facing each other at ±1.0 m on X (2.0 m gap).
+- Built as `DrModel` rigs and drawn with `ForwardRenderer.Draw(DrModelInstance, Matrix)`.
 - `FighterVisuals`: distinct palettes (steel-blue vs rust-red), so the two are readable at a glance.
-- Wireframe toggle that outlines each primitive.
+- Wireframe toggle: `F1` shows the overlay and switches the renderer to wireframe.
 
 **Done when:** silhouettes read as humanoids from the gameplay camera; no part intersects the floor; toggling wireframe shows the exact primitive decomposition.
 
@@ -410,3 +411,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T0.4 — clock, flags, overlay | 2026-11-19 | `7e66931` | developer |
 | T1.1 — primitive cache + showcase | 2026-11-19 | `80917e4` | developer |
 | T1.2 — arena, camera, forward renderer | 2026-11-19 | `648c0a9` | developer |
+| T1.3 — fighter rigs & palettes | 2026-11-19 | _pending_ | developer |

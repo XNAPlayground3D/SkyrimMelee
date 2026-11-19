@@ -16,7 +16,7 @@ public sealed class DebugOverlay
 
 	public DebugOverlay(GameOptions options)
 	{
-		_mode = $"god={(options.GodMode ? "on" : "off")}  ui={(options.NoUi ? "off" : "on")}  debug={(options.Debug ? "on" : "off")}";
+		_mode = $"god={(options.GodMode ? "on" : "off")}  ui={(options.NoUi ? "off" : "on")}  debug-start={(options.Debug ? "on" : "off")}";
 		_label = new Label
 		{
 			Font = Myra.DefaultAssets.DebugFontSystem.GetFont(16),
