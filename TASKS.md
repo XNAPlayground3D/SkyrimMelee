@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T3.2`
+> **Next up:** `T3.3`
 
 ---
 
@@ -227,11 +227,14 @@
 
 **Done when:** debug shapes match the rendered statue parts; unregistering the guard removes its collidable without leaking.
 
-### [ ] T3.2 — Swept blade cast
+### [x] T3.2 — Swept blade cast
 **Goal:** fast swings cannot tunnel.
 - `BladeSweep`: swept capsule from previous blade segment to current segment, executed per simulation substep with a custom Bepu hit handler.
 - Collect all hits per substep: shape id, contact point, normal, time-of-impact.
 - Hard cap on sweep distance per substep; assert if exceeded.
+- `BladeSweep` reuses its collections and deduplicates per hurtbox per call; zero-TOI contacts are recorded without a point/normal.
+- Test: `PowerSlash` against a torso at 60 Hz and with six fixed steps per simulated 10 FPS frame; the torso is the first hit and is reported once.
+- Dev feedback: a confirmed contact tints the hit body primitive (and its `F2` outline) for `HitFlashDuration`.
 
 **Done when:** a scripted max-speed power swing against a torso always registers exactly one first-contact event, at 60 Hz and at simulated 10 FPS.
 
@@ -489,3 +492,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.9 — Three-attack moveset | 2026-11-19 | `2243f3d` | developer |
 | T2.10 — Reaction clips | 2026-11-19 | `d9f4d14` | developer |
 | T3.1 — Bepu hurtboxes + primitive body | 2026-11-19 | `588a8f4` | developer |
+| T3.2 — Swept blade cast + hit tint | 2026-11-19 | `PENDING` | developer |

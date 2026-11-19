@@ -74,7 +74,7 @@ Both hands are attached to the sword rig and travel with the hilt; the primitive
 
 ## Physics
 
-Bepu is used as a collision **query** engine: no gravity, no dynamics, no `Timestep` in combat. `CombatWorld` owns one `Simulation`, a floor box, and four static hurtboxes per fighter. Hurtbox poses are rewritten from `BodyTransform * fighterRoot` whenever the rigid body reaction changes, so the statues and their collidables stay aligned. A guard-blade capsule is added when the guard completes and removed as soon as the guard drops. `HurtboxSet` maps each `StaticHandle` back to `FighterId` + `HurtboxKind`, and `F2` draws every registered shape (green body, amber guard blade).
+Bepu is used as a collision **query** engine: no gravity, no dynamics, no `Timestep` in combat. `CombatWorld` owns one `Simulation`, a floor box, and four static hurtboxes per fighter. Hurtbox poses are rewritten from `BodyTransform * fighterRoot` whenever the rigid body reaction changes, so the statues and their collidables stay aligned. A guard-blade capsule is added when the guard completes and removed as soon as the guard drops. `HurtboxSet` maps each `StaticHandle` back to `FighterId` + `HurtboxKind`, and `F2` draws every registered shape (green body, amber guard blade, coral for a hit this flash window). A confirmed hit also tints the matching body primitive for `HitFlashDuration`.
 
 | Hurtbox | Shape | Radius / half-length | Centre |
 | --- | --- | --- | --- |
@@ -83,7 +83,7 @@ Bepu is used as a collision **query** engine: no gravity, no dynamics, no `Times
 | Hips | Capsule | 0.14 / 0.09 | (0, 0.86, 0) |
 | Legs | Capsule | 0.13 / 0.25 | (0, 0.38, 0) |
 
-The blade is approximated by three spheres along the blade segment (`t = 0 / 0.5 / 1`, radii 0.055 / 0.040 / 0.025).
+The blade is approximated by three spheres along the blade segment (`t = 0 / 0.5 / 1`, radii 0.055 / 0.040 / 0.025). `BladeSweep` sweeps that chain with Bepu:
 
 ```text
 per tick, while Active:
@@ -92,9 +92,9 @@ per tick, while Active:
   collect contacts -> earliest time-of-impact wins
 ```
 
-Bepu call: `Sweep(shape, poseAtPrevious, (current − previous) / dt, dt, pool, handler)` — a pose plus a velocity over `maximumT`, not a from/to pair.
+Bepu call: `Sweep(shape, poseAtPrevious, current − previous, 1, pool, handler)` — a pose plus a velocity over `maximumT`, not a from/to pair. The handler leaves `maximumT` untouched so every hurtbox on the path is reported, then `BladeSweep` deduplicates per hurtbox and sorts by time-of-impact. Contacts carry `Hurtbox` (fighter + kind), world point, normal, and TOI. A contact that starts inside a shape (`OnHitAtZeroT`) is recorded without a point or normal.
 
-The 0.35 m substep cap prevents tunneling. Contacts are classified by shape ownership: guard blade → block, body → hit, floor → graze. Ties within 1e-4 s favour the defender. Each swing keeps a hit set so a hurtbox is damaged at most once.
+The 0.35 m substep cap prevents tunneling and is asserted in debug builds. Contacts are classified by shape ownership: guard blade → block, body → hit, floor → graze. Ties within 1e-4 s favour the defender. Each swing keeps a hit set so a hurtbox is damaged at most once.
 
 The guard hitbox is frozen when the guard completes; the 1.2° visual breathing is not reflected in physics (~3 cm divergence, accepted).
 

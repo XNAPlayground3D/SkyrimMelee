@@ -69,7 +69,9 @@ Each reaction pairs its sword clip with a `BodyClip` that applies one rigid tran
 
 ### Blade geometry
 
-`BladeGeometry` turns a pose plus hand transform into the world-space grip, blade base, blade tip, and the base/tip radii (local base y = 0.18 m, tip y = 1.47 m, base radius 4.25 cm, tip radius 1.8 cm). The F1 overlay draws the capsule axis and base/tip rings from those values, and the T3.2 sweep will use the same struct. Sampling is shared: no second copy of the blade math. The cut sweeps across the body in the fighter's Z axis, which is the screen plane from the third-person back camera. The blade's broad face is rolled toward the camera on every key so the sweep stays readable. Both hands are part of the sword rig and travel with the hilt; the white primitive body only moves as a rigid reaction pose.
+`BladeGeometry` turns a pose plus hand transform into the world-space grip, blade base, blade tip, and the base/tip radii (local base y = 0.18 m, tip y = 1.47 m, base radius 4.25 cm, tip radius 1.8 cm). The F1 overlay draws the capsule axis and base/tip rings from those values, and the `BladeSweep` uses the same struct. Sampling is shared: no second copy of the blade math. The cut sweeps across the body in the fighter's Z axis, which is the screen plane from the third-person back camera. The blade's broad face is rolled toward the camera on every key so the sweep stays readable. Both hands are part of the sword rig and travel with the hilt; the white primitive body only moves as a rigid reaction pose.
+
+A confirmed contact tints the hit body primitive (head, torso, hips, or legs) for `HitFlashDuration` (180 ms); the same part's `F2` hurtbox outline uses the tint. This is visual feedback only; damage bookkeeping is separate.
 
 | State | Clip | Exits |
 | --- | --- | --- |

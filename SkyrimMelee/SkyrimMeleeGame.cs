@@ -18,6 +18,7 @@ public sealed class SkyrimMeleeGame : Game
 	private static readonly Color AxisXColor = new(0xE6, 0x5A, 0x5A);
 	private static readonly Color AxisYColor = new(0x5A, 0xD0, 0x6A);
 	private static readonly Color AxisZColor = new(0x5A, 0x90, 0xE6);
+	private static readonly Color HitFlashColor = new(0xFF, 0x6B, 0x4A);
 
 	private readonly GameOptions _options;
 	private readonly GameClock _clock = new();
@@ -43,7 +44,11 @@ public sealed class SkyrimMeleeGame : Game
 	private DrMaterial? _axisZ;
 	private DrMaterial? _hurtboxDebug;
 	private DrMaterial? _guardDebug;
+	private DrMaterial? _hitDebug;
 	private CombatWorld? _combatWorld;
+	private BladeSweep? _bladeSweep;
+	private BladeGeometry? _lastBlade;
+	private readonly float[] _hitFlashes = new float[2 * 5];
 	private bool _guardHurtbox;
 	private ScreenGradient? _backdrop;
 	private SpriteBatch? _spriteBatch;
@@ -138,6 +143,7 @@ public sealed class SkyrimMeleeGame : Game
 		_axisZ = _primitives.CreateMaterial(AxisZColor);
 		_hurtboxDebug = _primitives.CreateMaterial(new Color(0x49, 0xE8, 0x8A));
 		_guardDebug = _primitives.CreateMaterial(new Color(0xFF, 0xC2, 0x4B));
+		_hitDebug = _primitives.CreateMaterial(HitFlashColor);
 
 		_swordClips = SwordClips.Create();
 		_bodyClips = BodyClips.Create();
@@ -152,6 +158,7 @@ public sealed class SkyrimMeleeGame : Game
 		_combatWorld = new CombatWorld();
 		_combatWorld.AddFighter(FighterId.Player, _player.DrawTransform);
 		_combatWorld.AddFighter(FighterId.Opponent, _opponent.Transform);
+		_bladeSweep = new BladeSweep(_combatWorld);
 
 		if (_options.ClipTime is not null)
 		{
@@ -303,6 +310,7 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		var step = (float)_clock.DeltaTime * _swordClipSpeed;
+		var wasActive = _combat.State == CombatState.Active;
 
 		if (_combat.State != CombatState.Idle || _reactionAdvance)
 		{
@@ -311,7 +319,88 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_combat.Update(step);
+
+		var blade = CurrentPlayerBlade();
+		if ((wasActive || _combat.State == CombatState.Active) &&
+			_lastBlade is { } previous && blade is { } current)
+		{
+			ResolveHits(previous, current, step);
+		}
+
+		_lastBlade = blade;
+		UpdateHitFlashes(step);
 	}
+
+	private BladeGeometry? CurrentPlayerBlade()
+	{
+		if (_swordMotion is null || _player is null)
+		{
+			return null;
+		}
+
+		var swordWorld = _swordMotion.CurrentPose.ToMatrix() * _player.GetRightHandTransform();
+		return BladeGeometry.FromWorld(swordWorld);
+	}
+
+	private void ResolveHits(BladeGeometry previous, BladeGeometry current, float step)
+	{
+		if (_bladeSweep is null)
+		{
+			return;
+		}
+
+		foreach (var hit in _bladeSweep.Sweep(previous, current, step))
+		{
+			if (hit.Hurtbox.Fighter != FighterId.Opponent ||
+				hit.Hurtbox.Kind == HurtboxKind.GuardBlade)
+			{
+				continue;
+			}
+
+			_hitFlashes[HitIndex(hit.Hurtbox.Fighter, hit.Hurtbox.Kind)] =
+				CombatTuning.HitFlashDuration;
+			_opponent?.SetBodyPartColor(hit.Hurtbox.Kind, HitFlashColor);
+		}
+	}
+
+	private void UpdateHitFlashes(float step)
+	{
+		for (var i = 0; i < _hitFlashes.Length; i++)
+		{
+			if (_hitFlashes[i] <= 0f)
+			{
+				continue;
+			}
+
+			_hitFlashes[i] -= step;
+			if (_hitFlashes[i] > 0f)
+			{
+				continue;
+			}
+
+			_hitFlashes[i] = 0f;
+			var fighter = (FighterId)(i / 5);
+			var kind = (HurtboxKind)(i % 5);
+			(fighter == FighterId.Player ? _player : _opponent)
+				?.SetBodyPartColor(kind, Color.White);
+		}
+	}
+
+	private void ClearHitFlashes()
+	{
+		Array.Clear(_hitFlashes);
+		foreach (var kind in new[]
+		{
+			HurtboxKind.Head, HurtboxKind.Torso, HurtboxKind.Hips, HurtboxKind.Legs
+		})
+		{
+			_player?.SetBodyPartColor(kind, Color.White);
+			_opponent?.SetBodyPartColor(kind, Color.White);
+		}
+	}
+
+	private static int HitIndex(FighterId fighter, HurtboxKind kind) =>
+		(int)fighter * 5 + (int)kind;
 
 	private void UpdateFps(double elapsed)
 	{
@@ -577,6 +666,8 @@ public sealed class SkyrimMeleeGame : Game
 		_bodyMotion?.Reset();
 		_combatWorld?.UnregisterGuardBlade();
 		_guardHurtbox = false;
+		_lastBlade = null;
+		ClearHitFlashes();
 		_swordMotion.ResetTo(_swordClips[0]);
 		ApplySwordPose();
 	}
@@ -711,7 +802,10 @@ public sealed class SkyrimMeleeGame : Game
 			}
 
 			var definition = HurtboxDefinition.For(entry.Value.Kind);
-			var material = entry.Value.Kind == HurtboxKind.GuardBlade ? _guardDebug : _hurtboxDebug;
+			var flashing = _hitFlashes[HitIndex(entry.Value.Fighter, entry.Value.Kind)] > 0f;
+			var material = flashing
+				? _hitDebug
+				: entry.Value.Kind == HurtboxKind.GuardBlade ? _guardDebug : _hurtboxDebug;
 			if (material is null)
 			{
 				continue;

@@ -46,6 +46,8 @@ public sealed class CombatWorld : IDisposable
 
 	public Simulation Simulation => _simulation;
 
+	public BufferPool Pool => _pool;
+
 	public HurtboxSet Hurtboxes { get; } = new();
 
 	public bool IsGuardBladeRegistered => _guardHandle is not null;

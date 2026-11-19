@@ -12,9 +12,11 @@ namespace SkyrimMelee.Fighters;
 /// </summary>
 public static class FighterRigBuilder
 {
-	public static DrModel Build(PrimitiveLibrary primitives)
+	public static DrModel Build(
+		PrimitiveLibrary primitives,
+		out Dictionary<HurtboxKind, DrMaterial> bodyMaterials)
 	{
-		var white = primitives.CreateMaterial(Color.White);
+		bodyMaterials = new Dictionary<HurtboxKind, DrMaterial>();
 		var bones = new List<DrModelBone>();
 
 		foreach (var kind in new[]
@@ -23,10 +25,12 @@ public static class FighterRigBuilder
 		})
 		{
 			var definition = HurtboxDefinition.For(kind);
+			var material = primitives.CreateMaterial(Color.White);
 			var part = definition.Shape == HurtboxShapeKind.Sphere
 				? primitives.Sphere.Clone()
 				: primitives.GetCapsule(definition.HalfLength * 2f, definition.Radius).Clone();
-			part.Material = white;
+			part.Material = material;
+			bodyMaterials[kind] = material;
 
 			var scale = definition.Shape == HurtboxShapeKind.Sphere
 				? Vector3.One * (definition.Radius * 2f)

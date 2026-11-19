@@ -27,6 +27,9 @@ public static class CombatTuning
 	public const float DeathDuration = 1.20f;
 	public const float VictoryDuration = 1.60f;
 
+	/// <summary>How long a hit body part stays tinted.</summary>
+	public const float HitFlashDuration = 0.18f;
+
 	public const float WeaponBaseDamage = 20f;
 	public const float BladeReach = 1.47f;
 

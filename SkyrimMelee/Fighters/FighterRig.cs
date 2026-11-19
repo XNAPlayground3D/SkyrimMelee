@@ -1,5 +1,6 @@
 using DigitalRiseModel;
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Combat;
 using SkyrimMelee.Graphics;
 
 namespace SkyrimMelee.Fighters;
@@ -8,10 +9,11 @@ namespace SkyrimMelee.Fighters;
 public sealed class FighterRig : IDisposable
 {
 	private readonly int _rightHandIndex;
+	private readonly Dictionary<HurtboxKind, DrMaterial> _bodyMaterials;
 
 	public FighterRig(PrimitiveLibrary primitives, Vector3 position, float facingYaw)
 	{
-		Model = FighterRigBuilder.Build(primitives);
+		Model = FighterRigBuilder.Build(primitives, out _bodyMaterials);
 		Instance = new DrModelInstance(Model);
 		Transform = Matrix.CreateRotationY(facingYaw) * Matrix.CreateTranslation(position);
 
@@ -32,6 +34,15 @@ public sealed class FighterRig : IDisposable
 
 	/// <summary>World transform of the right hand, including the fighter root.</summary>
 	public Matrix GetRightHandTransform() => Instance.GetBoneGlobalTransform(_rightHandIndex) * Transform;
+
+	/// <summary>Tints one body primitive; used for hit feedback.</summary>
+	public void SetBodyPartColor(HurtboxKind kind, Color color)
+	{
+		if (_bodyMaterials.TryGetValue(kind, out var material))
+		{
+			material.DiffuseColor = color;
+		}
+	}
 
 	public void Dispose()
 	{
