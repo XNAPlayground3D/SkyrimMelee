@@ -501,4 +501,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T3.2 — Swept blade cast + hit tint | 2026-11-19 | `12c6f98` | developer |
 | T3.3 — Swing hit events | 2026-11-19 | `c08fb04` | developer |
 | T3.4 — Blade-vs-blade blocks | 2026-11-19 | `28ff76a` | developer |
-| T3.5 — Headless self-test | 2026-11-19 | `PENDING` | developer |
+| T3.5 — Headless self-test | 2026-11-19 | `0ee29e0` | developer |
