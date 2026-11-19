@@ -67,7 +67,7 @@ public sealed class PrimitiveLibrary : IDisposable
 		return part;
 	}
 
-	/// <summary>Creates a material owned by the library; assign it to a mesh part's Material property.</summary>
+	/// <summary>Creates a material owned by the library; pass it to draw calls.</summary>
 	public DrMaterial CreateMaterial(Color color)
 	{
 		var material = new DrMaterial { DiffuseColor = color };

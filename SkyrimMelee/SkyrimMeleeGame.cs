@@ -23,14 +23,16 @@ public sealed class SkyrimMeleeGame : Game
 
 	private readonly GameOptions _options;
 	private readonly GameClock _clock = new();
+	private readonly Camera _camera = new();
 	private readonly GraphicsDeviceManager _graphics;
 
 	private MyraHost? _ui;
 	private Label? _debugLabel;
 	private DebugOverlay? _overlay;
 	private PrimitiveLibrary? _primitives;
-	private PrimitiveRenderer? _renderer;
-	private PrimitiveShowcase? _showcase;
+	private ForwardRenderer? _renderer;
+	private Arena? _arena;
+	private ScreenGradient? _backdrop;
 	private float _fps;
 	private double _fpsWindowTime;
 	private int _fpsWindowFrames;
@@ -96,15 +98,21 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_primitives = new PrimitiveLibrary(GraphicsDevice);
-		_renderer = new PrimitiveRenderer(GraphicsDevice);
-		_showcase = new PrimitiveShowcase(_primitives);
+		_renderer = new ForwardRenderer(GraphicsDevice);
+		_arena = new Arena(_primitives);
+		_backdrop = new ScreenGradient(GraphicsDevice);
+		_camera.Update(_clock.SimTime, 0f);
 
 		base.LoadContent();
 	}
 
 	protected override void UnloadContent()
 	{
-		_showcase = null;
+		_arena?.Dispose();
+		_arena = null;
+
+		_backdrop?.Dispose();
+		_backdrop = null;
 
 		_renderer?.Dispose();
 		_renderer = null;
@@ -143,6 +151,8 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			StepSimulation();
 		}
+
+		_camera.Update(_clock.SimTime, (float)elapsed);
 
 		_labelTimer += elapsed;
 		if (_labelTimer >= 0.25)
@@ -195,22 +205,16 @@ public sealed class SkyrimMeleeGame : Game
 	protected override void Draw(GameTime gameTime)
 	{
 		GraphicsDevice.Clear(BackgroundColor);
+		_backdrop?.Draw();
 
-		if (_renderer is not null && _showcase is not null)
+		if (_renderer is not null && _arena is not null)
 		{
 			var width = GraphicsDevice.PresentationParameters.BackBufferWidth;
 			var height = GraphicsDevice.PresentationParameters.BackBufferHeight;
 			var aspect = width / (float)Math.Max(1, height);
 
-			var view = Matrix.CreateLookAt(
-				new Vector3(0f, 4.5f, -11f),
-				new Vector3(0f, 0.9f, 0f),
-				Vector3.Up);
-			var projection = Matrix.CreatePerspectiveFieldOfView(
-				MathHelper.ToRadians(50f), aspect, 0.1f, 100f);
-
-			_renderer.Begin(view, projection);
-			_showcase.Draw(_renderer);
+			_renderer.Begin(_camera.View, _camera.GetProjection(aspect));
+			_renderer.Draw(_arena.Instance, Matrix.Identity);
 			_renderer.End();
 		}
 

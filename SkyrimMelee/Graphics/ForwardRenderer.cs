@@ -6,9 +6,9 @@ namespace SkyrimMelee.Graphics;
 
 /// <summary>
 /// Minimal BasicEffect renderer for DigitalRiseModel mesh parts.
-/// Colour and material data come from <see cref="DrMeshPart.Material"/>; the caller supplies the world transform.
+/// The caller supplies the part, material, and world transform.
 /// </summary>
-public sealed class PrimitiveRenderer : IDisposable
+public sealed class ForwardRenderer : IDisposable
 {
 	private static readonly RasterizerState CullBack = new() { CullMode = CullMode.CullCounterClockwiseFace };
 	private static readonly RasterizerState CullFront = new() { CullMode = CullMode.CullClockwiseFace };
@@ -17,10 +17,11 @@ public sealed class PrimitiveRenderer : IDisposable
 	private readonly GraphicsDevice _device;
 	private readonly BasicEffect _lit;
 	private readonly BasicEffect _unlit;
+	private readonly DrMaterial _fallbackMaterial = new() { DiffuseColor = Color.White };
 	private Matrix _view;
 	private Matrix _projection;
 
-	public PrimitiveRenderer(GraphicsDevice device)
+	public ForwardRenderer(GraphicsDevice device)
 	{
 		_device = device;
 
@@ -56,7 +57,36 @@ public sealed class PrimitiveRenderer : IDisposable
 		_device.RasterizerState = CullBack;
 	}
 
-	public void Draw(DrMeshPart part, Matrix world, CullMode cullMode = CullMode.CullCounterClockwiseFace)
+	public void Draw(DrModelInstance model, Matrix transform)
+	{
+		var drModel = model.Model;
+		if (drModel is null)
+		{
+			return;
+		}
+
+		foreach (var mesh in drModel.Meshes)
+		{
+			var world = model.GetBoneGlobalTransform(mesh.ParentBone.Index) * transform;
+
+			foreach (var part in mesh.MeshParts)
+			{
+				var material = part.Material ?? _fallbackMaterial;
+
+				if (part.PrimitiveType == PrimitiveType.LineList)
+				{
+					DrawLines(part, material, world);
+				}
+				else
+				{
+					Draw(part, material, world);
+				}
+			}
+		}
+	}
+
+	public void Draw(DrMeshPart part, DrMaterial material, Matrix world,
+		CullMode cullMode = CullMode.CullCounterClockwiseFace)
 	{
 		_device.RasterizerState = cullMode switch
 		{
@@ -65,27 +95,26 @@ public sealed class PrimitiveRenderer : IDisposable
 			_ => CullBack
 		};
 
-		var material = part.Material;
 		_lit.World = world;
 		_lit.View = _view;
 		_lit.Projection = _projection;
-		_lit.DiffuseColor = (material?.DiffuseColor ?? Color.White).ToVector3();
-		_lit.SpecularColor = (material?.SpecularColor ?? Color.Black).ToVector3();
-		_lit.SpecularPower = material is { Shininess: > 0f } ? material.Shininess : 16f;
-		_lit.EmissiveColor = (material?.EmissiveColor ?? Color.Black).ToVector3();
+		_lit.DiffuseColor = material.DiffuseColor.ToVector3();
+		_lit.SpecularColor = material.SpecularColor.ToVector3();
+		_lit.SpecularPower = material.Shininess > 0f ? material.Shininess : 16f;
+		_lit.EmissiveColor = material.EmissiveColor.ToVector3();
 		_lit.CurrentTechnique.Passes[0].Apply();
 
 		DrawPart(part);
 	}
 
-	public void DrawLines(DrMeshPart part, Matrix world)
+	public void DrawLines(DrMeshPart part, DrMaterial material, Matrix world)
 	{
 		_device.RasterizerState = CullOff;
 
 		_unlit.World = world;
 		_unlit.View = _view;
 		_unlit.Projection = _projection;
-		_unlit.DiffuseColor = (part.Material?.DiffuseColor ?? Color.White).ToVector3();
+		_unlit.DiffuseColor = material.DiffuseColor.ToVector3();
 		_unlit.CurrentTechnique.Passes[0].Apply();
 
 		DrawPart(part);
@@ -101,6 +130,7 @@ public sealed class PrimitiveRenderer : IDisposable
 	{
 		_lit.Dispose();
 		_unlit.Dispose();
+		_fallbackMaterial.Dispose();
 	}
 
 	private void DrawPart(DrMeshPart part)

@@ -9,7 +9,7 @@ README.md  AGENTS.md  TASKS.md  LICENSE
 SkyrimMelee/
   Program.cs  SkyrimMeleeGame.cs
   Core/       GameClock, FixedStepLoop
-  Graphics/   PrimitiveLibrary, PrimitiveRenderer, Camera, Arena, Vfx
+  Graphics/   PrimitiveLibrary, ForwardRenderer, Camera, Arena, ScreenGradient, Vfx
   Fighters/   FighterRig, FighterRigBuilder, GreatswordRig, FighterVisuals
   Combat/     CombatTuning, AttackDefinition, SwordClip(s), CombatStateMachine,
               FighterStats, DamageModel, StaggerModel, DuelDirector, CombatIntent
@@ -51,12 +51,14 @@ DigitalRiseModel builds `DrMesh`/`DrMeshPart` geometry and nothing else. We draw
 | Coordinates | Right-handed, `+Y` up |
 | Fighters | Player `(-1.0, 0, 0)` facing `+X`; opponent `(+1.0, 0, 0)` facing `-X` |
 | Gap | 2.0 m; the grip sits ~0.42 m forward, so full extension reaches into the torso |
-| Camera | `(0.45, 2.3, −5.8)` → `(0, 1.15, 0)`, FOV 45° |
-| Arena | Stone disc, radius 6, rings, four pillars, dark backdrop |
+| Camera | `(0.3, 3.0, −6.8)` → `(0, 1.0, 0)`, FOV 46° |
+| Arena | Shallow stone cylinder radius 6, four rings, two duelling-position markers, four pillars, gradient backdrop |
 
-Meshes are cached in `PrimitiveLibrary` (unit box; sphere/cylinder/cone/disc/plane built from radius/length parameters; capsules keyed by length+radius; line versions for debug). Each part carries a `DrMaterial` (colour); draw calls take the part plus a world matrix. ~60 draw calls total; merging fighter parts is a later optimisation.
+Meshes are cached in `PrimitiveLibrary` (unit box; sphere/cylinder/cone/disc/plane built from radius/length parameters; capsules keyed by length+radius; line versions for debug). Draw calls take a part, a `DrMaterial` (colour), and a world matrix. ~60 draw calls total; merging fighter parts is a later optimisation.
 
-Two geometry quirks are handled in the library/renderer: DigitalRise line primitives are position-only, so the library builds PNT line lists for `BasicEffect`; and the double-sided disc winds opposite to the other primitives, so `PrimitiveRenderer.Draw` takes a per-instance cull mode (`CullClockwiseFace` for the disc).
+Two geometry quirks are handled in the library/renderer: DigitalRise line primitives are position-only, so the library builds PNT line lists for `BasicEffect`; and the double-sided disc winds opposite to the other primitives, so `ForwardRenderer.Draw` takes a per-instance cull mode (`CullClockwiseFace` for the disc).
+
+The arena is a `DrModel`: a root bone plus one bone/mesh per item (floor, each ring, each marker, each pillar). `ForwardRenderer.Draw(DrModelInstance, Matrix)` applies bone transforms, traverses the meshes, and picks the lit or unlit pass from `PrimitiveType`. Mesh parts are clones that share the library's vertex/index buffers.
 
 **Statue** (~1.78 m, 14 parts): head sphere, neck/chest/abdomen/pelvis boxes, arm and leg capsules, hand and boot boxes, permanent bladed stance, right hand owns the sword pivot.
 

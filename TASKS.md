@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T1.2`
+> **Next up:** `T1.3`
 
 ---
 
@@ -73,16 +73,17 @@
 ### [x] T1.1 — Primitive mesh cache
 **Goal:** one place that owns every generated mesh.
 - `Graphics/PrimitiveLibrary.cs` wrapping `MeshPrimitives`: unit box, cylinder, cone, sphere, capsule, disc, plane, plus line versions for debugging.
-- Draw calls take a `DrMeshPart` + world matrix; colour comes from `part.Material` (`DrMaterial`, created through `PrimitiveLibrary.CreateMaterial`).
+- Draw calls take a `DrMeshPart`, a `DrMaterial`, and a world matrix; materials are created through `PrimitiveLibrary.CreateMaterial`.
 - Tessellation tuned low (sphere 16, cylinder 16) — this is a stylized game, not a CAD viewer.
 
 **Done when:** a test scene draws all primitives at once with correct winding, correct lighting, and no leaked GPU resources across restarts.
 
-### [ ] T1.2 — Renderer, camera, arena
+### [x] T1.2 — Renderer, camera, arena
 **Goal:** a believable place to duel.
-- `PrimitiveRenderer` with `BasicEffect`: per-part color, one directional light, ambient fill, fog disabled.
+- `ForwardRenderer` with `BasicEffect`: per-part color, one directional light, ambient fill, fog disabled.
 - `Camera`: fixed 3/4 side view framing both fighters, slight sway on idle; hooks for shake later.
 - `Arena`: stone disc, concentric grid rings (line primitives), four pillars, dark background, subtle vignette via clear color gradient (two-pass quad).
+- `Arena` is a `DrModel`: one bone per item, one mesh part per bone. `ForwardRenderer.Draw(DrModelInstance, Matrix)` traverses the model and renders each part.
 
 **Done when:** the arena renders from the gameplay camera with stable 60 FPS and no z-fighting; camera framing shows both fighter slots without clipping.
 
@@ -408,3 +409,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T0.3 — Myra host + debug label | 2026-11-19 | `e927166` | developer |
 | T0.4 — clock, flags, overlay | 2026-11-19 | `7e66931` | developer |
 | T1.1 — primitive cache + showcase | 2026-11-19 | `80917e4` | developer |
+| T1.2 — arena, camera, forward renderer | 2026-11-19 | _pending_ | developer |
