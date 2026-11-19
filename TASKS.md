@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T0.2`
+> **Next up:** `T0.3`
 
 ---
 
@@ -24,6 +24,7 @@
 3. Combat numbers live in `CombatTuning.cs`, not inline in logic.
 4. Combat resolution is deterministic and runnable headless (`--self-test`).
 5. `dotnet build SkyrimMelee.slnx` is green before any task is reported finished.
+6. Pure logic has xUnit coverage in `SkyrimMelee.Tests`; `dotnet test SkyrimMelee.slnx` is green.
 
 ---
 
@@ -39,14 +40,15 @@
 
 **Done when:** a spike project (deleted afterwards) shows one lit box, one Myra label, and one Bepu sweep result; findings are written into `Design/overview.md`; no spike leftovers in the repo.
 
-### [ ] T0.2 — Create the real solution skeleton
-**Goal:** the repo builds and opens a black window with a title and clean shutdown.
-- `SkyrimMelee.slnx` at root, `SkyrimMelee/SkyrimMelee.csproj` (`net10.0`, nullable on, `AllowUnsafeBlocks` only if Bepu needs it).
+### [x] T0.2 — Create the real solution skeleton
+**Goal:** the repo builds, tests, and opens a black window with a title and clean shutdown.
+- `SkyrimMelee.slnx` at root, `SkyrimMelee/SkyrimMelee.csproj` (`net10.0`, nullable on, four pinned packages).
+- `SkyrimMelee.Tests` (xUnit) in the solution, referencing the game project; `dotnet test SkyrimMelee.slnx` green.
 - `Program.cs`, `SkyrimMeleeGame.cs` with fixed 60 Hz update, variable-rate draw, 1600×900 window, easy resize.
-- `.gitignore` for `bin/`, `obj/`, `.vs/`, `*.user`, content cache.
+- `.editorconfig` (tabs for C#, two-space XML) and `.gitignore` for `bin/`, `obj/`, `.vs/`, `*.user`, content cache.
 - `dotnet build SkyrimMelee.slnx` and `dotnet run --project SkyrimMelee` both work.
 
-**Done when:** build is warning-free, window opens and closes cleanly, `.gitignore` keeps the working tree clean.
+**Done when:** build and tests are warning-free, window opens and closes cleanly, `.gitignore` keeps the working tree clean.
 
 ### [ ] T0.3 — Myra host and UI text
 **Goal:** text can be drawn on screen.
@@ -201,7 +203,7 @@
 - Regen: 25/s stamina after 0.6 s delay; disabled while blocking; poise regen 25/s after 1 s.
 - Costs charged at wind-up; power attack rejected below cost (with a UI cue); light attacks always allowed.
 
-**Done when:** stamina math is covered by self-test assertions; a rejected power attack consumes no stamina and plays no clip.
+**Done when:** stamina math is covered by xUnit or self-test assertions; a rejected power attack consumes no stamina and plays no clip.
 
 ### [ ] T4.2 — Damage pipeline
 **Goal:** the [Design/combat](Design/combat.md#damage) formula, implemented once, tested in isolation.
@@ -209,7 +211,7 @@
 - Return a breakdown struct (raw, armored, final, reduction %, stamina cost) for the debug overlay.
 - Deterministic rounding rules (no banker's rounding surprises).
 
-**Done when:** table-driven tests cover armor 0/300/567/900, block skill 0/50/100, timed/non-timed/guard-break, and match the documented formula exactly.
+**Done when:** xUnit table-driven tests cover armor 0/300/567/900, block skill 0/50/100, timed/non-timed/guard-break, and match the documented formula exactly.
 
 ### [ ] T4.3 — Poise and stagger
 **Goal:** heavy hits interrupt; light hits chip.
@@ -371,7 +373,7 @@
 ### [ ] T8.6 — Release checklist
 **Goal:** ship it.
 - README build/run section verified on a clean clone and clean machine.
-- `dotnet build -c Release SkyrimMelee.slnx` warning-free; `--self-test` green.
+- `dotnet build -c Release SkyrimMelee.slnx` warning-free; `dotnet test` and `--self-test` green.
 - Version tag, release notes in the tag message, screenshots/GIF generated from the game itself.
 
 **Done when:** a fresh clone builds and plays with only the documented prerequisites; tag pushed.
@@ -402,3 +404,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | Task | Date | Commit | Confirmed by |
 | --- | --- | --- | --- |
 | T0.1 — toolchain verification | 2026-11-19 | `8b19835` | developer |
+| T0.2 — solution skeleton + xUnit | 2026-11-19 | _pending_ | developer |

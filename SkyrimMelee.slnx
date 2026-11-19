@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SkyrimMelee.Tests/SkyrimMelee.Tests.csproj" />
+  <Project Path="SkyrimMelee/SkyrimMelee.csproj" />
+</Solution>

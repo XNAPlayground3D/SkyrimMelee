@@ -1,0 +1,22 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+
+# MonoGame content cache
+Content/bin/
+Content/obj/
+*.mgcontent
+
+# OS
+.DS_Store
+Thumbs.db

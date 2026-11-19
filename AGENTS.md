@@ -43,7 +43,8 @@ Every task, minimum bar:
 
 ```powershell
 dotnet build SkyrimMelee.slnx          # zero warnings introduced
-dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test
+dotnet test SkyrimMelee.slnx           # unit tests
+dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # combat tasks (stub until T0.4)
 ```
 
 Then, depending on what the task touched:
@@ -52,6 +53,7 @@ Then, depending on what the task touched:
 | --- | --- |
 | Rendering / visuals | Run the game, look at it. Check the new visuals from every camera preset. Check resize and alt-tab. |
 | Combat logic | Run `--self-test`; add or extend scenarios so the new behavior is asserted. Run it twice — results must match. |
+| Pure logic / math | Add or extend xUnit tests in `SkyrimMelee.Tests`; `dotnet test` must pass. |
 | Physics | Verify with `F1` shape visualization that physics shapes match rendered geometry. Test at 60 FPS and with a simulated low frame rate. |
 | UI | Exercise every new screen with mouse **and** keyboard. Check that clicks don't leak into gameplay. |
 | Input | Test the rejection paths (insufficient stamina, mid-recovery, UI open), not just the happy path. |
@@ -148,6 +150,7 @@ A task is done only when **all** of these are true:
 
 - [ ] The behavior in **Done when** exists and was demonstrated.
 - [ ] `dotnet build SkyrimMelee.slnx` is green with no new warnings.
+- [ ] `dotnet test SkyrimMelee.slnx` passes, with new xUnit coverage for pure logic.
 - [ ] `--self-test` passes, and the task's behavior has a scenario (if it is combat logic).
 - [ ] Visual/UI changes were actually looked at, not just compiled.
 - [ ] No guardrail was violated: no imported models, no skeletal animation, no magic numbers in logic.
@@ -162,6 +165,7 @@ A task is done only when **all** of these are true:
 ## Code conventions
 
 - C# latest, nullable enabled, file-scoped namespaces, one public type per file.
+- **Tabs for indentation in C#** (`.editorconfig` enforces it); project/XML files keep the SDK's two-space style.
 - Namespace root `SkyrimMelee`; folder structure mirrors namespaces.
 - Gameplay data as `record`/`readonly struct`; avoid mutable static state.
 - `CombatTuning.cs` is the single source of truth for every timing, cost, multiplier, and threshold. If you need a new number, add it there with a comment.

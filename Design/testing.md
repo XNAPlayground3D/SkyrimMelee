@@ -4,12 +4,12 @@
 
 | Layer | What | Gate |
 | --- | --- | --- |
-| Pure functions | Damage, poise, clip sampling, tuning validation | Every task touching them |
+| Pure functions | Damage, poise, clip sampling, tuning validation | xUnit in `SkyrimMelee.Tests`; every task touching them |
 | Simulation | Full combat rules headless, scripted intents, fixed seeds | Every combat/physics task |
 | Visual | Rendering, camera, UI, VFX, feel | Every rendering/UI task |
 | Balance | AI vs AI and self-play statistics | T6.2, T8.5 |
 
-A behaviour without a scenario is not tested. New combat behaviour ships with its scenario in the same task.
+Pure logic gets xUnit coverage; combat scenarios run through `--self-test` because they need the real game loop. A behaviour without a scenario is not tested — new combat behaviour ships with its scenario in the same task.
 
 ## Determinism
 
@@ -17,7 +17,7 @@ Given identical initial state and intents, tick _n_ must be byte-identical: same
 
 ## Harness
 
-`--self-test` runs without a window using the real state machines, tuning, clips, and physics.
+`--self-test` runs without a window using the real state machines, tuning, clips, and physics. The xUnit project covers pure functions that do not need the loop.
 
 ```csharp
 record Scenario(string Id, string Description, FighterSetup Player, FighterSetup Opponent,
@@ -71,6 +71,7 @@ Measure with `dotnet-counters` and the overlay frame graph; report percentiles, 
 
 ```powershell
 dotnet build SkyrimMelee.slnx -c Release   # 0 warnings
+dotnet test SkyrimMelee.slnx               # unit tests
 dotnet run --project SkyrimMelee -- --self-test
 ```
 

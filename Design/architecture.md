@@ -18,9 +18,11 @@ SkyrimMelee/
   Ai/         DuelistAi, AiProfile
   Ui/         MyraHost, Menu/Pause/Result screens, HudScreen, UiSkin
   Debug/      DebugOverlay, HeadlessSelfTest
+SkyrimMelee.Tests/
+  FixedStepLoopTests.cs      xUnit tests for pure logic
 ```
 
-No separate test project yet; `--self-test` runs the real combat code without a window.
+`SkyrimMelee.Tests` covers pure logic with xUnit; `--self-test` runs full combat scenarios against the real state machines without a window.
 
 ## Loop
 

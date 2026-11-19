@@ -9,13 +9,14 @@ A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 0 — toolchain verified · **Code:** none yet · **Next:** `T0.2` (after T0.1 confirmation)
+**Last updated:** 2026-11-19 · **Phase:** 0 — skeleton running · **Code:** `.slnx` + fixed 60 Hz loop · **Next:** `T0.3`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
-| Toolchain | ✅ `T0.1` verified — awaiting confirmation |
-| Solution & skeleton | ⬜ `T0.2` |
+| Toolchain | ✅ `T0.1` |
+| Solution & skeleton | ✅ `T0.2` |
+| Tests | ✅ xUnit project, 11 passing |
 | Primitive rendering | ⬜ `T1.1` |
 | Sword motion & combat | ⬜ `T2.1` / `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |
@@ -40,6 +41,7 @@ Requires .NET SDK 10.0.4xx+ and a GPU with OpenGL 3.3.
 
 ```bash
 dotnet build SkyrimMelee.slnx
+dotnet test SkyrimMelee.slnx
 dotnet run --project SkyrimMelee/SkyrimMelee.csproj
 dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # headless combat tests
 ```

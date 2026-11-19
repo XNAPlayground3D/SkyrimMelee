@@ -61,6 +61,7 @@ Verified end-to-end on 2026-11-19 with .NET SDK 10.0.401 (T0.1): window + render
 | Bepu as a query engine only | Nothing moves except the blade; statics + `Sweep` are all we need |
 | Keyframed sword clips as the only animation | One animated transform, one source of truth for visuals and hitboxes |
 | Fixed 60 Hz deterministic simulation | Reproducible tests, fair timing, AI-vs-AI balance runs |
+| xUnit for pure logic, `--self-test` for combat | Unit tests stay GPU-free; combat scenarios exercise the real loop and state machines |
 | Myra with its embedded FontStashSharp font and a runtime flat skin | No content pipeline, no font files, no image assets |
 | Best of three, no round timer | Stamina makes stalemates self-resolving |
 
