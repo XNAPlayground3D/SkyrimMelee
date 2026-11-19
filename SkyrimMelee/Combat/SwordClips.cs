@@ -3,14 +3,16 @@ using Microsoft.Xna.Framework;
 namespace SkyrimMelee.Combat;
 
 /// <summary>
-/// Authored sword clips. This task ships only SlashLeft; the other attacks are
-/// separate tasks. Poses are authored as grip positions plus blade directions so
-/// a swing traces a body-sized arc instead of pivoting in the wrist.
+/// Authored sword clips. Poses use a fighter-local translation (the grip position
+/// next to the fighter) plus rotation in degrees around X (pitch), Y (yaw), and
+/// Z (roll).
 /// </summary>
 public static class SwordClips
 {
 	// The fighter's sword-hand attachment in fighter-local space (+X forward, +Y up, +Z right).
 	private static readonly Vector3 SwordHand = new(0.54f, 0.98f, 0.26f);
+
+	private const float DegreesToRadians = MathF.PI / 180f;
 
 	public static IReadOnlyList<SwordClip> Create() => new[]
 	{
@@ -21,14 +23,12 @@ public static class SwordClips
 	};
 
 	private static SwordPose IdlePose() => Pose(
-		new Vector3(0.40f, 1.02f, 0.28f),
-		new Vector3(-0.05f, 0.999f, 0f),
-		new Vector3(0f, 0f, 1f));
+		new Vector3(0.50f, 1.02f, 0.28f),
+		new Vector3(2.9f, -90f, 0f));
 
 	private static SwordPose GuardPose() => Pose(
 		new Vector3(0.55f, 1.05f, 0.08f),
-		new Vector3(0.15f, 0.88f, -0.45f),
-		new Vector3(0f, 0f, -1f));
+		new Vector3(9.7f, 90f, -26.8f));
 
 	private static SwordClip SlashLeft()
 	{
@@ -36,49 +36,38 @@ public static class SwordClips
 		var windupEnd = CombatTuning.Slash.Windup / duration;
 		var activeEnd = (CombatTuning.Slash.Windup + CombatTuning.Slash.Active) / duration;
 
-		// Skyrim-style idle: hand at the right hip, blade nearly vertical.
+		// Idle: hand at the right hip, blade nearly vertical.
 		var guard = IdlePose();
 
-		// The hands orbit the chest. The blade points radially outward, so the hilt
-		// moves tangentially and the tip cuts a wide arc through the opponent's space.
-		// Wind-up: the hands carry the whole sword right and behind the body. The blade
-		// stays near-vertical and keeps the same roll as the idle, so the sword translates
-		// instead of twisting in the wrist; the tip ends almost behind the fighter's back.
+		// Wind-up: the hands carry the whole sword right and behind the body.
 		var windupPull = Pose(
 			new Vector3(0.05f, 1.15f, 0.55f),
-			new Vector3(-0.10f, 0.97f, 0.20f),
-			new Vector3(0f, 0f, 1f));
+			new Vector3(5.9f, -90f, -11.6f));
 		var windup = Pose(
 			new Vector3(-0.50f, 1.25f, 0.85f),
-			new Vector3(-0.25f, 0.95f, 0.18f),
-			new Vector3(0f, 0f, 1f));
+			new Vector3(14.7f, -90f, -10.4f));
 
-		// Active: the hands drive forward and across the chest. The edge hint rolls
-		// with the swing so the cutting edge leads all the way through.
+		// Active: the hands sweep forward/left and the edge leads the cut.
 		var swingEarly = Pose(
 			new Vector3(0.48f, 1.15f, 0.58f),
-			new Vector3(0.64f, 0.10f, 0.76f),
-			new Vector3(0.74f, 0f, -0.67f));
+			new Vector3(84.2f, 42.2f, 2f));
 		var contact = Pose(
 			new Vector3(0.72f, 1.08f, -0.19f),
-			new Vector3(0.95f, -0.10f, -0.30f),
-			new Vector3(-0.57f, 0f, -0.82f));
+			new Vector3(84f, -55.2f, -162.8f));
 		var activeEndPose = Pose(
 			new Vector3(0.43f, 1.00f, -0.61f),
-			new Vector3(0.57f, -0.30f, -0.76f),
-			new Vector3(-0.96f, 0f, -0.28f));
+			new Vector3(71.4f, -16.3f, -160.4f));
 
-		// Recovery: the hands finish on the left and the blade settles down-left.
+		// Recovery: the hands finish left and the blade settles down-left.
 		var follow = Pose(
 			new Vector3(-0.06f, 0.95f, -0.75f),
-			new Vector3(-0.09f, -0.55f, -0.83f),
-			new Vector3(-0.96f, 0f, -0.28f));
+			new Vector3(54.5f, -16.3f, 161.4f));
 
 		return new SwordClip("SlashLeft", duration, false,
 			Key(0f, guard, Easing.EaseIn),
 			Key(0.12f / duration, windupPull),
 			Key(0.14f / duration, windup, Easing.Linear),
-			Key(windupEnd, windup, Easing.EaseIn),   // 110 ms telegraph hold
+			Key(windupEnd, windup, Easing.EaseIn),
 			Key(0.32f / duration, swingEarly, Easing.EaseIn),
 			Key(0.39f / duration, contact, Easing.EaseOut),
 			Key(activeEnd, activeEndPose, Easing.SmoothStep),
@@ -90,8 +79,7 @@ public static class SwordClips
 	{
 		var anticipation = Pose(
 			new Vector3(0.36f, 1.00f, 0.32f),
-			new Vector3(-0.10f, 0.99f, 0.04f),
-			new Vector3(0f, 0f, 1f));
+			new Vector3(5.8f, -90f, -2.3f));
 
 		return new SwordClip("GuardRaise", CombatTuning.GuardRaiseDuration, false,
 			Key(0f, IdlePose(), Easing.EaseOut),
@@ -103,8 +91,7 @@ public static class SwordClips
 	{
 		var breath = Pose(
 			new Vector3(0.55f, 1.06f, 0.075f),
-			new Vector3(0.17f, 0.885f, -0.435f),
-			new Vector3(0f, 0f, -1f));
+			new Vector3(10.9f, 90f, -25.8f));
 
 		return new SwordClip("GuardHold", CombatTuning.GuardHoldDuration, true,
 			Key(0f, GuardPose()),
@@ -116,8 +103,7 @@ public static class SwordClips
 	{
 		var settle = Pose(
 			new Vector3(0.38f, 1.00f, 0.31f),
-			new Vector3(0.01f, 0.999f, -0.03f),
-			new Vector3(0f, 0f, 1f));
+			new Vector3(-0.6f, -90f, 1.7f));
 
 		return new SwordClip("GuardLower", CombatTuning.GuardLowerDuration, false,
 			Key(0f, GuardPose(), Easing.EaseIn),
@@ -129,29 +115,14 @@ public static class SwordClips
 		new(time, pose, ease);
 
 	/// <summary>
-	/// Builds a pose from a fighter-local grip position, the direction the blade
-	/// points, and an edge hint. The hint is projected perpendicular to the blade,
-	/// so it controls the roll: the edge leads the cut without twisting the blade.
+	/// Builds a pose from the grip position in fighter-local space (the translation
+	/// next to the fighter) and Euler rotation in degrees: X = pitch, Y = yaw,
+	/// Z = roll.
 	/// </summary>
-	private static SwordPose Pose(Vector3 grip, Vector3 blade, Vector3 edgeHint)
+	private static SwordPose Pose(Vector3 translation, Vector3 rotationDegrees)
 	{
-		var y = Vector3.Normalize(blade);
-		var x = edgeHint - Vector3.Dot(edgeHint, y) * y;
-		if (x.LengthSquared() < 1e-6f)
-		{
-			x = Vector3.Cross(y, Vector3.UnitY);
-		}
-
-		x = Vector3.Normalize(x);
-		var z = Vector3.Cross(x, y);
-
-		// Rows are the images of X, Y, Z under a row-vector rotation.
-		var basis = new Matrix(
-			x.X, x.Y, x.Z, 0f,
-			y.X, y.Y, y.Z, 0f,
-			z.X, z.Y, z.Z, 0f,
-			0f, 0f, 0f, 1f);
-
-		return new SwordPose(grip - SwordHand, Quaternion.CreateFromRotationMatrix(basis));
+		var radians = rotationDegrees * DegreesToRadians;
+		var rotation = Quaternion.CreateFromYawPitchRoll(radians.Y, radians.X, radians.Z);
+		return new SwordPose(translation - SwordHand, rotation);
 	}
 }

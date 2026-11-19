@@ -38,6 +38,8 @@ record struct SwordKey(float Time, SwordPose Pose, Easing EaseToNext);
 record SwordClip(string Name, float Duration, bool Loop, SwordKey[] Keys);
 ```
 
+Clips are authored with `SwordClips.Pose(translation, rotationDegrees)`: `translation` is the grip position in fighter-local space (next to the fighter), and `rotationDegrees` is Euler X/Y/Z in degrees (pitch/yaw/roll). The helper converts that to a quaternion and subtracts the hand attachment.
+
 Clips: `Idle`, `GuardRaise`, `GuardHold`, `GuardLower`, `SlashLeft`, `SlashRight`, `Overhead`, `PowerSlash`, `PowerOverhead`, `StaggerMicro`, `StaggerSmall`, `StaggerLarge`, `Death`, `Victory`.
 
 Each attack clip covers its full wind-up + active + recovery and holds the telegraph pose for ≥ 100 ms. The active window is the only time the blade can hit. Poses are sampled at simulation time, so mesh and hitbox are identical. Clips cross-fade over 100 ms when the state changes.
