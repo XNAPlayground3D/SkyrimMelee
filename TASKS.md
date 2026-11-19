@@ -591,5 +591,5 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T5.1 — Input intent buffer | 2026-11-20 | `e220f9a` | developer |
 | T5.2 — Skyrim locomotion, camera, input feel, hit feedback | 2026-11-20 | `0b6c643` | developer |
 | T5.3 — First/third person, zoom, bash key (and blade-side slash fix) | 2026-11-20 | `1808e37` | developer |
-| T5.4 — Camera shake, FOV punch, idle drift, F3 presets | 2026-11-20 | PENDING | developer |
+| T5.4 — Camera shake, FOV punch, idle drift, F3 presets | 2026-11-20 | `c9091ea` | developer |
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |
