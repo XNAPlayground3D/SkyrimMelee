@@ -486,4 +486,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.7 — Overhead clip | 2026-11-19 | `66b0bd8` | developer |
 | T2.8 — PowerSlash clip | 2026-11-19 | `0960141` | developer |
 | T2.9 — Three-attack moveset | 2026-11-19 | `2243f3d` | developer |
-| T2.10 — Reaction clips | 2026-11-19 | `PENDING` | developer |
+| T2.10 — Reaction clips | 2026-11-19 | `d9f4d14` | developer |
