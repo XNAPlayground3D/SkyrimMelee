@@ -1,7 +1,9 @@
 using DigitalRiseModel;
+using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Myra;
 using SkyrimMelee.Combat;
 using SkyrimMelee.Core;
 using SkyrimMelee.Fighters;
@@ -13,6 +15,9 @@ namespace SkyrimMelee;
 public sealed class SkyrimMeleeGame : Game
 {
 	private static readonly Color BackgroundColor = new(14, 15, 20);
+	private static readonly Color AxisXColor = new(0xE6, 0x5A, 0x5A);
+	private static readonly Color AxisYColor = new(0x5A, 0xD0, 0x6A);
+	private static readonly Color AxisZColor = new(0x5A, 0x90, 0xE6);
 
 	private readonly GameOptions _options;
 	private readonly GameClock _clock = new();
@@ -33,7 +38,11 @@ public sealed class SkyrimMeleeGame : Game
 	private DrMaterial? _gizmoMid;
 	private DrMaterial? _gizmoTip;
 	private DrMaterial? _bladeDebug;
+	private DrMaterial? _axisX;
+	private DrMaterial? _axisY;
+	private DrMaterial? _axisZ;
 	private ScreenGradient? _backdrop;
+	private SpriteBatch? _spriteBatch;
 	private SwordMotion? _swordMotion;
 	private IReadOnlyList<SwordClip> _swordClips = Array.Empty<SwordClip>();
 	private AttackDefinition? _slashAttack;
@@ -110,6 +119,9 @@ public sealed class SkyrimMeleeGame : Game
 		_gizmoMid = _primitives.CreateMaterial(new Color(0x9F, 0xD8, 0xFF));
 		_gizmoTip = _primitives.CreateMaterial(new Color(0xFF, 0xD2, 0x7A));
 		_bladeDebug = _primitives.CreateMaterial(new Color(0x5A, 0xD7, 0xFF));
+		_axisX = _primitives.CreateMaterial(AxisXColor);
+		_axisY = _primitives.CreateMaterial(AxisYColor);
+		_axisZ = _primitives.CreateMaterial(AxisZColor);
 
 		_swordClips = SwordClips.Create();
 		_slashAttack = AttackCatalog.Create(_swordClips).Single(attack => attack.Name == "SlashLeft");
@@ -120,6 +132,7 @@ public sealed class SkyrimMeleeGame : Game
 		ApplySwordPose();
 
 		_backdrop = new ScreenGradient(GraphicsDevice);
+		_spriteBatch = new SpriteBatch(GraphicsDevice);
 		_camera.Update(_clock.SimTime, 0f);
 
 		base.LoadContent();
@@ -144,6 +157,9 @@ public sealed class SkyrimMeleeGame : Game
 
 		_backdrop?.Dispose();
 		_backdrop = null;
+
+		_spriteBatch?.Dispose();
+		_spriteBatch = null;
 
 		_renderer?.Dispose();
 		_renderer = null;
@@ -464,6 +480,101 @@ public sealed class SkyrimMeleeGame : Game
 		_renderer.DrawLines(_primitives.LineCircle, _bladeDebug, world);
 	}
 
+	/// <summary>
+	/// Corner gizmo showing the camera basis in world space: X = right (red),
+	/// Y = up (green), Z = forward (blue). A fixed isometric view makes the
+	/// camera sway readable.
+	/// </summary>
+	private void DrawCameraAxesGizmo()
+	{
+		if (_overlay?.Visible != true || _renderer is null || _primitives is null ||
+			_axisX is null || _axisY is null || _axisZ is null)
+		{
+			return;
+		}
+
+		const int size = 150;
+		const int margin = 16;
+		var originalViewport = GraphicsDevice.Viewport;
+		var drawCalls = _renderer.DrawCalls;
+		var primitives = _renderer.PrimitivesDrawn;
+
+		var view = Matrix.CreateLookAt(new Vector3(2.2f, 2.2f, 2.2f), Vector3.Zero, Vector3.Up);
+		var projection = Matrix.CreateOrthographic(2.2f, 2.2f, 0.1f, 10f);
+
+		var gizmoViewport = new Viewport(
+			margin,
+			GraphicsDevice.PresentationParameters.BackBufferHeight - size - margin,
+			size,
+			size);
+
+		GraphicsDevice.Viewport = gizmoViewport;
+		_renderer.Begin(view, projection);
+
+		var cameraView = _camera.View;
+		cameraView.Translation = Vector3.Zero;
+		var right = new Vector3(cameraView.M11, cameraView.M12, cameraView.M13);
+		var up = new Vector3(cameraView.M21, cameraView.M22, cameraView.M23);
+		var forward = -new Vector3(cameraView.M31, cameraView.M32, cameraView.M33);
+
+		DrawAxis(right, _axisX);
+		DrawAxis(up, _axisY);
+		DrawAxis(forward, _axisZ);
+
+		_renderer.End();
+		_renderer.RestoreCounters(drawCalls, primitives);
+		GraphicsDevice.Viewport = originalViewport;
+
+		DrawAxisLabels(gizmoViewport, right, up, forward, view, projection);
+	}
+
+	private void DrawAxisLabels(Viewport viewport, Vector3 right, Vector3 up, Vector3 forward,
+		Matrix view, Matrix projection)
+	{
+		if (_spriteBatch is null)
+		{
+			return;
+		}
+
+		var origin = viewport.Project(Vector3.Zero, projection, view, Matrix.Identity);
+		_spriteBatch.Begin();
+		DrawAxisLabel("X", right, AxisXColor, origin, view, projection, viewport);
+		DrawAxisLabel("Y", up, AxisYColor, origin, view, projection, viewport);
+		DrawAxisLabel("Z", forward, AxisZColor, origin, view, projection, viewport);
+		_spriteBatch.End();
+	}
+
+	private void DrawAxisLabel(string text, Vector3 direction, Color color, Vector3 origin,
+		Matrix view, Matrix projection, Viewport viewport)
+	{
+		if (_spriteBatch is null)
+		{
+			return;
+		}
+
+		var point = viewport.Project(direction, projection, view, Matrix.Identity);
+		var screen = new Vector2(point.X, point.Y);
+		var away = screen - new Vector2(origin.X, origin.Y);
+
+		if (away.LengthSquared() > 0.0001f)
+		{
+			screen += Vector2.Normalize(away) * 9f;
+		}
+
+		DefaultAssets.DebugFont.DrawText(_spriteBatch, text, screen, color);
+	}
+
+	private void DrawAxis(Vector3 direction, DrMaterial material)
+	{
+		if (_renderer is null || _primitives is null)
+		{
+			return;
+		}
+
+		var world = Matrix.CreateFromQuaternion(GeometryMath.RotationFromY(direction));
+		_renderer.DrawLines(_primitives.LineSegment, material, world);
+	}
+
 	private void UpdateDebugText()
 	{
 		if (_hud is null)
@@ -517,6 +628,7 @@ public sealed class SkyrimMeleeGame : Game
 			}
 
 			_renderer.End();
+			DrawCameraAxesGizmo();
 		}
 
 		_ui?.Draw();

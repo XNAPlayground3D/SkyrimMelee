@@ -156,6 +156,13 @@ public sealed class ForwardRenderer : IDisposable
 		_device.Indices = null;
 	}
 
+	/// <summary>Restores counters after an overlay pass that should not affect the HUD.</summary>
+	public void RestoreCounters(int drawCalls, int primitives)
+	{
+		DrawCalls = drawCalls;
+		PrimitivesDrawn = primitives;
+	}
+
 	public void Dispose()
 	{
 		_lit.Dispose();
