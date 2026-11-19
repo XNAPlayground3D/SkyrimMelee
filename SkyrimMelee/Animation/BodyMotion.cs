@@ -1,4 +1,7 @@
-namespace SkyrimMelee.Combat;
+
+using SkyrimMelee.Tuning;
+
+namespace SkyrimMelee.Animation;
 
 /// <summary>
 /// Plays one rigid body reaction at a time and cross-fades over 100 ms.

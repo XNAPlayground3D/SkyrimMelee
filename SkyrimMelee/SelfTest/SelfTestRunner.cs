@@ -1,7 +1,12 @@
 using Microsoft.Xna.Framework;
 using SkyrimMelee.Input;
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Animation;
+using SkyrimMelee.Physics;
+using SkyrimMelee.Attacks;
+using SkyrimMelee.Combat;
 
-namespace SkyrimMelee.Combat;
+namespace SkyrimMelee.SelfTest;
 
 public readonly record struct SelfTestResult(string Name, bool Passed, string Detail);
 
@@ -19,7 +24,7 @@ public static class SelfTestRunner
 		CleanHit(),
 		BlockedHit(),
 		TimedBlock(),
-		PowerRejected(),
+		PowerFallback(),
 		PowerStagger(),
 		PoiseStagger(),
 		Bash(),
@@ -77,20 +82,23 @@ public static class SelfTestRunner
 			$"outcome={outcome}");
 	}
 
-	private static SelfTestResult PowerRejected()
+	private static SelfTestResult PowerFallback()
 	{
-		var attack = AttackCatalog.Create(SwordClips.Create())
-			.Single(candidate => candidate.Name == "PowerSlash");
-		var stats = new FighterStats(stamina: 5f);
-		var fsm = new CombatStateMachine();
+		var catalog = AttackCatalog.Create(SwordClips.Create());
+		var power = catalog.Single(candidate => candidate.Name == "PowerSlash");
+		var slash = catalog.Single(candidate => candidate.Name == "SlashLeft");
+		var empty = new FighterStats(stamina: 0f);
+		var ready = new FighterStats(stamina: 1f);
 
-		var accepted = stats.CanAfford(attack) && fsm.TryStartAttack(attack);
-		var passed = !accepted &&
-					 fsm.State == CombatState.Idle &&
-					 MathF.Abs(stats.Stamina - 5f) < 1e-4f;
+		var fallback = StaminaRules.Resolve(power, empty, slash);
+		var full = StaminaRules.Resolve(power, ready, slash);
+		var passed = fallback.Name == "SlashLeft" &&
+					 full.Name == "PowerSlash" &&
+					 !StaminaRules.Allows(empty, power) &&
+					 StaminaRules.Allows(ready, power);
 
-		return new SelfTestResult("power rejected", passed,
-			$"accepted={accepted} stamina={stats.Stamina:0.0} state={fsm.State}");
+		return new SelfTestResult("no stamina power->slash", passed,
+			$"fallback={fallback.Name} full={full.Name} empty={StaminaRules.Allows(empty, power)}");
 	}
 
 	private static SelfTestResult PowerStagger()

@@ -1,4 +1,4 @@
-namespace SkyrimMelee.Combat;
+namespace SkyrimMelee.Tuning;
 
 /// <summary>One attack's phase timings and combat values.</summary>
 public readonly record struct AttackTuning(
@@ -9,7 +9,8 @@ public readonly record struct AttackTuning(
 	float DamageMultiplier,
 	float StaggerPower,
 	bool RequiresStamina = false,
-	bool AlwaysStagger = false)
+	bool AlwaysStagger = false,
+	bool LocksMovement = false)
 {
 	public float Total => Windup + Active + Recovery;
 }
@@ -52,6 +53,15 @@ public static class CombatTuning
 	public const float WeaponBaseDamage = 20f;
 	public const float BladeReach = 1.47f;
 
+	/// <summary>How long LMB must be held to charge a power slash.</summary>
+	public const float PowerSlashHoldTime = 0.35f;
+
+	public const float PlayerWalkSpeed = 3.2f;
+	public const float AttackMoveMultiplier = 0.25f;
+	public const float GuardMoveMultiplier = 0.45f;
+	public const float ArenaRadius = 5.5f;
+	public const float OpponentSeparation = 1.15f;
+
 	public const float TwoHandedDamagePerSkill = 0.4f;
 	public const float ArmorReductionPerPoint = 0.0012f;
 	public const float ArmorReductionCap = 0.80f;
@@ -67,10 +77,11 @@ public static class CombatTuning
 		new(0.25f, 0.22f, 0.35f, 12f, 1.0f, 10f);
 
 	public static readonly AttackTuning PowerSlash =
-		new(0.60f, 0.16f, 0.70f, 30f, 1.8f, 45f,
+		new(0.60f, 0.16f, 0.70f, 30f, 2.0f, 45f,
 			RequiresStamina: true, AlwaysStagger: true);
 
-	/// <summary>A quick guard shove; only available while guarding.</summary>
+	/// <summary>A quick guard shove; only available while guarding and rooted in place.</summary>
 	public static readonly AttackTuning Bash =
-		new(0.16f, 0.08f, 0.30f, 15f, 0.4f, 40f, RequiresStamina: true);
+		new(0.16f, 0.08f, 0.30f, 15f, 0.5f, 40f,
+			RequiresStamina: true, LocksMovement: true);
 }

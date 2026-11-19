@@ -1,4 +1,7 @@
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Attacks;
+using SkyrimMelee.Physics;
 
 namespace SkyrimMelee.Combat;
 

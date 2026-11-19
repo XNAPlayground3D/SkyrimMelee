@@ -1,4 +1,9 @@
-namespace SkyrimMelee.Combat;
+
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Animation;
+using SkyrimMelee.Physics;
+
+namespace SkyrimMelee.Attacks;
 
 public static class AttackCatalog
 {

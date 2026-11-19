@@ -1,7 +1,9 @@
 using BepuPhysics;
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Animation;
 
-namespace SkyrimMelee.Combat;
+namespace SkyrimMelee.Physics;
 
 public enum FighterId
 {

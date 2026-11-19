@@ -71,6 +71,23 @@ public class SwingHitSetTests
 	}
 
 	[Fact]
+	public void OnlyTheFirstHurtboxOfASwingDealsDamage()
+	{
+		var attack = Attack;
+		var set = new SwingHitSet();
+		set.Begin(attack);
+
+		Assert.True(set.TryRegister(Hit(HurtboxKind.Hips), FighterId.Player, 0.7f, out _));
+		Assert.True(set.TryMarkDamagingHit());
+
+		Assert.True(set.TryRegister(Hit(HurtboxKind.Legs), FighterId.Player, 0.7f, out _));
+		Assert.False(set.TryMarkDamagingHit());
+
+		set.Begin(attack);
+		Assert.True(set.TryMarkDamagingHit());
+	}
+
+	[Fact]
 	public void ProgressClampsToTheActiveWindow()
 	{
 		var attack = Attack;

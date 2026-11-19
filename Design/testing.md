@@ -19,7 +19,7 @@ Given identical initial state and intents, tick _n_ must be byte-identical: same
 
 `--self-test` runs without a window using the real state machines, tuning, clips, and physics. `SelfTestRunner` builds a fresh `CombatWorld` per scenario and scripts blade sweeps / FSM transitions directly, so every run starts from identical state. Output is one `PASS/FAIL` line per scenario; a failure exits non-zero. The xUnit project asserts all scenarios pass and that 10 consecutive runs are identical.
 
-Current scenarios: clean hit, blocked hit, timed block, power rejected, power stagger, poise stagger, bash, defense outcomes, best of three, input buffer, guard break, stagger interrupt, whiff, one hit per swing, tunneling stress.
+Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash, power stagger, poise stagger, bash, defense outcomes, best of three, input buffer, guard break, stagger interrupt, whiff, one hit per swing, tunneling stress.
 
 ## Scenarios
 

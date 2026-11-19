@@ -31,7 +31,7 @@ public class AttackDefinitionTests
 		Assert.True(power.RequiresStamina);
 		Assert.True(power.AlwaysStagger);
 		Assert.Equal(30f, power.StaminaCost, 4);
-		Assert.Equal(1.8f, power.DamageMultiplier, 4);
+		Assert.Equal(2.0f, power.DamageMultiplier, 4);
 		Assert.Equal(45f, power.StaggerPower, 4);
 	}
 
@@ -43,8 +43,19 @@ public class AttackDefinitionTests
 		Assert.True(bash.RequiresStamina);
 		Assert.False(bash.AlwaysStagger);
 		Assert.Equal(15f, bash.StaminaCost, 4);
-		Assert.Equal(0.4f, bash.DamageMultiplier, 4);
+		Assert.Equal(0.5f, bash.DamageMultiplier, 4);
 		Assert.Equal(40f, bash.StaggerPower, 4);
+	}
+
+	[Fact]
+	public void OnlyBashLocksMovement()
+	{
+		Assert.True(Attack("Bash").LocksMovement);
+
+		foreach (var attack in Attacks.Where(a => a.Name != "Bash"))
+		{
+			Assert.False(attack.LocksMovement, $"{attack.Name} must keep moving during attacks.");
+		}
 	}
 
 	[Fact]

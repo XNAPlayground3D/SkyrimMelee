@@ -10,6 +10,10 @@ using SkyrimMelee.Input;
 using SkyrimMelee.Fighters;
 using SkyrimMelee.Graphics;
 using SkyrimMelee.Ui;
+using SkyrimMelee.Attacks;
+using SkyrimMelee.Physics;
+using SkyrimMelee.Animation;
+using SkyrimMelee.Tuning;
 
 namespace SkyrimMelee;
 
@@ -50,7 +54,14 @@ public sealed class SkyrimMeleeGame : Game
 	private BladeSweep? _bladeSweep;
 	private readonly SwingHitSet _swingHits = new();
 	private readonly InputRouter _input = new();
+	private readonly AttackCharge _attackCharge = new();
+	private readonly SlashCombo _slashCombo = new();
+	private int _hitCount;
+	private string _lastHit = "-";
 	private string _lastRejection = "-";
+	private Vector2 _moveInput;
+	private bool _wasActive = true;
+	private bool _skipLook;
 	private readonly FighterStats _playerStats = new();
 	private readonly FighterStats _opponentStats = new();
 	private BladeGeometry? _lastBlade;
@@ -63,6 +74,8 @@ public sealed class SkyrimMeleeGame : Game
 	private BodyMotion? _bodyMotion;
 	private IReadOnlyList<SwordClip> _swordClips = Array.Empty<SwordClip>();
 	private IReadOnlyList<BodyClip> _bodyClips = Array.Empty<BodyClip>();
+	private SwordMotion? _opponentSwordMotion;
+	private BodyMotion? _opponentBodyMotion;
 	private AttackDefinition? _slashAttack;
 	private AttackDefinition? _slashRightAttack;
 	private AttackDefinition? _powerSlashAttack;
@@ -92,7 +105,6 @@ public sealed class SkyrimMeleeGame : Game
 	private bool _d8WasDown;
 	private bool _fWasDown;
 	private bool _reactionAdvance;
-	private bool _leftMouseWasDown;
 	private bool _rightMouseWasDown;
 
 	public SkyrimMeleeGame(GameOptions options)
@@ -167,10 +179,14 @@ public sealed class SkyrimMeleeGame : Game
 		_swordMotion = new SwordMotion();
 		_swordMotion.ResetTo(_swordClips[0], _options.ClipTime ?? 0f);
 		_bodyMotion = new BodyMotion();
+		// The opponent does not act until the AI exists, but it reacts to hits.
+		_opponentSwordMotion = new SwordMotion();
+		_opponentSwordMotion.ResetTo(_swordClips[0]);
+		_opponentBodyMotion = new BodyMotion();
 
 		_combatWorld = new CombatWorld();
 		_combatWorld.AddFighter(FighterId.Player, _player.DrawTransform);
-		_combatWorld.AddFighter(FighterId.Opponent, _opponent.Transform);
+		_combatWorld.AddFighter(FighterId.Opponent, _opponent.DrawTransform);
 		_bladeSweep = new BladeSweep(_combatWorld);
 
 		if (_options.ClipTime is not null)
@@ -182,7 +198,10 @@ public sealed class SkyrimMeleeGame : Game
 
 		_backdrop = new ScreenGradient(GraphicsDevice);
 		_spriteBatch = new SpriteBatch(GraphicsDevice);
-		_camera.Update(_clock.SimTime, 0f);
+		_camera.Update(_player.Position, 0f);
+		IsMouseVisible = false;
+		CenterMouse();
+		_skipLook = true;
 
 		base.LoadContent();
 	}
@@ -252,6 +271,13 @@ public sealed class SkyrimMeleeGame : Game
 
 		var elapsed = gameTime.ElapsedGameTime.TotalSeconds;
 		var uiCaptured = _ui?.CapturesInput == true;
+
+		var moveX = (keyboard.IsKeyDown(Keys.D) ? 1f : 0f) -
+					(keyboard.IsKeyDown(Keys.A) ? 1f : 0f);
+		var moveY = (keyboard.IsKeyDown(Keys.W) ? 1f : 0f) -
+					(keyboard.IsKeyDown(Keys.S) ? 1f : 0f);
+		_moveInput = new Vector2(moveX, moveY);
+		UpdateLook(uiCaptured);
 		if (_input.Tick((float)elapsed))
 		{
 			_lastRejection = "buffer expired";
@@ -261,25 +287,26 @@ public sealed class SkyrimMeleeGame : Game
 		UpdateSwordClipInput(keyboard, uiCaptured);
 
 		var mouse = Mouse.GetState();
-		var leftMouseDown = mouse.LeftButton == ButtonState.Pressed;
-		if (leftMouseDown && !_leftMouseWasDown && !_paused && !uiCaptured)
+		if (!_paused && !uiCaptured)
 		{
-			var shift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
-			if (shift)
+			var charge = _attackCharge.Update(
+				mouse.LeftButton == ButtonState.Pressed, (float)elapsed);
+
+			if (charge == ChargeResult.Power)
 			{
 				_input.Push(CombatIntent.PowerSlash);
 			}
-			else if (_combat.State is CombatState.GuardRaise or CombatState.GuardHold)
+			else if (charge == ChargeResult.Tap)
 			{
-				_input.Push(CombatIntent.Bash);
-			}
-			else
-			{
-				_input.Push(CombatIntent.SlashLeft);
+				_input.Push(_combat.State is CombatState.GuardRaise or CombatState.GuardHold
+					? CombatIntent.Bash
+					: _slashCombo.Next());
 			}
 		}
-
-		_leftMouseWasDown = leftMouseDown;
+		else
+		{
+			_attackCharge.Reset();
+		}
 
 		var steps = _clock.Advance(elapsed);
 		for (var i = 0; i < steps; i++)
@@ -305,7 +332,7 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_staminaCue = MathF.Max(0f, _staminaCue - (float)elapsed);
-		_camera.Update(_clock.SimTime, (float)elapsed);
+		_camera.Update(_player?.Position ?? Vector3.Zero, (float)elapsed);
 
 		_labelTimer += elapsed;
 		if (_labelTimer >= 0.25)
@@ -325,6 +352,7 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		var step = (float)_clock.DeltaTime * _swordClipSpeed;
+		ApplyMovement(step);
 		var wasActive = _combat.State == CombatState.Active;
 
 		if (_combat.State != CombatState.Idle || _reactionAdvance)
@@ -335,6 +363,11 @@ public sealed class SkyrimMeleeGame : Game
 
 		_combat.Update(step);
 		_opponentCombat.Update(step);
+		if (_opponentCombat.State != CombatState.Idle)
+		{
+			_opponentSwordMotion?.Update(step);
+			_opponentBodyMotion?.Update(step);
+		}
 
 		var blade = CurrentPlayerBlade();
 		if ((wasActive || _combat.State == CombatState.Active) &&
@@ -354,6 +387,89 @@ public sealed class SkyrimMeleeGame : Game
 		if (_duel.Update(step))
 		{
 			ResetRound();
+		}
+	}
+
+	private void UpdateLook(bool uiCaptured)
+	{
+		if (uiCaptured)
+		{
+			IsMouseVisible = true;
+			return;
+		}
+
+		IsMouseVisible = false;
+
+		if (!IsActive)
+		{
+			_wasActive = false;
+			CenterMouse();
+			return;
+		}
+
+		if (!_wasActive)
+		{
+			_wasActive = true;
+			_skipLook = true;
+		}
+
+		var center = MouseCenter();
+		var mouse = Mouse.GetState();
+		if (!_skipLook)
+		{
+			_camera.AddLook(mouse.X - center.X, mouse.Y - center.Y);
+		}
+
+		_skipLook = false;
+		Mouse.SetPosition(center.X, center.Y);
+	}
+
+	private Point MouseCenter()
+	{
+		var width = GraphicsDevice.PresentationParameters.BackBufferWidth;
+		var height = GraphicsDevice.PresentationParameters.BackBufferHeight;
+		return new Point(width / 2, height / 2);
+	}
+
+	private void CenterMouse() => Mouse.SetPosition(MouseCenter().X, MouseCenter().Y);
+
+	private void ApplyMovement(float step)
+	{
+		if (_player is null || _opponent is null || _moveInput.LengthSquared() < 0.01f)
+		{
+			return;
+		}
+
+		var multiplier = Locomotion.MovementMultiplier(
+			_combat.State, _combat.Attack?.LocksMovement == true);
+		if (multiplier <= 0f)
+		{
+			return;
+		}
+
+		var input = Vector2.Normalize(_moveInput);
+		var forward = new Vector3(MathF.Cos(_camera.Yaw), 0f, MathF.Sin(_camera.Yaw));
+		var right = new Vector3(-MathF.Sin(_camera.Yaw), 0f, MathF.Cos(_camera.Yaw));
+		var move = forward * input.Y + right * input.X;
+		if (move.LengthSquared() < 1e-4f)
+		{
+			return;
+		}
+
+		move.Normalize();
+		var speed = CombatTuning.PlayerWalkSpeed * multiplier * step;
+		var position = _player.Position + move * speed;
+		_player.Position = Locomotion.Clamp(
+			position,
+			_opponent.Position,
+			CombatTuning.ArenaRadius,
+			CombatTuning.OpponentSeparation);
+
+		// Skyrim-style: moving keeps the body facing the camera, but an attack
+		// locks its facing for the committed swing.
+		if (_combat.State is not (CombatState.Windup or CombatState.Active))
+		{
+			_player.FacingYaw = Locomotion.FacingFor(forward);
 		}
 	}
 
@@ -390,9 +506,22 @@ public sealed class SkyrimMeleeGame : Game
 				continue;
 			}
 
-			_hitFlashes[HitIndex(hitEvent.Target, hitEvent.Hurtbox)] =
-				CombatTuning.HitFlashDuration;
-			_opponent?.SetBodyPartColor(hitEvent.Hurtbox, HitFlashColor);
+			// Feedback: the whole defender flashes coral, so a low or occluded
+			// hit part (hips/legs) cannot hide the hit. Damage is once per swing.
+			for (var i = 0; i < 4; i++)
+			{
+				_hitFlashes[HitIndex(hitEvent.Target, (HurtboxKind)i)] =
+					CombatTuning.HitFlashDuration;
+			}
+
+			_opponent?.SetBodyColor(HitFlashColor);
+			_hitCount++;
+			_lastHit = $"{hitEvent.Hurtbox}@{_combat.AttackTime:0.00}";
+
+			if (!_swingHits.TryMarkDamagingHit())
+			{
+				continue;
+			}
 
 			var stagger = StaggerRules.Resolve(hitEvent.Attack, _opponentStats);
 			if (stagger.Staggered)
@@ -407,7 +536,13 @@ public sealed class SkyrimMeleeGame : Game
 			if (_opponentStats.IsDead)
 			{
 				_opponentCombat.Kill();
+				PlayOpponentClip("Death");
 				_duel.ReportDeath(FighterId.Opponent);
+			}
+			else if (stagger.Staggered)
+			{
+				var large = stagger.Duration >= CombatTuning.StaggerLargeDuration - 0.001f;
+				PlayOpponentClip(large ? "StaggerLarge" : "StaggerSmall");
 			}
 		}
 	}
@@ -598,6 +733,34 @@ public sealed class SkyrimMeleeGame : Game
 		ApplySwordPose();
 	}
 
+	private void PlayOpponentClip(string name)
+	{
+		if (_opponentSwordMotion is null)
+		{
+			return;
+		}
+
+		var clip = FindClip(name);
+		if (clip is null)
+		{
+			return;
+		}
+
+		_opponentSwordMotion.Play(clip, restart: true);
+
+		var body = _bodyClips.FirstOrDefault(candidate => candidate.Name == name);
+		if (body is null)
+		{
+			_opponentBodyMotion?.Reset();
+		}
+		else
+		{
+			_opponentBodyMotion?.Play(body, restart: true);
+		}
+
+		ApplySwordPose();
+	}
+
 	private void ProcessIntent(bool uiCaptured)
 	{
 		if (uiCaptured)
@@ -645,6 +808,21 @@ public sealed class SkyrimMeleeGame : Game
 			return true;
 		}
 
+		// Skyrim: a power attack with no stamina degrades to a normal swing
+		// (the stamina bar flashes) instead of being rejected.
+		var powerFallback = false;
+		if (intent == CombatIntent.PowerSlash && !StaminaRules.Allows(_playerStats, attack))
+		{
+			if (_slashAttack is null)
+			{
+				return true;
+			}
+
+			attack = _slashAttack;
+			_staminaCue = 0.8f;
+			powerFallback = true;
+		}
+
 		if (!_playerStats.CanAfford(attack))
 		{
 			_staminaCue = 0.8f;
@@ -657,10 +835,16 @@ public sealed class SkyrimMeleeGame : Game
 			return false;
 		}
 
+		if (_player is not null)
+		{
+			var forward = new Vector3(MathF.Cos(_camera.Yaw), 0f, MathF.Sin(_camera.Yaw));
+			_player.FacingYaw = Locomotion.FacingFor(forward);
+		}
+
 		_playerStats.Spend(attack);
 		_swingHits.Begin(attack);
 		PlayClip(attack.Name);
-		_lastRejection = "-";
+		_lastRejection = powerFallback ? "no stamina: power->slash" : "-";
 		return true;
 	}
 
@@ -824,8 +1008,13 @@ public sealed class SkyrimMeleeGame : Game
 		_opponentStats.Reset();
 		_staminaCue = 0f;
 		_lastRejection = "-";
+		_hitCount = 0;
+		_lastHit = "-";
 		_input.Clear();
+		_slashCombo.Reset();
 		_swordMotion.ResetTo(_swordClips[0]);
+		_opponentSwordMotion?.ResetTo(_swordClips[0]);
+		_opponentBodyMotion?.Reset();
 		ApplySwordPose();
 	}
 
@@ -843,20 +1032,27 @@ public sealed class SkyrimMeleeGame : Game
 			_player.BodyTransform = _bodyMotion.CurrentPose.ToMatrix();
 		}
 
+		// Only the player's sword follows input clips; the opponent holds idle
+		// until the AI drives it, but still plays its hit/death reactions.
 		if (_playerSword is not null)
 		{
 			_playerSword.Pivot = pivot;
 		}
 
-		if (_opponentSword is not null)
+		if (_opponentSword is not null && _opponentSwordMotion is not null)
 		{
-			_opponentSword.Pivot = pivot;
+			_opponentSword.Pivot = _opponentSwordMotion.CurrentPose.ToMatrix();
+		}
+
+		if (_opponent is not null && _opponentBodyMotion is not null)
+		{
+			_opponent.BodyTransform = _opponentBodyMotion.CurrentPose.ToMatrix();
 		}
 
 		if (_combatWorld is not null && _player is not null && _opponent is not null)
 		{
 			_combatWorld.UpdateFighter(FighterId.Player, _player.DrawTransform);
-			_combatWorld.UpdateFighter(FighterId.Opponent, _opponent.Transform);
+			_combatWorld.UpdateFighter(FighterId.Opponent, _opponent.DrawTransform);
 		}
 	}
 
@@ -868,14 +1064,19 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		var guarding = _combat.State == CombatState.GuardHold;
-		if (guarding && !_guardHurtbox)
+		if (guarding && _playerSword is not null && _player is not null)
 		{
-			if (_swordMotion is not null && _playerSword is not null && _player is not null)
+			var swordWorld = _playerSword.GetWorld(_player.GetRightHandTransform());
+			var blade = BladeGeometry.FromWorld(swordWorld);
+
+			if (!_guardHurtbox)
 			{
-				var swordWorld = _playerSword.GetWorld(_player.GetRightHandTransform());
-				_combatWorld.RegisterGuardBlade(
-					FighterId.Player, BladeGeometry.FromWorld(swordWorld));
+				_combatWorld.RegisterGuardBlade(FighterId.Player, blade);
 				_guardHurtbox = true;
+			}
+			else
+			{
+				_combatWorld.SetGuardBladePose(FighterId.Player, blade);
 			}
 		}
 		else if (!guarding && _guardHurtbox)
@@ -1146,8 +1347,10 @@ public sealed class SkyrimMeleeGame : Game
 		_hud.UpdateDuel(_duel.Round, _duel.PlayerScore, _duel.OpponentScore);
 		var buffered = _input.IsPending ? $"buffered {_input.Pending}" : "idle";
 		var rejection = _lastRejection == "-" ? string.Empty : $"  reject {_lastRejection}";
+		var motion = FormattableString.Invariant(
+			$"move {_moveInput.X:0},{_moveInput.Y:0}  pos {_player?.Position.X ?? 0f:0.00},{_player?.Position.Z ?? 0f:0.00}  yaw {_camera.Yaw:0.00}  face {_player?.FacingYaw ?? 0f:0.00}  hits {_hitCount} {_lastHit}  foe {_opponentStats.Health:0}/{_opponentStats.MaxHealth:0}");
 		_overlay?.Update(_clock, _combat, _swordMotion?.Clip?.Name ?? "-",
-			_swordMotion?.NormalizedTime ?? 0f, $"intent {buffered}{rejection}");
+			_swordMotion?.NormalizedTime ?? 0f, $"intent {buffered}{rejection}", motion);
 	}
 
 	protected override void Draw(GameTime gameTime)
@@ -1179,7 +1382,7 @@ public sealed class SkyrimMeleeGame : Game
 
 			if (_opponent is not null)
 			{
-				_renderer.Draw(_opponent.Instance, _opponent.Transform);
+				_renderer.Draw(_opponent.Instance, _opponent.DrawTransform);
 
 				if (_opponentSword is not null)
 				{

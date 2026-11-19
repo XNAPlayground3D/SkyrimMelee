@@ -1,6 +1,9 @@
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Animation;
+using SkyrimMelee.Physics;
 
-namespace SkyrimMelee.Combat;
+namespace SkyrimMelee.Attacks;
 
 /// <summary>
 /// A confirmed contact for damage and feedback. <see cref="ActiveProgress"/> is

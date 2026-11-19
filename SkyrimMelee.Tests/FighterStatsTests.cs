@@ -8,19 +8,31 @@ public class FighterStatsTests
 		AttackCatalog.Create(SwordClips.Create()).Single(attack => attack.Name == name);
 
 	[Fact]
-	public void PowerAttackNeedsItsFullCost()
+	public void PowerAttackStartsWithAnyStamina()
 	{
 		var power = Attack("PowerSlash");
-		var stats = new FighterStats(stamina: 29f);
+		var stats = new FighterStats(stamina: 1f);
 
-		Assert.False(stats.CanAfford(power));
-		Assert.Equal(29f, stats.Stamina, 4);
-
-		stats.SetStamina(30f);
 		Assert.True(stats.CanAfford(power));
 		stats.Spend(power);
 		Assert.Equal(0f, stats.Stamina, 4);
 		Assert.False(stats.IsStaminaRegenerating);
+
+		var empty = new FighterStats(stamina: 0f);
+		Assert.False(empty.CanAfford(power));
+		Assert.True(empty.CanAfford(Attack("SlashLeft")));
+	}
+
+	[Fact]
+	public void PowerAttackDegradesAtZeroStamina()
+	{
+		var power = Attack("PowerSlash");
+		var slash = Attack("SlashLeft");
+		var empty = new FighterStats(stamina: 0f);
+		var ready = new FighterStats(stamina: 5f);
+
+		Assert.Equal("SlashLeft", StaminaRules.Resolve(power, empty, slash).Name);
+		Assert.Equal("PowerSlash", StaminaRules.Resolve(power, ready, slash).Name);
 	}
 
 	[Fact]

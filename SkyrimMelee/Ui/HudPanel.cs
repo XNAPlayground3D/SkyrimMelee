@@ -23,16 +23,16 @@ namespace SkyrimMelee.Ui
 		}
 
 		public void UpdateVitals(float health, float maxHealth, float stamina, float maxStamina,
-			bool powerDenied)
+			bool staminaCue)
 		{
 			_healthText.Text = FormattableString.Invariant($"Health  {health:0}/{maxHealth:0}");
 			_healthBar.Maximum = maxHealth;
 			_healthBar.Value = Math.Clamp(health, 0f, maxHealth);
 
-			var cue = powerDenied ? "  POWER DENIED" : string.Empty;
+			var cue = staminaCue ? "  NO STAMINA" : string.Empty;
 			_staminaText.Text = FormattableString.Invariant(
 				$"Stamina  {stamina:0}/{maxStamina:0}{cue}");
-			_staminaText.TextColor = powerDenied
+			_staminaText.TextColor = staminaCue
 				? new Color(0xF0, 0xB0, 0x50)
 				: new Color(0xE6, 0xDC, 0xC8);
 			_staminaBar.Maximum = maxStamina;

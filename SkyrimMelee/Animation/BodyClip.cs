@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Tuning;
 
-namespace SkyrimMelee.Combat;
+namespace SkyrimMelee.Animation;
 
 /// <summary>A rigid whole-body transform: an offset from the fighter root plus rotation about it.</summary>
 public readonly record struct BodyPose(Vector3 Offset, Quaternion Rotation)

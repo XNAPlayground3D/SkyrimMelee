@@ -33,9 +33,11 @@
                         Margin="0,20,24,0" Spacing="2" Padding="10" Background="#00000066">
       <Label Text="CONTROLS" TextColor="#8FA6C0" />
       <Label Text="amber = not yet implemented" TextColor="#7A7A86" />
-      <Label Text="LMB or 1         Slash left" TextColor="#E6DCC8" />
-      <Label Text="2                Slash right" TextColor="#E6DCC8" />
-      <Label Text="Shift + LMB      Power slash" TextColor="#E6DCC8" />
+      <Label Text="WASD             Move" TextColor="#E6DCC8" />
+      <Label Text="Mouse            Look" TextColor="#E6DCC8" />
+      <Label Text="LMB (tap)        Slash combo" TextColor="#E6DCC8" />
+      <Label Text="Hold LMB         Power slash" TextColor="#E6DCC8" />
+      <Label Text="1 / 2            Force left / right" TextColor="#E6DCC8" />
       <Label Text="4                Stagger small" TextColor="#E6DCC8" />
       <Label Text="5                Stagger large" TextColor="#E6DCC8" />
       <Label Text="6                Death" TextColor="#E6DCC8" />

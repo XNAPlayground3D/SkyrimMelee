@@ -1,3 +1,8 @@
+
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Attacks;
+using SkyrimMelee.Physics;
+
 namespace SkyrimMelee.Combat;
 
 /// <summary>
@@ -41,9 +46,8 @@ public sealed class FighterStats
 		Health = MathF.Max(0f, Health - amount);
 	}
 
-	/// <summary>Power attacks need their full cost; light attacks are always allowed.</summary>
-	public bool CanAfford(AttackDefinition attack) =>
-		!attack.RequiresStamina || Stamina + 1e-4f >= attack.StaminaCost;
+	/// <summary>Skyrim's rule: a stamina attack needs any stamina, not its full cost.</summary>
+	public bool CanAfford(AttackDefinition attack) => StaminaRules.Allows(this, attack);
 
 	/// <summary>Charges the attack at wind-up and restarts the regen delay.</summary>
 	public void Spend(AttackDefinition attack)

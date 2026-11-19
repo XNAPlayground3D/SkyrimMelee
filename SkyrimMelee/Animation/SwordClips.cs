@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Tuning;
 
-namespace SkyrimMelee.Combat;
+namespace SkyrimMelee.Animation;
 
 /// <summary>
 /// Authored sword clips. Poses use a fighter-local translation (the grip position

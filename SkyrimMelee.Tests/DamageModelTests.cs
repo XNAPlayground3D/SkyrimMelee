@@ -62,7 +62,7 @@ public class DamageModelTests
 		var result = DamageModel.Compute(
 			Attack("PowerSlash"), 60f, 300f, 50f, DamageKind.Clean);
 
-		Assert.Equal(29f, result.Final, 3);
+		Assert.Equal(32f, result.Final, 3);
 	}
 
 	[Fact]

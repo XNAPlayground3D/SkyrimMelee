@@ -1,4 +1,9 @@
-namespace SkyrimMelee.Combat;
+
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Animation;
+using SkyrimMelee.Physics;
+
+namespace SkyrimMelee.Attacks;
 
 /// <summary>
 /// Per-swing hit bookkeeping. One set belongs to one attack; a hurtbox can
@@ -9,6 +14,7 @@ public sealed class SwingHitSet
 {
 	private readonly HashSet<(FighterId Fighter, HurtboxKind Kind)> _hit = new();
 	private AttackDefinition? _attack;
+	private bool _damagingHit;
 
 	public AttackDefinition? Attack => _attack;
 
@@ -18,6 +24,7 @@ public sealed class SwingHitSet
 	{
 		_attack = attack ?? throw new ArgumentNullException(nameof(attack));
 		_hit.Clear();
+		_damagingHit = false;
 	}
 
 	/// <summary>Starts a new swing, discarding every hurtbox from the previous one.</summary>
@@ -25,6 +32,22 @@ public sealed class SwingHitSet
 	{
 		_hit.Clear();
 		_attack = null;
+		_damagingHit = false;
+	}
+
+	/// <summary>
+	/// Claims the swing's single damage instance. Later hurtboxes in the same
+	/// swing can still tint, but they do not deal damage.
+	/// </summary>
+	public bool TryMarkDamagingHit()
+	{
+		if (_damagingHit)
+		{
+			return false;
+		}
+
+		_damagingHit = true;
+		return true;
 	}
 
 	/// <summary>

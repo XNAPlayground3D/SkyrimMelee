@@ -1,4 +1,9 @@
-namespace SkyrimMelee.Combat;
+
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Animation;
+using SkyrimMelee.Physics;
+
+namespace SkyrimMelee.Attacks;
 
 public enum AttackPhase
 {
@@ -44,6 +49,7 @@ public sealed class AttackDefinition
 	public float StaggerPower => Tuning.StaggerPower;
 	public bool RequiresStamina => Tuning.RequiresStamina;
 	public bool AlwaysStagger => Tuning.AlwaysStagger;
+	public bool LocksMovement => Tuning.LocksMovement;
 
 	public bool IsActive(float timeSeconds) =>
 		timeSeconds >= WindupEnd && timeSeconds < ActiveEnd;

@@ -6,8 +6,10 @@ using Microsoft.Xna.Framework;
 using SkyrimMelee.Core;
 using NumVector3 = System.Numerics.Vector3;
 using NumQuaternion = System.Numerics.Quaternion;
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Animation;
 
-namespace SkyrimMelee.Combat;
+namespace SkyrimMelee.Physics;
 
 /// <summary>One confirmed collidable contact along a blade sweep.</summary>
 public readonly record struct BladeHit(

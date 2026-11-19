@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -16,6 +16,12 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="SkyrimMelee.Combat" />
+    <Using Include="SkyrimMelee.Attacks" />
+    <Using Include="SkyrimMelee.Physics" />
+    <Using Include="SkyrimMelee.Animation" />
+    <Using Include="SkyrimMelee.Tuning" />
+    <Using Include="SkyrimMelee.SelfTest" />
   </ItemGroup>
 
   <ItemGroup>

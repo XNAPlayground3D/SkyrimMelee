@@ -2,6 +2,7 @@ using DigitalRiseModel;
 using Microsoft.Xna.Framework;
 using SkyrimMelee.Combat;
 using SkyrimMelee.Graphics;
+using SkyrimMelee.Physics;
 
 namespace SkyrimMelee.Fighters;
 

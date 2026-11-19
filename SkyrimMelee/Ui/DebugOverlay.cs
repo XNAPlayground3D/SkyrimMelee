@@ -19,7 +19,7 @@ namespace SkyrimMelee.Ui
 		}
 
 		public void Update(GameClock clock, CombatStateMachine combat, string clipName,
-			float clipNormalizedTime, string intentText)
+			float clipNormalizedTime, string intentText, string motionText)
 		{
 			if (!Visible)
 			{
@@ -39,6 +39,7 @@ namespace SkyrimMelee.Ui
 							 $"block={(combat.Blocks ? "yes" : "no")} " +
 							 $"lock={(combat.IsFacingLocked ? "yes" : "no")}";
 			_intent.Text = intentText;
+			_motion.Text = motionText;
 		}
 	}
 }

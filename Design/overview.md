@@ -31,16 +31,22 @@ The body is a small rigid assembly of white primitives, so there are no static a
 
 ## From Skyrim
 
-| Mechanic | Ours |
-| --- | --- |
-| Attack commitment | Same idea, tuned for a duel |
-| Directional attacks | Three authored arcs: left, right, overhead |
-| Power attacks | Cost stamina, always stagger on clean hit |
-| Block cone | Front 120°, stamina drain on impact |
-| Timed block | Always available, core skill expression |
-| Guard break | Block cost exceeds remaining stamina |
-| Damage | Base × skill × armor × block, documented in [combat](combat.md#damage) |
-| Camera | Fixed 3/4 side view, no first person |
+The full research summary is in [reference.md](reference.md). Short version:
+
+| Mechanic | Skyrim | Ours |
+| --- | --- | --- |
+| Movement | Camera-relative, body faces the camera; strafe/backpedal do not rotate | Same |
+| Attacks | Tap alternates left/right arcs | Same (`SlashCombo`) |
+| Power attacks | Hold attack, ×2 damage, stamina cost | Same (350 ms charge, ×2) |
+| Bash | Tap attack while blocking, ×0.5, rooted | Same (`LocksMovement`) |
+| Block | Hold block, weapon block, 35° cone | Blade capsule must actually intercept |
+| Timed block | None | 250 ms window, core skill expression |
+| Stagger | Chance-based | Poise meter, deterministic |
+| Stamina | Any stamina starts the action; power falls back at 0 | Same (`StaminaRules`) |
+| Camera | `F`/wheel toggle + zoom, over-the-shoulder | Third-person follow now, first person in T5.3 |
+
+Deliberate divergences and their reasons are listed in
+[reference.md](reference.md#deliberate-divergences).
 
 ## Stack
 
@@ -57,6 +63,7 @@ Verified end-to-end on 2026-11-19 with .NET SDK 10.0.401 (T0.1): window + render
 
 | Decision | Why |
 | --- | --- |
+| Reference-first fidelity | [reference.md](reference.md) records what Skyrim does; every divergence is deliberate and listed with a reason |
 | DigitalRiseModel for geometry, custom `BasicEffect` renderer | Library has no renderer; a small renderer is easier to control than an engine |
 | Bepu as a query engine only | The blade sweeps and the capsule only changes rigid pose; statics + `Sweep` are all we need |
 | Keyframed clips as the only animation | One animated sword transform plus one rigid body pose, each with a single source of truth |

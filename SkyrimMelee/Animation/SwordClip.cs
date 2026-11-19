@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Tuning;
 
-namespace SkyrimMelee.Combat;
+namespace SkyrimMelee.Animation;
 
 public enum Easing
 {

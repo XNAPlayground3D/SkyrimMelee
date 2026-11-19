@@ -1,4 +1,7 @@
-namespace SkyrimMelee.Combat;
+
+using SkyrimMelee.Tuning;
+
+namespace SkyrimMelee.Animation;
 
 /// <summary>
 /// Plays one sword clip at a time and cross-fades the pose over 100 ms.

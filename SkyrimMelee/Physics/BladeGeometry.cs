@@ -1,7 +1,9 @@
 using Microsoft.Xna.Framework;
 using SkyrimMelee.Core;
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Animation;
 
-namespace SkyrimMelee.Combat;
+namespace SkyrimMelee.Physics;
 
 /// <summary>
 /// World-space blade segment. The same values feed the debug capsule and the

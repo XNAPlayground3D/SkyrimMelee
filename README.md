@@ -9,14 +9,14 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 
 ## Project state
 
-**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash, headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, input buffer, hit-part tint, pause status · **Next:** `T5.2`
+**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM (top-level Tuning, Animation, Physics, Attacks, Combat, SelfTest), four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash, headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, input buffer, WASD movement and follow camera, move-while-attacking/guarding (bash roots the fighter), alternating slash combo, Skyrim stamina gate, player-only sword motion, opponent hit/death reactions, whole-body hit flash, pause status · **Next:** `T5.2` (in progress)
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 167 passing |
+| Tests | ✅ xUnit project, 205 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
@@ -44,7 +44,8 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 | Timed block & guard break | ✅ `T4.4` |
 | Death, rounds, reset | ✅ `T4.5` |
 | Input buffering | ✅ `T5.1` |
-| Player movement & camera modes | 🚧 `T5.2`–`T5.3` |
+| Player movement & camera modes | 🚧 `T5.2` in progress |
+| Code layout (top-level folders) | ✅ `T5.7` |
 | HUD & menus | ⬜ `T7.1` |
 
 ## Stack
@@ -58,7 +59,7 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 
 ## Documentation
 
-Detailed specifications live in [`Design/`](Design/overview.md): [overview](Design/overview.md), [architecture](Design/architecture.md), [combat](Design/combat.md), [UI & AI](Design/ui-and-ai.md), [testing](Design/testing.md). Start there for anything beyond the summary above. The work plan is in [TASKS.md](TASKS.md); the agent workflow is in [AGENTS.md](AGENTS.md).
+Detailed specifications live in [`Design/`](Design/overview.md): [overview](Design/overview.md), [architecture](Design/architecture.md), [combat](Design/combat.md), [Skyrim reference](Design/reference.md), [UI & AI](Design/ui-and-ai.md), [testing](Design/testing.md). Start there for anything beyond the summary above. The work plan is in [TASKS.md](TASKS.md); the agent workflow is in [AGENTS.md](AGENTS.md).
 
 ## Build & run
 
@@ -75,7 +76,7 @@ dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # headless 
 
 UI markup lives in `SkyrimMelee/Ui/Hud.xmmp` and `DebugOverlay.xmmp`; after editing, run `myra-export <file>.xmmp`.
 
-**Controls:** `LMB` slash · `Shift+LMB` power slash · `F`/LMB while blocking bash · `1`/`2` forced arcs · `RMB` block · `4`–`7` reaction previews · `F1` debug overlay · `F2` wireframe · `Esc` quit.
+**Controls:** `WASD` move · mouse look · `LMB` tap slash combo / hold power slash · `F`/LMB while blocking bash · `1`/`2` forced arcs · `RMB` block · `4`–`8` reaction previews · `F1` debug overlay · `F2` wireframe · `Esc` quit.
 
 ## License
 

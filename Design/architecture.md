@@ -4,23 +4,27 @@
 
 ```text
 SkyrimMelee.slnx
-Design/                     5 docs: overview, architecture, combat, ui-and-ai, testing
+Design/                     overview, architecture, reference, combat, ui-and-ai, testing
 README.md  AGENTS.md  TASKS.md  LICENSE
 SkyrimMelee/
   Program.cs  SkyrimMeleeGame.cs
-  Core/       GameClock, FixedStepLoop
-  Graphics/   PrimitiveLibrary, ForwardRenderer, Camera, Arena, ScreenGradient, Vfx
+  Tuning/     CombatTuning (every number)
+  Core/       GameClock, FixedStepLoop, GameOptions, GeometryMath
+  Graphics/   PrimitiveLibrary, ForwardRenderer, Camera, Arena, ScreenGradient
   Fighters/   FighterRig, FighterRigBuilder, GreatswordRig, FighterVisuals
-  Combat/     CombatTuning, AttackDefinition, SwordClip(s), CombatStateMachine,
-              FighterStats, DamageModel, StaggerModel, DuelDirector, CombatIntent
-  Physics/    CombatWorld, HurtboxSet, BladeSweep, HitResolver
-  Input/      InputRouter, PlayerController
-  Ai/         DuelistAi, AiProfile
-  Ui/         MyraHost, Hud.xmmp, HudPanel, DebugOverlay.xmmp, DebugOverlay, UiSkin
-  Debug/      HeadlessSelfTest
-SkyrimMelee.Tests/
-  FixedStepLoopTests.cs      xUnit tests for pure logic
+  Animation/  SwordClip(s), SwordMotion, BodyClip(s), BodyMotion
+  Physics/    BladeGeometry, BladeSweep, CombatWorld, HurtboxSet
+  Attacks/    AttackDefinition, AttackCatalog, HitEvent, SwingHitSet
+  Combat/     CombatState, CombatStateMachine, GuardResolver, FighterStats,
+              DamageModel, DefenseResolver, StaggerRules, StaminaRules,
+              DuelDirector, Locomotion
+  Input/      InputRouter, AttackCharge, SlashCombo
+  SelfTest/   SelfTestRunner
+  Ui/         MyraHost, Hud.xmmp, HudPanel, DebugOverlay.xmmp, DebugOverlay
+SkyrimMelee.Tests/          xUnit tests for pure logic
 ```
+
+Dependencies point one way: `SelfTest → Combat → Attacks → Physics → Animation → Tuning`. `Graphics`, `Fighters`, `Input`, and `Ui` sit beside `Combat` and talk to the same lower layers. `Combat` keeps only the rules; models, clips, geometry, attack data, and the harness live in their own top-level folders.
 
 `SkyrimMelee.Tests` covers pure logic with xUnit; `--self-test` runs full combat scenarios against the real state machines without a window.
 
@@ -62,15 +66,15 @@ The arena is a `DrModel`: a root bone plus one bone/mesh per item (floor, each r
 
 **Primitive fighter** (~1.8 m): four white primitives — head sphere, torso, hips, and legs capsules — plus scale-free `HandR` / `HandL` attachment bones; the right hand owns the sword pivot. `FighterRigBuilder` reads the same `HurtboxDefinition` table the colliders use, so every rendered part is also its hurtbox. Fighters are `DrModel` rigs in local space (+X forward, +Z side) placed by a root transform. The parts have no joints: reaction clips apply one rigid `BodyTransform` (lean, topple, rise) before the root, and the sword pivot is animated independently.
 
-**Greatsword** (1.47 m blade reach): grip cylinder, pommel sphere, crossguard box, two tapered blade boxes, cone tip, inset fuller. Local origin at the grip, blade along `+Y`. It attaches to the scale-free `HandR` bone; the grip-relative `Pivot` is the only animated sword transform.
+**Greatsword** (1.47 m blade reach): grip cylinder, pommel sphere, crossguard box, two tapered blade boxes, cone tip, inset fuller. Local origin at the grip, blade along `+Y`. Each fighter owns its own sword and hand pivot. The player's pivot follows input clips; the opponent holds its idle pivot until the AI drives it, but plays its own stagger/death reaction clips when hit.
 
 ### The two-handed grip
 
 Both hands are attached to the sword rig and travel with the hilt; the primitive body only takes a rigid reaction pose ([rationale](overview.md#the-two-handed-grip)).
 
-**Camera presets:** third-person duel (default, over the player's right shoulder at `(-6.0, 3.1, 2.4)` looking at `(-0.2, 1.0, 0)`), profile (`(0, 1.9, −7.5)`), top-down debug. Idle sway ±0.6°, impact shake 0.15 s decay, small FOV punch on power attacks.
+**Camera:** third-person orbit over the player's right shoulder. Mouse look drives yaw/pitch, the target follows the player at chest height with a 1 m look-ahead, and the default distance is 5 m. `F` toggles first person and the wheel zooms (T5.3); `F3` presets and impact shake are T5.4.
 
-**VFX:** hit parts tint coral for 300 ms; pooled 256 box shards and expanding torus rings add the blue block ring, red guard-break shards, and dark grounding disc. Zero allocations in combat.
+**VFX:** a hit flashes the defender's whole body coral for 300 ms; pooled 256 box shards and expanding torus rings add the blue block ring, red guard-break shards, and dark grounding disc. Zero allocations in combat.
 
 ## Physics
 
@@ -96,9 +100,9 @@ Bepu call: `Sweep(shape, poseAtPrevious, current − previous, 1, pool, handler)
 
 The 0.35 m substep cap prevents tunneling and is asserted in debug builds. Contacts are classified by shape ownership: guard blade → block candidate, body → clean-hit candidate, floor → graze. `GuardResolver` takes the defender's earliest guard and body contacts: the guard wins ties within 1e-4 s, but only when the defender is in `GuardHold`, the attacker is inside the 120° front cone, and the guard blade is registered. A guard younger than `GuardTimedBlockWindow` (250 ms) is a timed block; older is a normal block. Behind the cone or during the raise/lower is a clean hit.
 
-`SwingHitSet` owns the per-attack hit set. It turns the first `BladeHit` for each `(fighter, hurtbox)` into a `HitEvent` carrying the attacker, target, hurtbox kind, point, normal, attack definition, and active-window progress; later contacts in the same swing are ignored, and the next attack clears the set. A confirmed hit tints the matching body primitive (and its `F2` outline) for `HitFlashDuration`.
+`SwingHitSet` owns the per-attack hit set. It turns the first `BladeHit` for each `(fighter, hurtbox)` into a `HitEvent` carrying the attacker, target, hurtbox kind, point, normal, attack definition, and active-window progress; later contacts in the same swing are ignored, and the next attack clears the set. `TryMarkDamagingHit` guarantees one damage instance per swing even when the sweep crosses several hurtboxes. A confirmed hit flashes the whole defender (and its `F2` outline) for `HitFlashDuration`.
 
-The guard hitbox is frozen when the guard completes; the 1.2° visual breathing is not reflected in physics (~3 cm divergence, accepted).
+The guard hitbox follows the hand while guarding, including while the fighter moves; the small visual breathing is sampled each frame.
 
 ## Debug and flags
 

@@ -8,8 +8,10 @@ using SkyrimMelee.Core;
 using NumVector3 = System.Numerics.Vector3;
 using NumQuaternion = System.Numerics.Quaternion;
 using XnaMatrix = Microsoft.Xna.Framework.Matrix;
+using SkyrimMelee.Tuning;
+using SkyrimMelee.Animation;
 
-namespace SkyrimMelee.Combat;
+namespace SkyrimMelee.Physics;
 
 /// <summary>
 /// Query-only Bepu world: a floor plus static hurtboxes for both fighters.
@@ -121,6 +123,28 @@ public sealed class CombatWorld : IDisposable
 		var handle = _simulation.Statics.Add(in description);
 		_guardHandles[fighter] = handle;
 		Hurtboxes.Add(handle, new Hurtbox(fighter, HurtboxKind.GuardBlade));
+	}
+
+	/// <summary>Re-poses an active guard blade, e.g. while the fighter moves.</summary>
+	public void SetGuardBladePose(FighterId fighter, BladeGeometry blade)
+	{
+		if (!_guardHandles.TryGetValue(fighter, out var handle))
+		{
+			return;
+		}
+
+		var axis = blade.Axis;
+		if (axis.LengthSquared() < 1e-8f)
+		{
+			return;
+		}
+
+		var description = new StaticDescription(
+			ToBepu((blade.Base + blade.Tip) * 0.5f),
+			ToBepu(GeometryMath.RotationFromY(Vector3.Normalize(axis))),
+			_guardShape);
+
+		_simulation.Statics.ApplyDescription(handle, in description);
 	}
 
 	public void UnregisterGuardBlade(FighterId fighter)

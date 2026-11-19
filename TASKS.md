@@ -14,6 +14,7 @@
 - A task is only `[x]` after the developer explicitly confirms it (see [AGENTS.md](AGENTS.md)).
 - Each task lists **Goal** and **Done when**. "Done when" is the test plan, not a suggestion.
 - **Specs live in [`Design/`](Design/overview.md), not here.** Tasks reference the relevant doc; the doc wins on details.
+- [`Design/reference.md`](Design/reference.md) records what Skyrim does. When a task changes feel, check it there first; new divergences go in its divergence list.
 - Completed tasks are logged at the bottom with date and commit hash.
 - The **Invariants** section must survive every rewrite.
 
@@ -325,6 +326,16 @@
 
 **Done when:** a scripted best-of-three completes correctly; back-to-back duels produce byte-identical self-test output.
 
+### [ ] T4.6 — Guard coverage cone
+**Goal:** a visually correct block is actually a block, as in Skyrim.
+- Skyrim blocks inside a **35°** frontal cone regardless of the exact weapon pose; the project currently needs the guard blade capsule to intersect the incoming sweep.
+- Add a cone test to `GuardResolver`: defender in `GuardHold`, attacker inside `BlockConeAngle` (35°), and the guard blade within reach ⇒ block even when the sweep misses the blade capsule.
+- Keep the existing blade-contact path as the primary, more precise test; the cone is the fallback.
+- Tuning: `BlockConeAngle` in `CombatTuning.cs`; docs in [reference.md](Design/reference.md#4-blocking) and [combat.md](Design/combat.md#blocking).
+- Tests: hit inside the cone blocks even with an offset blade; hit outside the cone stays clean; self-test cone scenario.
+
+**Done when:** a guard held straight ahead blocks a chest-height sweep that misses the blade by ≤ 0.15 m, and a flanking hit still lands.
+
 ---
 
 ## M5 — Player, camera, feel
@@ -338,13 +349,18 @@
 
 **Done when:** mashing during recovery yields exactly one queued attack; holding block during recovery raises guard on the first legal frame.
 
-### [ ] T5.2 — Player locomotion and follow camera
+### [~] T5.2 — Player locomotion and follow camera
 **Goal:** move the player around the arena with Skyrim-style camera-relative control.
 - Camera-relative WASD, mouse look, walk speed in `CombatTuning`, arena radius clamp, and a minimum separation from the opponent.
-- The rigid capsule slides and turns; no walk animation, no rig. Hurtboxes and sword follow the player root automatically.
-- Movement is allowed in `Idle`/`Recovery`; wind-up/active/guard lock the root for commitment.
+- The rigid capsule slides and keeps facing the camera while strafing/backpedaling (Skyrim-style); attacks turn to the camera forward. No walk animation, no rig. Hurtboxes and sword follow the player root automatically.
+- Movement continues through attacks (0.25× speed, facing locked) and guard (0.45×), Skyrim-style. `Bash` is the exception: `LocksMovement` roots the fighter for the whole swing. Stagger/Death lock the root too. The guard hitbox follows the moving hand.
 - Third-person camera follows the player; the opponent stays static until AI movement (T6).
-- Tests: arena clamp, speed/facing math, camera follow, hurtbox alignment.
+- Only the player's sword/body reacts to input; the opponent holds its idle sword pose (hit tint is still feedback).
+- Hit feedback flashes the defender's whole body coral for 300 ms, and one swing deals damage once even if the sweep crosses hips and legs. The opponent plays its own stagger/death reaction when hit, so the end of a round is visible; the F1 overlay shows `hits N`, the last hurtbox/time, and the opponent's health.
+- LMB tap plays an alternating combo (`SlashLeft` first, then `SlashRight`), like Skyrim; `1` / `2` force a side. Holding LMB for 350 ms fires `PowerSlash` (real-time charge, even in slow motion). `Shift+LMB` is no longer used.
+- Stamina follows the Skyrim gate: any stamina starts the attack; at zero a power attack degrades to `SlashLeft` with a stamina flash. Power ×2 and bash ×0.5 damage now match the reference.
+- Tests: arena clamp, facing math, camera follow, zoom/pitch clamps, tap/hold charge, combo alternation, stamina gate.
+- The F1 overlay shows the move input, player position, and camera yaw.
 
 **Done when:** WASD + mouse look move smoothly at 60 Hz, attacks still land, and the opponent stays framed.
 
@@ -372,6 +388,31 @@
 - Tuning hotkeys: `[`/`]` to nudge a selected timing value by ±10 ms (session-only, logged for copy-paste into `CombatTuning.cs`).
 
 **Done when:** an entire tuning session can be done in-game with the overlay, and the logged values can be pasted into the tuning file unchanged.
+
+### [ ] T5.6 — Directional power attacks
+**Goal:** the power attack reads the movement stick the way Skyrim's does.
+- Forward + hold LMB: dash strike (steps ~0.4 m into the target before the chop).
+- Backward + hold LMB: backstep strike (steps away, then chops).
+- Left/right + hold LMB: side strike (sidesteps; the overhead clip is reused, mirrored for the side).
+- No input: the current standing overhead.
+- Root motion is a short, deterministic offset clamped by the arena/opponent rules; no extra clips beyond a mirrored reuse.
+- Tuning: `PowerDashDistance`, `PowerStepBackDistance`, `PowerSideStepDistance` in `CombatTuning.cs`.
+- Tests: variant selection from the move input at release; root offsets; self-test direction matrix.
+
+**Done when:** each of the four input states produces a visibly different power attack and none of them tunnels through the arena or the opponent.
+
+### [x] T5.7 — Split the game code out of Combat
+**Goal:** `Combat/` stops being a 26-file grab bag; each top-level folder owns one concern.
+- `Tuning/` — `CombatTuning` (every number, single source of truth).
+- `Animation/` — clip formats, builders, and players (`SwordClip(s)`, `SwordMotion`, `BodyClip(s)`, `BodyMotion`).
+- `Physics/` — blade geometry, sweeps, hurtbox world (`BladeGeometry`, `BladeSweep`, `CombatWorld`, `HurtboxSet`).
+- `Attacks/` — attack data and per-swing hit records (`AttackDefinition`, `AttackCatalog`, `HitEvent`, `SwingHitSet`).
+- `Combat/` — only the rules: state machine, guard classification, stats, damage/defense/stagger/stamina, rounds, locomotion.
+- `SelfTest/` — `SelfTestRunner`.
+- Namespaces mirror the folders; dependencies point `SelfTest → Combat → Attacks → Physics → Animation → Tuning` with no cycles.
+- Tests import the namespaces once via `<Using>` items; no behavior changes.
+
+**Done when:** the solution builds warning-free, all tests and self-test scenarios pass, and `Design/architecture.md` shows the new tree.
 
 ---
 
@@ -493,6 +534,9 @@
 Ideas that fit the constraints but are out of scope for v1. Promote into a milestone only with developer agreement.
 
 - Greatsword variants with different reach/speed/damage (iron, steel, ebony) — visuals via primitive proportions + palette.
+- Power bash (hold LMB while blocking): 55 stamina, ×1.5 damage/stagger, needs a new bash clip variant.
+- Sprinting power attacks (Skyrim's `Great Critical Charge`): needs sprint state + stamina drain.
+- Kill cam / finishing move presentation for the last blow of a round.
 - Armor tiers that visibly change the statue (pauldrons as boxes/capsules) and armor rating.
 - Arena variants (ruined courtyard, snowy pass) built from the same primitives.
 - Parry → riposte window with a dedicated punish clip.
@@ -541,3 +585,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.4 — Timed block & guard break | 2026-11-20 | `8f5fc89` | developer |
 | T4.5 — Death, rounds, reset | 2026-11-20 | `b47d3ee` | developer |
 | T5.1 — Input intent buffer | 2026-11-20 | `e220f9a` | developer |
+| T5.7 — Split game code into top-level folders | 2026-11-20 | PENDING | developer |

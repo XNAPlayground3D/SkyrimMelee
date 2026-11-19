@@ -124,6 +124,33 @@ public class CombatWorldTests
 	}
 
 	[Fact]
+	public void GuardBladePoseCanBeUpdated()
+	{
+		using var world = new CombatWorld();
+		world.AddFighter(FighterId.Player, Matrix.Identity);
+
+		var blade = new BladeGeometry(
+			new Vector3(0.5f, 1.0f, 0.2f),
+			new Vector3(0.5f, 1.2f, 0.2f),
+			new Vector3(0.5f, 2.3f, 0.2f),
+			0.0425f,
+			0.018f);
+		world.RegisterGuardBlade(FighterId.Player, blade);
+		var handle = world.GuardBladeHandle(FighterId.Player)!.Value;
+
+		var moved = new BladeGeometry(
+			new Vector3(2.5f, 1.0f, 1.2f),
+			new Vector3(2.5f, 1.2f, 1.2f),
+			new Vector3(2.5f, 2.3f, 1.2f),
+			0.0425f,
+			0.018f);
+		world.SetGuardBladePose(FighterId.Player, moved);
+
+		Assert.True(world.TryGetPose(handle, out var center, out _));
+		Assert.Equal((moved.Base + moved.Tip) * 0.5f, center);
+	}
+
+	[Fact]
 	public void GuardBladePoseFollowsTheBladeSegment()
 	{
 		using var world = new CombatWorld();

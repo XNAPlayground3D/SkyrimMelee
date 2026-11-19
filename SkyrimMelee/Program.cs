@@ -1,5 +1,6 @@
 using SkyrimMelee.Combat;
 using SkyrimMelee.Core;
+using SkyrimMelee.SelfTest;
 
 namespace SkyrimMelee;
 
