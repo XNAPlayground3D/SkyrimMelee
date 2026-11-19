@@ -112,6 +112,8 @@ Rounded once at the end (`AwayFromZero`), minimum 1 on any connecting hit. Examp
 | Guard break | 16 |
 | Power slash clean | 29 |
 
+`DamageModel.Compute` is the single implementation of the formula. It returns a `DamageBreakdown` (kind, raw, armored, final, reduction %, stamina cost); block stamina is `0.6 × armored`, timed block `0.3 × armored`. Damage rounds once with `AwayFromZero`, with a minimum of 1 on any connecting hit.
+
 Each attack owns a `SwingHitSet`. The first contact with a hurtbox produces a `HitEvent` (attacker, target, hurtbox kind, world point, normal, attack definition, active-window progress); later contacts with that same hurtbox in the same swing are ignored. The next attack starts with a clean set. A confirmed hit tints the hit primitive for `HitFlashDuration`. Damage is applied separately.
 
 ## Blocking

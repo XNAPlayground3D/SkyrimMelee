@@ -50,6 +50,17 @@ public static class CombatTuning
 	public const float WeaponBaseDamage = 20f;
 	public const float BladeReach = 1.47f;
 
+	public const float TwoHandedDamagePerSkill = 0.4f;
+	public const float ArmorReductionPerPoint = 0.0012f;
+	public const float ArmorReductionCap = 0.80f;
+	public const float BlockReductionBase = 0.30f;
+	public const float BlockReductionPerSkill = 0.45f;
+	public const float TimedBlockBonus = 0.15f;
+	public const float TimedBlockCap = 0.85f;
+	public const float BlockStaminaMultiplier = 0.6f;
+	public const float TimedBlockStaminaMultiplier = 0.3f;
+	public const float MinimumDamage = 1f;
+
 	public static readonly AttackTuning Slash =
 		new(0.25f, 0.22f, 0.35f, 12f, 1.0f, 10f);
 

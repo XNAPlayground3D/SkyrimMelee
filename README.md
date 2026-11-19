@@ -9,14 +9,14 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, three attack clips (SlashLeft, SlashRight, PowerSlash overhead), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, headless self-test scenarios, health/stamina bars, stamina economy, hit-part tint, pause status · **Next:** `T4.2`
+**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, three attack clips (SlashLeft, SlashRight, PowerSlash overhead), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, headless self-test scenarios, health/stamina bars, stamina economy, damage model, hit-part tint, pause status · **Next:** `T4.3`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 118 passing |
+| Tests | ✅ xUnit project, 137 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
@@ -39,6 +39,7 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 | Blade-vs-blade blocks | ✅ `T3.4` |
 | Headless self-test | ✅ `T3.5` |
 | Stats & stamina | ✅ `T4.1` |
+| Damage pipeline | ✅ `T4.2` |
 | HUD & menus | ⬜ `T7.1` |
 
 ## Stack

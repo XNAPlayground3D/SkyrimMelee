@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T4.2`
+> **Next up:** `T4.3`
 
 ---
 
@@ -282,11 +282,13 @@
 
 **Done when:** stamina math is covered by xUnit or self-test assertions; a rejected power attack consumes no stamina and plays no clip.
 
-### [ ] T4.2 — Damage pipeline
+### [x] T4.2 — Damage pipeline
 **Goal:** the [Design/combat](Design/combat.md#damage) formula, implemented once, tested in isolation.
 - `DamageModel` pure functions: base → armor → block → timed block → guard break.
 - Return a breakdown struct (raw, armored, final, reduction %, stamina cost) for the debug overlay.
 - Deterministic rounding rules (no banker's rounding surprises).
+- Tuning constants for skills, armor/block curves, timed bonus, stamina multipliers, and the minimum.
+- Tests: armor 0/300/567/900, block skill 0/50/100, timed block, guard break, stamina costs, rounding, minimum 1.
 
 **Done when:** xUnit table-driven tests cover armor 0/300/567/900, block skill 0/50/100, timed/non-timed/guard-break, and match the documented formula exactly.
 
@@ -505,3 +507,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T3.4 — Blade-vs-blade blocks | 2026-11-19 | `28ff76a` | developer |
 | T3.5 — Headless self-test | 2026-11-19 | `0ee29e0` | developer |
 | T4.1 — Stats, stamina, vitals HUD | 2026-11-19 | `0bc4c85` | developer |
+| T4.2 — Damage pipeline | 2026-11-19 | `PENDING` | developer |
