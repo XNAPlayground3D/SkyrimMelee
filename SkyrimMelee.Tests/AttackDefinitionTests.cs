@@ -16,10 +16,31 @@ public class AttackDefinitionTests
 	{
 		var names = Attacks.Select(a => a.Name).ToArray();
 
-		Assert.Equal(3, names.Length);
+		Assert.Equal(4, names.Length);
 		Assert.Contains("SlashLeft", names);
 		Assert.Contains("SlashRight", names);
 		Assert.Contains("Overhead", names);
+		Assert.Contains("PowerSlash", names);
+	}
+
+	[Fact]
+	public void PowerSlashRequiresStamina()
+	{
+		var power = Attack("PowerSlash");
+
+		Assert.True(power.RequiresStamina);
+		Assert.Equal(30f, power.StaminaCost, 4);
+		Assert.Equal(1.8f, power.DamageMultiplier, 4);
+		Assert.Equal(45f, power.StaggerPower, 4);
+	}
+
+	[Fact]
+	public void PowerSlashHasLargerHiltTravelThanSlashLeft()
+	{
+		var slash = MaxHiltTravel(SlashLeftAttack.Clip);
+		var power = MaxHiltTravel(Attack("PowerSlash").Clip);
+
+		Assert.True(power > slash + 0.2f, $"power={power:0.00} slash={slash:0.00}");
 	}
 
 	[Fact]
@@ -226,6 +247,23 @@ public class AttackDefinitionTests
 			AssertVec(Vector3.TransformNormal(Vector3.UnitZ, expected),
 				Vector3.TransformNormal(Vector3.UnitZ, actual));
 		}
+	}
+
+	private static float MaxHiltTravel(SwordClip clip)
+	{
+		var keys = clip.Keys;
+		var max = 0f;
+
+		for (var i = 0; i < keys.Count; i++)
+		{
+			for (var j = i + 1; j < keys.Count; j++)
+			{
+				max = MathF.Max(max,
+					Vector3.Distance(keys[i].Pose.GripOffset, keys[j].Pose.GripOffset));
+			}
+		}
+
+		return max;
 	}
 
 	private static void AssertVec(Vector3 expected, Vector3 actual)

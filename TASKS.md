@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T2.8`
+> **Next up:** `T2.9`
 
 ---
 
@@ -186,10 +186,11 @@
 
 **Done when:** developer approval of the Overhead arc, timing, and hilt/hand motion.
 
-### [ ] T2.8 — PowerSlash clip
+### [x] T2.8 — PowerSlash clip
 **Goal:** add the wide power cleave as its own deliverable.
-- Author `PowerSlash` with 600 / 160 / 700 ms, `RequiresStamina`, 100 ms hold, larger hilt travel.
-- Add it to `SwordClips` / `AttackCatalog`; add the stamina requirement test.
+- Author `PowerSlash` with 600 / 160 / 700 ms, 100 ms hold, ~2 m hilt travel, and a bigger follow-through than SlashLeft.
+- Add it to `SwordClips` / `AttackCatalog`; test `RequiresStamina`, the 30 stamina cost, 1.8× damage, 45 stagger, and the larger travel.
+- Dev harness: Shift+LMB plays it.
 
 **Done when:** developer approval of the PowerSlash arc, timing, and hilt/hand motion.
 
@@ -478,3 +479,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.5 — combat state machine | 2026-11-19 | `a7954ae` | developer |
 | T2.6 — SlashRight clip | 2026-11-19 | `0667ba5` | developer |
 | T2.7 — Overhead clip | 2026-11-19 | `66b0bd8` | developer |
+| T2.8 — PowerSlash clip | 2026-11-19 | `PENDING` | developer |

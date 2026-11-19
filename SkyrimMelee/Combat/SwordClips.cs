@@ -22,6 +22,7 @@ public static class SwordClips
 		SlashLeft(),
 		SlashRight(),
 		Overhead(),
+		PowerSlash(),
 		GuardRaise(),
 		GuardHold(),
 		GuardLower()
@@ -144,6 +145,45 @@ public static class SwordClips
 			Key(0.50f / duration, contact, Easing.EaseOut),
 			Key(activeEnd, activeEndPose, Easing.SmoothStep),
 			Key(0.72f / duration, follow),
+			Key(1f, IdlePose()));
+	}
+
+	private static SwordClip PowerSlash()
+	{
+		var duration = CombatTuning.PowerSlash.Total;
+		var windupEnd = CombatTuning.PowerSlash.Windup / duration;
+		var activeEnd = (CombatTuning.PowerSlash.Windup + CombatTuning.PowerSlash.Active) / duration;
+
+		// Wide power cleave: the hilt draws far back/right, holds, then sweeps
+		// across the body with more travel and rotation than SlashLeft.
+		var windupPull = Pose(
+			new Vector3(0.25f, 1.25f, 0.55f),
+			new Vector3(5f, -90f, -15f));
+		var windup = Pose(
+			new Vector3(-0.55f, 1.35f, 0.95f),
+			new Vector3(10f, -90f, -20f));
+		var swingEarly = Pose(
+			new Vector3(0.50f, 1.25f, 0.50f),
+			new Vector3(50f, 0f, -10f));
+		var contact = Pose(
+			new Vector3(0.85f, 1.10f, -0.05f),
+			new Vector3(85f, -40f, -150f));
+		var activeEndPose = Pose(
+			new Vector3(0.65f, 0.95f, -0.65f),
+			new Vector3(75f, -15f, -160f));
+		var follow = Pose(
+			new Vector3(0.15f, 0.82f, -0.90f),
+			new Vector3(55f, -15f, 165f));
+
+		return new SwordClip("PowerSlash", duration, false,
+			Key(0f, IdlePose(), Easing.EaseIn),
+			Key(0.42f / duration, windupPull),
+			Key(0.50f / duration, windup, Easing.Linear),
+			Key(windupEnd, windup, Easing.EaseIn),   // 100 ms telegraph hold
+			Key(0.65f / duration, swingEarly, Easing.EaseIn),
+			Key(0.70f / duration, contact, Easing.EaseOut),
+			Key(activeEnd, activeEndPose, Easing.SmoothStep),
+			Key(1.00f / duration, follow),
 			Key(1f, IdlePose()));
 	}
 

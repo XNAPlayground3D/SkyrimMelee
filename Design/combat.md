@@ -54,6 +54,8 @@ T2.2 authors **only** `SlashLeft` and its `AttackDefinition`. `SlashRight`, `Ove
 
 `Overhead` is a vertical chop in the fighter's X-Y plane: the hilt rises above the head with the blade back/up, holds for 100 ms, then drives forward and down. The blade rolls so the cutting edge stays in the chop plane; the flat faces sideways. It uses the 400 / 140 / 450 ms phases and is mapped to `3`.
 
+`PowerSlash` is a wide power cleave: the hilt draws far back/right, holds for 100 ms, then sweeps across with ~2 m of hilt travel and a bigger follow-through. It uses 600 / 160 / 700 ms, costs 30 stamina, requires stamina, and has 1.8× damage / 45 stagger. Shift+LMB plays it.
+
 ### Guard clips
 
 `GuardRaise` (200 ms) starts at the idle, pulls back slightly, then settles into the guard; `GuardHold` loops for 2 s with ~1.8° of blade breathing; `GuardLower` (150 ms) drops with a small follow-through and settles back to idle. The guard pose puts the hands centered in front of the chest and the blade diagonally across the torso, flat toward the opponent, so the blade sits between the fighters. The dev harness raises on RMB press, holds while RMB is down, and lowers on release.

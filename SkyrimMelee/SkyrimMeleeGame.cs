@@ -48,6 +48,7 @@ public sealed class SkyrimMeleeGame : Game
 	private AttackDefinition? _slashAttack;
 	private AttackDefinition? _slashRightAttack;
 	private AttackDefinition? _overheadAttack;
+	private AttackDefinition? _powerSlashAttack;
 	private readonly CombatStateMachine _combat = new();
 	private bool _paused;
 	private double _baseTimeScale = 1.0;
@@ -132,6 +133,7 @@ public sealed class SkyrimMeleeGame : Game
 		_slashAttack = attacks.Single(attack => attack.Name == "SlashLeft");
 		_slashRightAttack = attacks.Single(attack => attack.Name == "SlashRight");
 		_overheadAttack = attacks.Single(attack => attack.Name == "Overhead");
+		_powerSlashAttack = attacks.Single(attack => attack.Name == "PowerSlash");
 		_swordMotion = new SwordMotion();
 		_swordMotion.ResetTo(_swordClips[0], _options.ClipTime ?? 0f);
 
@@ -217,7 +219,15 @@ public sealed class SkyrimMeleeGame : Game
 		var leftMouseDown = mouse.LeftButton == ButtonState.Pressed;
 		if (leftMouseDown && !_leftMouseWasDown)
 		{
-			PlaySlash();
+			var shift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
+			if (shift)
+			{
+				PlayPowerSlash();
+			}
+			else
+			{
+				PlaySlash();
+			}
 		}
 
 		_leftMouseWasDown = leftMouseDown;
@@ -407,6 +417,17 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		PlayClip("Overhead");
+	}
+
+	private void PlayPowerSlash()
+	{
+		if (_paused || _swordMotion is null || _powerSlashAttack is null ||
+			!_combat.TryStartAttack(_powerSlashAttack))
+		{
+			return;
+		}
+
+		PlayClip("PowerSlash");
 	}
 
 	private void PlayGuardRaise()
