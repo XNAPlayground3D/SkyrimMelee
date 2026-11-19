@@ -17,15 +17,9 @@ Given identical initial state and intents, tick _n_ must be byte-identical: same
 
 ## Harness
 
-`--self-test` runs without a window using the real state machines, tuning, clips, and physics. The xUnit project covers pure functions that do not need the loop.
+`--self-test` runs without a window using the real state machines, tuning, clips, and physics. `SelfTestRunner` builds a fresh `CombatWorld` per scenario and scripts blade sweeps / FSM transitions directly, so every run starts from identical state. Output is one `PASS/FAIL` line per scenario; a failure exits non-zero. The xUnit project asserts all scenarios pass and that 10 consecutive runs are identical.
 
-```csharp
-record Scenario(string Id, string Description, FighterSetup Player, FighterSetup Opponent,
-    IntentTrack PlayerIntents, IntentTrack OpponentIntents, float Duration,
-    Action<SimSnapshot>[] Assertions);
-```
-
-Intent tracks use absolute sim times. Output is one `PASS/FAIL` line per scenario and a non-zero exit code on failure. `--filter ST-04 --verbose` dumps per-tick state.
+Current scenarios: clean hit, blocked hit, timed block, guard break, stagger interrupt, whiff, one hit per swing, tunneling stress.
 
 ## Scenarios
 

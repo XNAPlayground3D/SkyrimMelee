@@ -1,3 +1,4 @@
+using SkyrimMelee.Combat;
 using SkyrimMelee.Core;
 
 namespace SkyrimMelee;
@@ -9,8 +10,7 @@ internal static class Program
 	{
 		if (HasFlag(args, "--self-test"))
 		{
-			Console.WriteLine("self-test: no tests yet (combat harness arrives in T3.5)");
-			return 0;
+			return RunSelfTest();
 		}
 
 		if (HasFlag(args, "--help") || HasFlag(args, "-h"))
@@ -29,6 +29,24 @@ internal static class Program
 		using var game = new SkyrimMeleeGame(options);
 		game.Run();
 		return 0;
+	}
+
+	private static int RunSelfTest()
+	{
+		var results = SelfTestRunner.Run();
+		var failed = 0;
+
+		foreach (var result in results)
+		{
+			Console.WriteLine($"{(result.Passed ? "PASS" : "FAIL")}  {result.Name}  ({result.Detail})");
+			if (!result.Passed)
+			{
+				failed++;
+			}
+		}
+
+		Console.WriteLine($"{results.Count - failed}/{results.Count} scenarios passed");
+		return failed == 0 ? 0 : 1;
 	}
 
 	private static bool HasFlag(string[] args, string flag) =>

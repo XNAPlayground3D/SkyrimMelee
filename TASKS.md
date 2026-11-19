@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T3.5`
+> **Next up:** `T4.1`
 
 ---
 
@@ -258,11 +258,13 @@
 
 **Done when:** scripted swings at a guarding opponent in front always classify as block; swings from behind or during guard lowering classify as clean hits; earliest-TOI arbitration is verified with a deliberate double contact.
 
-### [ ] T3.5 — Headless self-test harness
+### [x] T3.5 — Headless self-test harness
 **Goal:** the whole combat sim is verifiable without a window.
-- `--self-test` runs named, deterministic scenarios on a fixed timestep with a scripted input track (no RNG, no wall clock).
+- `--self-test` runs named, deterministic scenarios on a fixed timestep with a scripted track (no RNG, no wall clock).
 - Scenarios: clean hit, blocked hit, timed block, guard break, stagger interrupt, whiff, one-hit-per-swing, tunneling stress.
 - Prints PASS/FAIL per scenario, exits non-zero on failure.
+- Guard break currently verifies the consequences (guard removed, 1000 ms stagger); the stamina trigger lands in T4.4.
+- Tests: all scenarios pass and 10 consecutive runs are identical.
 
 **Done when:** all scenarios pass on a cold machine; results are identical across 10 consecutive runs.
 
@@ -499,3 +501,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T3.2 — Swept blade cast + hit tint | 2026-11-19 | `12c6f98` | developer |
 | T3.3 — Swing hit events | 2026-11-19 | `c08fb04` | developer |
 | T3.4 — Blade-vs-blade blocks | 2026-11-19 | `28ff76a` | developer |
+| T3.5 — Headless self-test | 2026-11-19 | `PENDING` | developer |
