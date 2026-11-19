@@ -10,5 +10,7 @@
     <Label Id="_acc" Text="acc 0.0 ms" TextColor="#9FD8FF" />
     <Label Id="_dropped" Text="dropped 0" TextColor="#9FD8FF" />
     <Label Id="_mode" Text="mode" TextColor="#9FD8FF" />
+    <Label Id="_clip" Text="clip -" TextColor="#9FD8FF" />
+    <Label Id="_clipTime" Text="clip t 0.00" TextColor="#9FD8FF" />
   </VerticalStackPanel>
 </Project>

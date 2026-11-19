@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T2.1`
+> **Next up:** `T2.2`
 
 ---
 
@@ -122,12 +122,13 @@
 
 ## M2 — Sword motion ("animation")
 
-### [ ] T2.1 — Sword clip system
+### [x] T2.1 — Sword clip system
 **Goal:** replace hard-coded rotations with authored keyframe clips.
 - `SwordClip` (duration, `SwordKey` list, per-segment easing), sampler with lerp + slerp.
 - Clip registry with ID lookup, looping for idle/guard, one-shot for attacks.
 - 100 ms cross-fade between outgoing and incoming clip poses.
 - Unit-level check: sampling t=0 and t=1 returns the first/last key exactly.
+- HUD playback rows show the current clip name, speed multiplier, and progress (e.g. `50ms/120ms`); the F1 overlay also shows clip time.
 
 **Done when:** dev harness can play any clip at any speed and the sword motion looks continuous (no snapping) across clip changes.
 
@@ -426,3 +427,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T1.3 — fighter rigs & palettes | 2026-11-19 | `fa3ce24` | developer |
 | T1.4 — greatswords & hand pivot | 2026-11-19 | `6b5a248` | developer |
 | T1.5 — HUD + debug markup | 2026-11-19 | `6b5a248` | developer |
+| T2.1 — sword clip system | 2026-11-19 | _pending_ | developer |

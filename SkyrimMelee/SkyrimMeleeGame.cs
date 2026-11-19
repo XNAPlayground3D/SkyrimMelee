@@ -2,6 +2,7 @@ using DigitalRiseModel;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SkyrimMelee.Combat;
 using SkyrimMelee.Core;
 using SkyrimMelee.Fighters;
 using SkyrimMelee.Graphics;
@@ -32,15 +33,23 @@ public sealed class SkyrimMeleeGame : Game
 	private DrMaterial? _gizmoMid;
 	private DrMaterial? _gizmoTip;
 	private ScreenGradient? _backdrop;
-	private float _swordYaw;
-	private float _swordPitch = 0.18f;
-	private float _swordRoll = -0.85f;
+	private SwordMotion? _swordMotion;
+	private IReadOnlyList<SwordClip> _swordClips = Array.Empty<SwordClip>();
+	private int _swordClipIndex;
+	private bool _swordClipPaused;
+	private float _swordClipSpeed = 1f;
 	private float _fps;
 	private double _fpsWindowTime;
 	private int _fpsWindowFrames;
 	private double _labelTimer;
 	private bool _f1WasDown;
 	private bool _f2WasDown;
+	private bool _spaceWasDown;
+	private bool _leftBracketWasDown;
+	private bool _rightBracketWasDown;
+	private bool _rWasDown;
+	private bool _minusWasDown;
+	private bool _plusWasDown;
 
 	public SkyrimMeleeGame(GameOptions options)
 	{
@@ -98,7 +107,11 @@ public sealed class SkyrimMeleeGame : Game
 		_gizmoGrip = _primitives.CreateMaterial(new Color(0xFF, 0x6B, 0x4A));
 		_gizmoMid = _primitives.CreateMaterial(new Color(0x9F, 0xD8, 0xFF));
 		_gizmoTip = _primitives.CreateMaterial(new Color(0xFF, 0xD2, 0x7A));
-		UpdateSwordPivot();
+
+		_swordClips = SwordClips.Create();
+		_swordMotion = new SwordMotion();
+		_swordMotion.Play(_swordClips[0]);
+		ApplySwordPose();
 
 		_backdrop = new ScreenGradient(GraphicsDevice);
 		_camera.Update(_clock.SimTime, 0f);
@@ -165,12 +178,25 @@ public sealed class SkyrimMeleeGame : Game
 
 		var elapsed = gameTime.ElapsedGameTime.TotalSeconds;
 		UpdateFps(elapsed);
-		UpdateSwordPivotInput(keyboard, (float)elapsed);
+		UpdateSwordClipInput(keyboard);
 
 		var steps = _clock.Advance(elapsed);
 		for (var i = 0; i < steps; i++)
 		{
 			StepSimulation();
+		}
+
+		if (_swordMotion is not null)
+		{
+			if (!_swordClipPaused)
+			{
+				_swordMotion.Update((float)elapsed * _swordClipSpeed);
+			}
+
+			ApplySwordPose();
+
+			_hud?.UpdatePlayback(_swordMotion.Clip?.Name ?? "-", _swordClipSpeed,
+				_swordMotion.Time, _swordMotion.Clip?.Duration ?? 0f);
 		}
 
 		_camera.Update(_clock.SimTime, (float)elapsed);
@@ -187,7 +213,7 @@ public sealed class SkyrimMeleeGame : Game
 
 	private void StepSimulation()
 	{
-		// T0.4: still a skeleton. Round state, combat, physics and AI hook in from T1 onward.
+		// Simulation systems hook in from T2.5 onward.
 	}
 
 	private void UpdateFps(double elapsed)
@@ -205,46 +231,90 @@ public sealed class SkyrimMeleeGame : Game
 		_fpsWindowFrames = 0;
 	}
 
-	private void UpdateSwordPivotInput(KeyboardState keyboard, float elapsed)
+	private void UpdateSwordClipInput(KeyboardState keyboard)
 	{
-		const float rate = 1.6f;
-
-		if (keyboard.IsKeyDown(Keys.Left) || keyboard.IsKeyDown(Keys.J))
+		var previous = keyboard.IsKeyDown(Keys.Q) || keyboard.IsKeyDown(Keys.OemOpenBrackets);
+		if (previous && !_leftBracketWasDown)
 		{
-			_swordYaw -= rate * elapsed;
+			SelectSwordClip(-1);
 		}
 
-		if (keyboard.IsKeyDown(Keys.Right) || keyboard.IsKeyDown(Keys.L))
+		_leftBracketWasDown = previous;
+
+		var next = keyboard.IsKeyDown(Keys.E) || keyboard.IsKeyDown(Keys.OemCloseBrackets);
+		if (next && !_rightBracketWasDown)
 		{
-			_swordYaw += rate * elapsed;
+			SelectSwordClip(1);
 		}
 
-		if (keyboard.IsKeyDown(Keys.Up) || keyboard.IsKeyDown(Keys.I))
+		_rightBracketWasDown = next;
+
+		var pause = keyboard.IsKeyDown(Keys.Space) || keyboard.IsKeyDown(Keys.P);
+		if (pause && !_spaceWasDown)
 		{
-			_swordPitch -= rate * elapsed;
+			_swordClipPaused = !_swordClipPaused;
 		}
 
-		if (keyboard.IsKeyDown(Keys.Down) || keyboard.IsKeyDown(Keys.K))
+		_spaceWasDown = pause;
+
+		var restart = keyboard.IsKeyDown(Keys.R);
+		if (restart && !_rWasDown)
 		{
-			_swordPitch += rate * elapsed;
+			RestartSwordClip();
 		}
 
-		if (keyboard.IsKeyDown(Keys.Q))
+		_rWasDown = restart;
+
+		var slower = keyboard.IsKeyDown(Keys.Z) || keyboard.IsKeyDown(Keys.OemMinus);
+		if (slower && !_minusWasDown)
 		{
-			_swordRoll += rate * elapsed;
+			_swordClipSpeed = MathF.Max(0.1f, _swordClipSpeed - 0.1f);
 		}
 
-		if (keyboard.IsKeyDown(Keys.E))
+		_minusWasDown = slower;
+
+		var faster = keyboard.IsKeyDown(Keys.X) || keyboard.IsKeyDown(Keys.OemPlus);
+		if (faster && !_plusWasDown)
 		{
-			_swordRoll -= rate * elapsed;
+			_swordClipSpeed = MathF.Min(2f, _swordClipSpeed + 0.1f);
 		}
 
-		UpdateSwordPivot();
+		_plusWasDown = faster;
 	}
 
-	private void UpdateSwordPivot()
+	private void SelectSwordClip(int delta)
 	{
-		var pivot = Matrix.CreateFromYawPitchRoll(_swordYaw, _swordPitch, _swordRoll);
+		if (_swordMotion is null || _swordClips.Count == 0)
+		{
+			return;
+		}
+
+		_swordClipIndex = (_swordClipIndex + delta + _swordClips.Count) % _swordClips.Count;
+		_swordClipPaused = false;
+		_swordMotion.Play(_swordClips[_swordClipIndex], restart: true);
+		ApplySwordPose();
+	}
+
+	private void RestartSwordClip()
+	{
+		if (_swordMotion is null || _swordClips.Count == 0)
+		{
+			return;
+		}
+
+		_swordClipPaused = false;
+		_swordMotion.Play(_swordClips[_swordClipIndex], restart: true);
+		ApplySwordPose();
+	}
+
+	private void ApplySwordPose()
+	{
+		if (_swordMotion is null)
+		{
+			return;
+		}
+
+		var pivot = _swordMotion.CurrentPose.ToMatrix();
 
 		if (_playerSword is not null)
 		{
@@ -289,7 +359,7 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_hud.UpdateStats(_fps, _renderer?.DrawCalls ?? 0, _renderer?.PrimitivesDrawn ?? 0);
-		_overlay?.Update(_clock);
+		_overlay?.Update(_clock, _swordMotion?.Clip?.Name ?? "-", _swordMotion?.NormalizedTime ?? 0f);
 	}
 
 	protected override void Draw(GameTime gameTime)

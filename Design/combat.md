@@ -40,7 +40,9 @@ record SwordClip(string Name, float Duration, bool Loop, SwordKey[] Keys);
 
 Clips: `Idle`, `GuardRaise`, `GuardHold`, `GuardLower`, `SlashLeft`, `SlashRight`, `Overhead`, `PowerSlash`, `PowerOverhead`, `StaggerMicro`, `StaggerSmall`, `StaggerLarge`, `Death`, `Victory`.
 
-Each attack clip covers its full wind-up + active + recovery and holds the telegraph pose for ≥ 100 ms. The active window is the only time the blade can hit. Poses are sampled at simulation time, so mesh and hitbox are identical.
+Each attack clip covers its full wind-up + active + recovery and holds the telegraph pose for ≥ 100 ms. The active window is the only time the blade can hit. Poses are sampled at simulation time, so mesh and hitbox are identical. Clips cross-fade over 100 ms when the state changes.
+
+T2.1 ships a dev clip player: `Q` / `E` (or `[` / `]`) cycles the placeholder clips, `Space` (or `P`) pauses, `R` restarts, `Z` / `X` (or `-` / `=`) changes speed. The HUD shows the current clip name, speed multiplier, and progress (`50ms/120ms`); the F1 overlay shows the clip name and normalized time. The authored attack clips arrive in T2.2.
 
 | State | Clip | Exits |
 | --- | --- | --- |

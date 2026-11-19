@@ -17,7 +17,7 @@ namespace SkyrimMelee.Ui
 			Visible = !Visible;
 		}
 
-		public void Update(GameClock clock)
+		public void Update(GameClock clock, string clipName, float clipNormalizedTime)
 		{
 			if (!Visible)
 			{
@@ -30,6 +30,8 @@ namespace SkyrimMelee.Ui
 			_scale.Text = FormattableString.Invariant($"scale {clock.TimeScale:0.00}x");
 			_acc.Text = FormattableString.Invariant($"acc {clock.Accumulator * 1000:0.0} ms");
 			_dropped.Text = $"dropped {clock.TotalDroppedSteps}";
+			_clip.Text = $"clip {clipName}";
+			_clipTime.Text = FormattableString.Invariant($"clip t {clipNormalizedTime:0.00}");
 		}
 	}
 }
