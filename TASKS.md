@@ -424,5 +424,5 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T1.1 — primitive cache + showcase | 2026-11-19 | `80917e4` | developer |
 | T1.2 — arena, camera, forward renderer | 2026-11-19 | `648c0a9` | developer |
 | T1.3 — fighter rigs & palettes | 2026-11-19 | `fa3ce24` | developer |
-| T1.4 — greatswords & hand pivot | 2026-11-19 | _pending_ | developer |
-| T1.5 — HUD + debug markup | 2026-11-19 | _pending_ | developer |
+| T1.4 — greatswords & hand pivot | 2026-11-19 | `6b5a248` | developer |
+| T1.5 — HUD + debug markup | 2026-11-19 | `6b5a248` | developer |
