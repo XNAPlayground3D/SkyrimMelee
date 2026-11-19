@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T2.4`
+> **Next up:** `T2.5`
 
 ---
 
@@ -139,7 +139,7 @@
 - Idle/guard uses the Skyrim standing greatsword pose: hand at the right hip, blade nearly vertical with a slight backward lean.
 - Camera is a third-person view over the player's right shoulder; the idle sword stands on that right side and the slash sweeps across the screen in the fighter's Z axis.
 - Timing matches `CombatTuning.Slash` (250 / 220 / 350 ms); 100 ms telegraph hold.
-- The cut is a body orbit: the hands circle a chest-height pivot at ~0.75 m radius. The wind-up draws them behind the right shoulder; the 220 ms active sweep carries the hilt ~1.5 m forward/left and the tip cuts ~1.0 m through the opponent's space. The blade rolls edge-first.
+- The cut is a body orbit: the hands circle a chest-height pivot. The wind-up carries the whole sword right and behind the body (hands ~0.9 m back, ~0.6 m right) with the blade near-vertical and the idle roll unchanged, so the sword translates rather than twisting in the wrist; the tip ends almost behind the fighter's back. The 220 ms active sweep carries the hilt ~1.5 m forward/left and the tip cuts through the opponent's space. The blade rolls edge-first during the cut.
 - Iterate on arc, hilt travel, hand placement, and readability from developer feedback.
 - Do not mark done until the developer says the clip is perfect.
 
@@ -153,10 +153,11 @@
 
 **Done when:** raising/lowering guard has visible anticipation and follow-through; guard blade genuinely occludes the torso from the opponent's direction.
 
-### [ ] T2.4 — Clip -> blade segment
+### [x] T2.4 — Clip -> blade segment
 **Goal:** one function that turns a pose into world-space blade geometry.
-- `SwordClip` pose → grip world position + blade base/tip world positions (blade capsule: base radius, tip radius, length).
-- Same values feed rendering, debug draw, and physics sweeps — no duplicate math.
+- `BladeGeometry.FromPose` / `FromWorld`: grip, blade base, blade tip, base/tip radius, length.
+- F1 overlay draws the capsule axis and base/tip rings; the same values will feed the T3.2 sweep.
+- Tests sample every clip at 20 steps and keep the blade rigid.
 
 **Done when:** debug draw of the physics blade capsule overlaps the rendered blade within 1 cm at every sampled time across every clip.
 
@@ -470,3 +471,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.1 — sword clip system | 2026-11-19 | `266c883` | developer |
 | T2.2 — SlashLeft clip | 2026-11-19 | `5602692` | developer |
 | T2.3 — guard clips | 2026-11-19 | `01819f2` | developer |
+| T2.4 — clip → blade segment | 2026-11-19 | `PENDING` | developer |

@@ -1,5 +1,6 @@
 using DigitalRiseModel;
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Combat;
 using SkyrimMelee.Graphics;
 
 namespace SkyrimMelee.Fighters;
@@ -10,7 +11,7 @@ namespace SkyrimMelee.Fighters;
 /// </summary>
 public sealed class GreatswordRig : IDisposable
 {
-	public const float BladeTipY = 1.47f;
+	public const float BladeTipY = BladeGeometry.BladeTipY;
 
 	public GreatswordRig(PrimitiveLibrary primitives, Color handColor)
 	{

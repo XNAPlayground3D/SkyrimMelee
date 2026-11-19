@@ -35,6 +35,7 @@ public sealed class PrimitiveLibrary : IDisposable
 		// DigitalRiseModel line primitives are position-only; BasicEffect needs PNT, so build PNT line lists.
 		LineBox = Track(CreateLineBox(device));
 		LineCircle = Track(CreateLineCircle(device, 48));
+		LineSegment = Track(CreateLineList(device, new[] { Vector3.Zero, Vector3.UnitY }));
 	}
 
 	public DrMeshPart Box { get; }
@@ -49,6 +50,9 @@ public sealed class PrimitiveLibrary : IDisposable
 
 	/// <summary>Unit circle in the XZ plane (radius 1).</summary>
 	public DrMeshPart LineCircle { get; }
+
+	/// <summary>Unit line from the origin to +Y.</summary>
+	public DrMeshPart LineSegment { get; }
 
 	/// <summary>
 	/// Capsule mesh with the given distance between sphere centres and radius, cached by millimetre.

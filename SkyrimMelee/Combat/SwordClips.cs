@@ -41,16 +41,17 @@ public static class SwordClips
 
 		// The hands orbit the chest. The blade points radially outward, so the hilt
 		// moves tangentially and the tip cuts a wide arc through the opponent's space.
-		// Wind-up: hands drawn behind the right shoulder, tip high and right. The blade
-		// rolls on the way back so the edge, not the flat, leads the coming cut.
+		// Wind-up: the hands carry the whole sword right and behind the body. The blade
+		// stays near-vertical and keeps the same roll as the idle, so the sword translates
+		// instead of twisting in the wrist; the tip ends almost behind the fighter's back.
 		var windupPull = Pose(
-			new Vector3(0.02f, 1.14f, 0.52f),
-			new Vector3(-0.15f, 0.65f, 0.75f),
-			new Vector3(0.7f, 0f, 0.7f));
+			new Vector3(0.05f, 1.15f, 0.55f),
+			new Vector3(-0.10f, 0.97f, 0.20f),
+			new Vector3(0f, 0f, 1f));
 		var windup = Pose(
-			new Vector3(-0.26f, 1.22f, 0.70f),
-			new Vector3(-0.30f, 0.45f, 0.84f),
-			new Vector3(1f, 0f, 0f));
+			new Vector3(-0.50f, 1.25f, 0.85f),
+			new Vector3(-0.25f, 0.95f, 0.18f),
+			new Vector3(0f, 0f, 1f));
 
 		// Active: the hands drive forward and across the chest. The edge hint rolls
 		// with the swing so the cutting edge leads all the way through.

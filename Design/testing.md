@@ -51,6 +51,7 @@ Intent tracks use absolute sim times. Output is one `PASS/FAIL` line per scenari
 - [ ] Both fighters framed in every camera preset; arcs read left / right / overhead.
 - [ ] Telegraphs visible in real time, not just slow motion.
 - [ ] Hurtbox wireframes match the capsule; VFX appear at contact points.
+- [ ] F1 blade capsule axis and rings overlap the rendered blade at every sampled clip time.
 - [ ] Alt-tab mid-swing pauses and resumes; resize re-anchors the HUD without clipping.
 - [ ] Timed block, guard break, and stagger are distinguishable in one glance.
 - [ ] Every menu works by mouse and keyboard; Resume never swings.

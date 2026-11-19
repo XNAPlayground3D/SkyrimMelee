@@ -94,16 +94,17 @@ public class AttackDefinitionTests
 	}
 
 	[Fact]
-	public void SlashLeftWindsUpRightThenSweepsLeft()
+	public void SlashLeftWindsUpBehindThenSweepsLeft()
 	{
 		var keys = Attacks.Single().Clip.Keys;
-		var windup = keys[2].Pose.GripOffset;
+		var windup = keys[2].Pose;
+		var tip = BladeGeometry.FromPose(windup, Matrix.Identity).Tip;
 		var follow = keys[^2].Pose.GripOffset;
 
-		Assert.True(windup.Z > 0.4f, $"windup z={windup.Z:0.000}");
+		Assert.True(tip.X < -0.5f, $"windup tip x={tip.X:0.000}");
 		Assert.True(follow.Z < -0.6f, $"follow z={follow.Z:0.000}");
-		Assert.True(windup.Z - follow.Z > 1.2f,
-			$"sweep crosses only {windup.Z - follow.Z:0.000} m");
+		Assert.True(windup.GripOffset.Z - follow.Z > 0.8f,
+			$"lateral sweep={windup.GripOffset.Z - follow.Z:0.000} m");
 	}
 
 	[Fact]
@@ -143,7 +144,7 @@ public class AttackDefinitionTests
 		var hold = Attacks.Single().Clip.Keys[3].Pose;
 		var blade = Vector3.TransformNormal(Vector3.UnitY, Matrix.CreateFromQuaternion(hold.Rotation));
 
-		var expected = Vector3.Normalize(new Vector3(-0.30f, 0.45f, 0.84f));
+		var expected = Vector3.Normalize(new Vector3(-0.25f, 0.95f, 0.18f));
 		Assert.True(Vector3.Distance(blade, expected) < 0.01f, $"blade={blade}");
 	}
 

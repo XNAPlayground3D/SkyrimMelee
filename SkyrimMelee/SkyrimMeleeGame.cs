@@ -32,6 +32,7 @@ public sealed class SkyrimMeleeGame : Game
 	private DrMaterial? _gizmoGrip;
 	private DrMaterial? _gizmoMid;
 	private DrMaterial? _gizmoTip;
+	private DrMaterial? _bladeDebug;
 	private ScreenGradient? _backdrop;
 	private SwordMotion? _swordMotion;
 	private IReadOnlyList<SwordClip> _swordClips = Array.Empty<SwordClip>();
@@ -106,10 +107,17 @@ public sealed class SkyrimMeleeGame : Game
 		_gizmoGrip = _primitives.CreateMaterial(new Color(0xFF, 0x6B, 0x4A));
 		_gizmoMid = _primitives.CreateMaterial(new Color(0x9F, 0xD8, 0xFF));
 		_gizmoTip = _primitives.CreateMaterial(new Color(0xFF, 0xD2, 0x7A));
+		_bladeDebug = _primitives.CreateMaterial(new Color(0x5A, 0xD7, 0xFF));
 
 		_swordClips = SwordClips.Create();
 		_swordMotion = new SwordMotion();
 		_swordMotion.Play(_swordClips[0]);
+
+		if (_options.ClipTime is { } clipTime)
+		{
+			_swordMotion.Update(MathF.Max(0f, clipTime));
+		}
+
 		_swordClipPaused = true;
 
 		if (_options.SlowMotion)
@@ -418,6 +426,42 @@ public sealed class SkyrimMeleeGame : Game
 		_renderer.Draw(_primitives.Sphere, material, world);
 	}
 
+	private void DrawBladeCapsule(Matrix swordWorld)
+	{
+		if (_overlay?.Visible != true || _renderer is null || _primitives is null || _bladeDebug is null)
+		{
+			return;
+		}
+
+		var blade = BladeGeometry.FromWorld(swordWorld);
+		if (blade.Length <= 0.0001f)
+		{
+			return;
+		}
+
+		var rotation = blade.AxisRotation;
+		var axisWorld = Matrix.CreateScale(blade.Length) *
+						Matrix.CreateFromQuaternion(rotation) *
+						Matrix.CreateTranslation(blade.Base);
+		_renderer.DrawLines(_primitives.LineSegment, _bladeDebug, axisWorld);
+
+		DrawBladeRing(blade.Base, rotation, blade.BaseRadius);
+		DrawBladeRing(blade.Tip, rotation, blade.TipRadius);
+	}
+
+	private void DrawBladeRing(Vector3 center, Quaternion rotation, float radius)
+	{
+		if (_renderer is null || _primitives is null || _bladeDebug is null)
+		{
+			return;
+		}
+
+		var world = Matrix.CreateScale(radius) *
+					Matrix.CreateFromQuaternion(rotation) *
+					Matrix.CreateTranslation(center);
+		_renderer.DrawLines(_primitives.LineCircle, _bladeDebug, world);
+	}
+
 	private void UpdateDebugText()
 	{
 		if (_hud is null)
@@ -452,6 +496,7 @@ public sealed class SkyrimMeleeGame : Game
 					var swordWorld = _playerSword.GetWorld(_player.GetRightHandTransform());
 					_renderer.Draw(_playerSword.Instance, swordWorld);
 					DrawSwordGizmo(_playerSword, swordWorld);
+					DrawBladeCapsule(swordWorld);
 				}
 			}
 
@@ -464,6 +509,7 @@ public sealed class SkyrimMeleeGame : Game
 					var swordWorld = _opponentSword.GetWorld(_opponent.GetRightHandTransform());
 					_renderer.Draw(_opponentSword.Instance, swordWorld);
 					DrawSwordGizmo(_opponentSword, swordWorld);
+					DrawBladeCapsule(swordWorld);
 				}
 			}
 
