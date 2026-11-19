@@ -507,4 +507,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T3.4 — Blade-vs-blade blocks | 2026-11-19 | `28ff76a` | developer |
 | T3.5 — Headless self-test | 2026-11-19 | `0ee29e0` | developer |
 | T4.1 — Stats, stamina, vitals HUD | 2026-11-19 | `0bc4c85` | developer |
-| T4.2 — Damage pipeline | 2026-11-19 | `PENDING` | developer |
+| T4.2 — Damage pipeline | 2026-11-19 | `0c4d6d4` | developer |
