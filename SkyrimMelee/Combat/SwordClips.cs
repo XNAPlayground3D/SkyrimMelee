@@ -22,6 +22,7 @@ public static class SwordClips
 		SlashLeft(),
 		SlashRight(),
 		PowerSlash(),
+		Bash(),
 		GuardRaise(),
 		GuardHold(),
 		GuardLower(),
@@ -149,6 +150,39 @@ public static class SwordClips
 			Key(activeEnd, activeEndPose, Easing.SmoothStep),
 			Key(0.98f / duration, follow),
 			Key(1f, IdlePose()));
+	}
+
+	private static SwordClip Bash()
+	{
+		var duration = CombatTuning.Bash.Total;
+		var windupEnd = CombatTuning.Bash.Windup / duration;
+		var activeEnd = (CombatTuning.Bash.Windup + CombatTuning.Bash.Active) / duration;
+
+		// A short guard shove: pull the hilt into the chest, hold the telegraph,
+		// then drive the flat forward and return to the guard.
+		var guard = GuardPose();
+		var pull = Pose(
+			new Vector3(0.38f, 1.10f, 0.06f),
+			new Vector3(12f, 90f, -20f));
+		var windup = Pose(
+			new Vector3(0.34f, 1.12f, 0.06f),
+			new Vector3(12f, 90f, -18f));
+		var thrust = Pose(
+			new Vector3(0.95f, 1.12f, 0.05f),
+			new Vector3(4f, 90f, -6f));
+		var follow = Pose(
+			new Vector3(0.78f, 1.08f, 0.06f),
+			new Vector3(7f, 90f, -14f));
+
+		return new SwordClip("Bash", duration, false,
+			Key(0f, guard, Easing.EaseIn),
+			Key(0.04f / duration, pull),
+			Key(0.06f / duration, windup),
+			Key(windupEnd, windup, Easing.EaseIn),   // 100 ms telegraph hold
+			Key(0.20f / duration, thrust, Easing.EaseOut),
+			Key(activeEnd, thrust),
+			Key(0.42f / duration, follow),
+			Key(1f, guard));
 	}
 
 	private static SwordClip GuardRaise()

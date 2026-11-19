@@ -16,10 +16,11 @@ public class AttackDefinitionTests
 	{
 		var names = Attacks.Select(a => a.Name).ToArray();
 
-		Assert.Equal(3, names.Length);
+		Assert.Equal(4, names.Length);
 		Assert.Contains("SlashLeft", names);
 		Assert.Contains("SlashRight", names);
 		Assert.Contains("PowerSlash", names);
+		Assert.Contains("Bash", names);
 	}
 
 	[Fact]
@@ -28,9 +29,32 @@ public class AttackDefinitionTests
 		var power = Attack("PowerSlash");
 
 		Assert.True(power.RequiresStamina);
+		Assert.True(power.AlwaysStagger);
 		Assert.Equal(30f, power.StaminaCost, 4);
 		Assert.Equal(1.8f, power.DamageMultiplier, 4);
 		Assert.Equal(45f, power.StaggerPower, 4);
+	}
+
+	[Fact]
+	public void BashRequiresStaminaButDoesNotAlwaysStagger()
+	{
+		var bash = Attack("Bash");
+
+		Assert.True(bash.RequiresStamina);
+		Assert.False(bash.AlwaysStagger);
+		Assert.Equal(15f, bash.StaminaCost, 4);
+		Assert.Equal(0.4f, bash.DamageMultiplier, 4);
+		Assert.Equal(40f, bash.StaggerPower, 4);
+	}
+
+	[Fact]
+	public void BashStartsAndEndsAtTheGuardPose()
+	{
+		var guard = Clips.Single(clip => clip.Name == "GuardHold").Keys[0].Pose;
+		var bash = Attack("Bash").Clip;
+
+		Assert.True(SamePose(guard, bash.Keys[0].Pose));
+		Assert.True(SamePose(guard, bash.Keys[^1].Pose));
 	}
 
 	[Fact]

@@ -63,7 +63,9 @@ public sealed class SkyrimMeleeGame : Game
 	private AttackDefinition? _slashAttack;
 	private AttackDefinition? _slashRightAttack;
 	private AttackDefinition? _powerSlashAttack;
+	private AttackDefinition? _bashAttack;
 	private readonly CombatStateMachine _combat = new();
+	private readonly CombatStateMachine _opponentCombat = new();
 	private bool _paused;
 	private double _baseTimeScale = 1.0;
 	private float _swordClipSpeed = 1f;
@@ -83,6 +85,7 @@ public sealed class SkyrimMeleeGame : Game
 	private bool _d5WasDown;
 	private bool _d6WasDown;
 	private bool _d7WasDown;
+	private bool _fWasDown;
 	private bool _reactionAdvance;
 	private bool _leftMouseWasDown;
 	private bool _rightMouseWasDown;
@@ -155,6 +158,7 @@ public sealed class SkyrimMeleeGame : Game
 		_slashAttack = attacks.Single(attack => attack.Name == "SlashLeft");
 		_slashRightAttack = attacks.Single(attack => attack.Name == "SlashRight");
 		_powerSlashAttack = attacks.Single(attack => attack.Name == "PowerSlash");
+		_bashAttack = attacks.Single(attack => attack.Name == "Bash");
 		_swordMotion = new SwordMotion();
 		_swordMotion.ResetTo(_swordClips[0], _options.ClipTime ?? 0f);
 		_bodyMotion = new BodyMotion();
@@ -254,6 +258,10 @@ public sealed class SkyrimMeleeGame : Game
 			{
 				PlayPowerSlash();
 			}
+			else if (_combat.State is CombatState.GuardRaise or CombatState.GuardHold)
+			{
+				PlayBash();
+			}
 			else
 			{
 				PlaySlash();
@@ -324,6 +332,7 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_combat.Update(step);
+		_opponentCombat.Update(step);
 
 		var blade = CurrentPlayerBlade();
 		if ((wasActive || _combat.State == CombatState.Active) &&
@@ -376,6 +385,12 @@ public sealed class SkyrimMeleeGame : Game
 			_hitFlashes[HitIndex(hitEvent.Target, hitEvent.Hurtbox)] =
 				CombatTuning.HitFlashDuration;
 			_opponent?.SetBodyPartColor(hitEvent.Hurtbox, HitFlashColor);
+
+			var stagger = StaggerRules.Resolve(hitEvent.Attack, _opponentStats);
+			if (stagger.Staggered)
+			{
+				_opponentCombat.ApplyStagger(stagger.Duration);
+			}
 		}
 	}
 
@@ -466,6 +481,14 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_d5WasDown = staggerLarge;
+
+		var bash = keyboard.IsKeyDown(Keys.F);
+		if (bash && !_fWasDown)
+		{
+			PlayBash();
+		}
+
+		_fWasDown = bash;
 
 		var death = keyboard.IsKeyDown(Keys.D6) || keyboard.IsKeyDown(Keys.NumPad6);
 		if (death && !_d6WasDown)
@@ -600,6 +623,18 @@ public sealed class SkyrimMeleeGame : Game
 		return true;
 	}
 
+	private void PlayBash()
+	{
+		if (_paused || _swordMotion is null || _bashAttack is null ||
+			_combat.State is not (CombatState.GuardRaise or CombatState.GuardHold) ||
+			!TryBeginAttack(_bashAttack))
+		{
+			return;
+		}
+
+		PlayClip("Bash");
+	}
+
 	private void PlayGuardRaise()
 	{
 		if (_paused || _swordMotion is null || !_combat.TryStartGuard())
@@ -686,6 +721,17 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			PlayClip("SlashLeft");
 		}
+		else if (clip.Name == "Bash")
+		{
+			if (_rightMouseWasDown && _combat.TryResumeGuard())
+			{
+				PlayClip("GuardHold");
+			}
+			else
+			{
+				PlayClip("GuardLower");
+			}
+		}
 	}
 
 	private void RestartSwordClip()
@@ -696,6 +742,7 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_combat.Reset();
+		_opponentCombat.Reset();
 		_reactionAdvance = false;
 		_bodyMotion?.Reset();
 		_combatWorld?.UnregisterGuardBlade(FighterId.Player);

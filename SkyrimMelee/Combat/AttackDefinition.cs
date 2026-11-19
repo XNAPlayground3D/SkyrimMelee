@@ -43,6 +43,7 @@ public sealed class AttackDefinition
 	public float DamageMultiplier => Tuning.DamageMultiplier;
 	public float StaggerPower => Tuning.StaggerPower;
 	public bool RequiresStamina => Tuning.RequiresStamina;
+	public bool AlwaysStagger => Tuning.AlwaysStagger;
 
 	public bool IsActive(float timeSeconds) =>
 		timeSeconds >= WindupEnd && timeSeconds < ActiveEnd;

@@ -9,14 +9,14 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, three attack clips (SlashLeft, SlashRight, PowerSlash overhead), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, headless self-test scenarios, health/stamina bars, stamina economy, damage model, hit-part tint, pause status · **Next:** `T4.3`
+**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash, headless self-test scenarios, health/stamina bars, stamina economy, damage model, hit-part tint, pause status · **Next:** `T4.4`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 137 passing |
+| Tests | ✅ xUnit project, 147 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
@@ -40,6 +40,7 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 | Headless self-test | ✅ `T3.5` |
 | Stats & stamina | ✅ `T4.1` |
 | Damage pipeline | ✅ `T4.2` |
+| Poise, stagger & bash | ✅ `T4.3` |
 | HUD & menus | ⬜ `T7.1` |
 
 ## Stack
@@ -70,7 +71,7 @@ dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # headless 
 
 UI markup lives in `SkyrimMelee/Ui/Hud.xmmp` and `DebugOverlay.xmmp`; after editing, run `myra-export <file>.xmmp`.
 
-**Controls:** `LMB` slash · `Shift+LMB` power slash · `1`/`2` forced arcs · `RMB` block · `4`–`7` reaction previews · `F1` debug overlay · `F2` wireframe · `Esc` quit.
+**Controls:** `LMB` slash · `Shift+LMB` power slash · `F`/LMB while blocking bash · `1`/`2` forced arcs · `RMB` block · `4`–`7` reaction previews · `F1` debug overlay · `F2` wireframe · `Esc` quit.
 
 ## License
 

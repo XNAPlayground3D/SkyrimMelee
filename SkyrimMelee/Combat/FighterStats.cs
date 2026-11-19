@@ -48,6 +48,12 @@ public sealed class FighterStats
 		_poiseDelay = CombatTuning.PoiseRegenDelay;
 	}
 
+	public void RestorePoise()
+	{
+		Poise = MaxPoise;
+		_poiseDelay = 0f;
+	}
+
 	public void Update(float deltaSeconds, bool blocking)
 	{
 		if (deltaSeconds <= 0f)

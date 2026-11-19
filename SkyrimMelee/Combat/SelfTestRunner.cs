@@ -19,6 +19,9 @@ public static class SelfTestRunner
 		BlockedHit(),
 		TimedBlock(),
 		PowerRejected(),
+		PowerStagger(),
+		PoiseStagger(),
+		Bash(),
 		GuardBreak(),
 		StaggerInterrupt(),
 		Whiff(),
@@ -84,6 +87,74 @@ public static class SelfTestRunner
 
 		return new SelfTestResult("power rejected", passed,
 			$"accepted={accepted} stamina={stats.Stamina:0.0} state={fsm.State}");
+	}
+
+	private static SelfTestResult PowerStagger()
+	{
+		var attack = AttackCatalog.Create(SwordClips.Create())
+			.Single(candidate => candidate.Name == "PowerSlash");
+		var stats = new FighterStats();
+		var result = StaggerRules.Resolve(attack, stats);
+		var fsm = new CombatStateMachine();
+		fsm.ApplyStagger(result.Duration);
+
+		var passed = result.Staggered &&
+					 MathF.Abs(result.Duration - CombatTuning.StaggerLargeDuration) < 1e-4f &&
+					 fsm.State == CombatState.Stagger;
+
+		return new SelfTestResult("power stagger", passed,
+			$"staggered={result.Staggered} duration={result.Duration:0.00} state={fsm.State}");
+	}
+
+	private static SelfTestResult PoiseStagger()
+	{
+		var attack = AttackCatalog.Create(SwordClips.Create())
+			.Single(candidate => candidate.Name == "SlashLeft");
+		var stats = new FighterStats();
+		var fsm = new CombatStateMachine();
+		var staggered = false;
+		var hits = 0;
+
+		while (!staggered && hits < 20)
+		{
+			var result = StaggerRules.Resolve(attack, stats);
+			hits++;
+			if (result.Staggered)
+			{
+				fsm.ApplyStagger(result.Duration);
+				staggered = true;
+			}
+		}
+
+		var locked = staggered &&
+					 fsm.State == CombatState.Stagger &&
+					 !fsm.TryStartAttack(attack) &&
+					 !fsm.TryStartGuard();
+
+		return new SelfTestResult("poise stagger", locked && hits == 10,
+			$"hits={hits} staggered={staggered} state={fsm.State}");
+	}
+
+	private static SelfTestResult Bash()
+	{
+		var attack = AttackCatalog.Create(SwordClips.Create())
+			.Single(candidate => candidate.Name == "Bash");
+		var fsm = new CombatStateMachine();
+		fsm.TryStartGuard();
+		fsm.Update(CombatTuning.GuardRaiseDuration);
+
+		var stats = new FighterStats();
+		var accepted = stats.CanAfford(attack) && fsm.TryStartAttack(attack);
+		stats.Spend(attack);
+
+		var stagger = StaggerRules.Resolve(attack, new FighterStats());
+		var passed = accepted &&
+					 fsm.State == CombatState.Windup &&
+					 MathF.Abs(stats.Stamina - 85f) < 1e-4f &&
+					 !stagger.Staggered;
+
+		return new SelfTestResult("bash", passed,
+			$"accepted={accepted} stamina={stats.Stamina:0.0} stagger={stagger.Staggered}");
 	}
 
 	private static SelfTestResult GuardBreak()

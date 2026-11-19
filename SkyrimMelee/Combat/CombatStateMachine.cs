@@ -10,7 +10,8 @@ public sealed class CombatStateMachine
 	{
 		[CombatState.Idle] = new[]
 		{
-			CombatState.Windup, CombatState.GuardRaise, CombatState.Stagger, CombatState.Dead
+			CombatState.Windup, CombatState.GuardRaise, CombatState.GuardHold,
+			CombatState.Stagger, CombatState.Dead
 		},
 		[CombatState.Windup] = new[]
 		{
@@ -121,6 +122,19 @@ public sealed class CombatStateMachine
 
 		_attack = null;
 		Enter(CombatState.GuardRaise);
+		return true;
+	}
+
+	/// <summary>Re-enters GuardHold directly, e.g. after a bash while RMB is held.</summary>
+	public bool TryResumeGuard()
+	{
+		if (!CanTransition(State, CombatState.GuardHold))
+		{
+			return false;
+		}
+
+		_attack = null;
+		Enter(CombatState.GuardHold);
 		return true;
 	}
 

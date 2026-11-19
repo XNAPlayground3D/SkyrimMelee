@@ -25,7 +25,7 @@ The body is a small rigid assembly of white primitives, so there are no static a
 
 ## Scope
 
-**In v1:** one arena, one weapon class, player vs AI, best of three, three attacks, block / timed block / guard break / stagger / death, health–stamina–armor–skills–poise, primitive VFX, full Myra UI.
+**In v1:** one arena, one weapon class, player vs AI, best of three, four attacks (SlashLeft, SlashRight, PowerSlash, Bash), block / timed block / guard break / stagger / death, health–stamina–armor–skills–poise, primitive VFX, full Myra UI.
 
 **Out:** locomotion, dodging, jumping, shields, one-handed weapons, ranged, magic, perks, inventory, save files, multiplayer, gamepad.
 

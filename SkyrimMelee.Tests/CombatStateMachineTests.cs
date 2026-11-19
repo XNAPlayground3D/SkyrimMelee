@@ -124,6 +124,20 @@ public class CombatStateMachineTests
 	}
 
 	[Fact]
+	public void GuardResumesDirectlyFromIdle()
+	{
+		var fsm = new CombatStateMachine();
+
+		Assert.True(fsm.TryResumeGuard());
+		Assert.Equal(CombatState.GuardHold, fsm.State);
+		Assert.True(fsm.Blocks);
+
+		var attacking = new CombatStateMachine();
+		attacking.TryStartAttack(Slash());
+		Assert.False(attacking.TryResumeGuard());
+	}
+
+	[Fact]
 	public void AttackCanStartFromGuard()
 	{
 		var fsm = new CombatStateMachine();

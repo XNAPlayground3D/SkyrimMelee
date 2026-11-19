@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T4.3`
+> **Next up:** `T4.4`
 
 ---
 
@@ -292,13 +292,16 @@
 
 **Done when:** xUnit table-driven tests cover armor 0/300/567/900, block skill 0/50/100, timed/non-timed/guard-break, and match the documented formula exactly.
 
-### [ ] T4.3 — Poise and stagger
-**Goal:** heavy hits interrupt; light hits chip.
+### [x] T4.3 — Poise, stagger, and block bash
+**Goal:** heavy hits interrupt; light hits chip; the guard has a quick shove.
 - Poise damage from `AttackDefinition.Stagger` applied on hit; poise zero → stagger state with duration from attack weight.
 - Stagger cancels wind-up/active/recovery and guard; it cannot be cancelled.
 - Power attacks always stagger on clean hit.
+- `StaggerRules` applies poise damage, restores poise on stagger, and returns the duration. The opponent FSM receives the stagger; its separate animation is deferred to the AI/duel pass.
+- Tests: ten light hits break poise, power always staggers, non-breaking hits do not, FSM lock/expiry, windup/guard cancellation, no re-stagger; 7 xUnit + 2 self-test scenarios.
+- Block bash (`T4.6`, folded into this batch): 160 / 80 / 300 ms, 15 stamina, 0.4× damage, 40 poise, `RequiresStamina`, no `AlwaysStagger`; starts/ends in the guard pose; only the sword moves (the body stays static); F or LMB while blocking; resumes `GuardHold` directly if RMB is held, otherwise lowers. Sword clip, catalog, HUD, and a self-test bash scenario.
 
-**Done when:** scripted trades produce the expected interrupt windows; a staggered fighter cannot act until the timer expires.
+**Done when:** scripted trades produce the expected interrupt windows, a staggered fighter cannot act until the timer expires, and the bash reads clearly from the back camera.
 
 ### [ ] T4.4 — Timed block and guard break
 **Goal:** the two skill-expressive defensive outcomes.
@@ -508,3 +511,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T3.5 — Headless self-test | 2026-11-19 | `0ee29e0` | developer |
 | T4.1 — Stats, stamina, vitals HUD | 2026-11-19 | `0bc4c85` | developer |
 | T4.2 — Damage pipeline | 2026-11-19 | `0c4d6d4` | developer |
+| T4.3 — Poise, stagger, block bash | 2026-11-20 | `PENDING` | developer |

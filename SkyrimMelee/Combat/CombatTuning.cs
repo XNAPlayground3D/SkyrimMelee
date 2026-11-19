@@ -8,7 +8,8 @@ public readonly record struct AttackTuning(
 	float StaminaCost,
 	float DamageMultiplier,
 	float StaggerPower,
-	bool RequiresStamina = false)
+	bool RequiresStamina = false,
+	bool AlwaysStagger = false)
 {
 	public float Total => Windup + Active + Recovery;
 }
@@ -65,5 +66,10 @@ public static class CombatTuning
 		new(0.25f, 0.22f, 0.35f, 12f, 1.0f, 10f);
 
 	public static readonly AttackTuning PowerSlash =
-		new(0.60f, 0.16f, 0.70f, 30f, 1.8f, 45f, RequiresStamina: true);
+		new(0.60f, 0.16f, 0.70f, 30f, 1.8f, 45f,
+			RequiresStamina: true, AlwaysStagger: true);
+
+	/// <summary>A quick guard shove; only available while guarding.</summary>
+	public static readonly AttackTuning Bash =
+		new(0.16f, 0.08f, 0.30f, 15f, 0.4f, 40f, RequiresStamina: true);
 }
