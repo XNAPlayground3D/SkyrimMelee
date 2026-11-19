@@ -469,4 +469,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T1.5 — HUD + debug markup | 2026-11-19 | `6b5a248` | developer |
 | T2.1 — sword clip system | 2026-11-19 | `266c883` | developer |
 | T2.2 — SlashLeft clip | 2026-11-19 | `5602692` | developer |
-| T2.3 — guard clips | 2026-11-19 | `PENDING` | developer |
+| T2.3 — guard clips | 2026-11-19 | `01819f2` | developer |
