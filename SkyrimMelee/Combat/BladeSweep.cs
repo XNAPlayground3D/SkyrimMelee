@@ -3,7 +3,9 @@ using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Core;
 using NumVector3 = System.Numerics.Vector3;
+using NumQuaternion = System.Numerics.Quaternion;
 
 namespace SkyrimMelee.Combat;
 
@@ -15,15 +17,19 @@ public readonly record struct BladeHit(
 	float TimeOfImpact);
 
 /// <summary>
-/// Sweeps the blade through the static hurtboxes. The blade is approximated by
-/// three spheres; each simulation step is split so no sphere travels more than
-/// <see cref="MaxSubstepTravel"/> per sweep. Hits are deduplicated per hurtbox
-/// and returned in time-of-impact order.
+/// Sweeps the blade through the static hurtboxes. A three-sphere chain follows
+/// the tapered blade, and a full-blade capsule guarantees that thin targets
+/// (the guard blade) cannot slip between the spheres. Each simulation step is
+/// split so the tip travels no more than <see cref="MaxSubstepTravel"/>.
+/// Hits are deduplicated per hurtbox and returned in time-of-impact order.
 /// </summary>
 public sealed class BladeSweep
 {
 	public const float MaxSubstepTravel = 0.35f;
 	public const int MaxSubsteps = 8;
+
+	/// <summary>Capsule radius covering the blade's base thickness.</summary>
+	public const float BladeRadius = 0.045f;
 
 	// Blade fractions from base to tip, with the design's sphere radii.
 	private static readonly (float Fraction, float Radius)[] SphereChain =
@@ -37,6 +43,9 @@ public sealed class BladeSweep
 	private readonly BufferPool _pool;
 	private readonly HurtboxSet _hurtboxes;
 	private readonly Sphere[] _shapes;
+	private readonly Capsule _bladeShape = new(
+		BladeRadius,
+		(BladeGeometry.BladeTipY - BladeGeometry.BladeBaseY) * 0.5f);
 	private readonly List<RawHit> _rawHits = new(8);
 	private readonly List<BladeHit> _hits = new(8);
 	private readonly Dictionary<StaticHandle, int> _hitIndex = new();
@@ -85,35 +94,53 @@ public sealed class BladeSweep
 			for (var i = 0; i < SphereChain.Length; i++)
 			{
 				var fraction = SphereChain[i].Fraction;
-				var center0 = Vector3.Lerp(base0, tip0, fraction);
-				var center1 = Vector3.Lerp(base1, tip1, fraction);
-				var motion = center1 - center0;
-				if (motion.LengthSquared() < 1e-10f)
-				{
-					continue;
-				}
+				var sphere0 = Vector3.Lerp(base0, tip0, fraction);
+				var sphere1 = Vector3.Lerp(base1, tip1, fraction);
+				Sweep(_shapes[i], sphere0, sphere1, t0, t1, deltaSeconds);
+			}
 
-				_rawHits.Clear();
-				var collector = new HitCollector
-				{
-					Hurtboxes = _hurtboxes,
-					Hits = _rawHits
-				};
-
-				var pose = new RigidPose(ToBepu(center0));
-				var velocity = new BodyVelocity(ToBepu(motion));
-				_simulation.Sweep(_shapes[i], pose, velocity, 1f, _pool, ref collector);
-
-				foreach (var raw in _rawHits)
-				{
-					var time = (t0 + (t1 - t0) * raw.Time) * deltaSeconds;
-					AddHit(raw, time);
-				}
+			var axis = tip1 - base1;
+			if (axis.LengthSquared() > 1e-8f)
+			{
+				var orientation = ToBepu(
+					GeometryMath.RotationFromY(Vector3.Normalize(axis)));
+				var center0 = (base0 + tip0) * 0.5f;
+				var center1 = (base1 + tip1) * 0.5f;
+				Sweep(_bladeShape, center0, center1, t0, t1, deltaSeconds, orientation);
 			}
 		}
 
 		_hits.Sort(static (a, b) => a.TimeOfImpact.CompareTo(b.TimeOfImpact));
 		return _hits;
+	}
+
+	private void Sweep<TShape>(
+		TShape shape, Vector3 start, Vector3 end, float t0, float t1,
+		float deltaSeconds, NumQuaternion? orientation = null)
+		where TShape : unmanaged, IConvexShape
+	{
+		var motion = end - start;
+		if (motion.LengthSquared() < 1e-10f)
+		{
+			return;
+		}
+
+		_rawHits.Clear();
+		var collector = new HitCollector
+		{
+			Hurtboxes = _hurtboxes,
+			Hits = _rawHits
+		};
+
+		var pose = new RigidPose(ToBepu(start), orientation ?? NumQuaternion.Identity);
+		var velocity = new BodyVelocity(ToBepu(motion));
+		_simulation.Sweep(shape, pose, velocity, 1f, _pool, ref collector);
+
+		foreach (var raw in _rawHits)
+		{
+			var time = (t0 + (t1 - t0) * raw.Time) * deltaSeconds;
+			AddHit(raw, time);
+		}
 	}
 
 	private void AddHit(in RawHit raw, float time)
@@ -138,6 +165,9 @@ public sealed class BladeSweep
 	}
 
 	private static NumVector3 ToBepu(Vector3 value) => new(value.X, value.Y, value.Z);
+
+	private static NumQuaternion ToBepu(Quaternion value) =>
+		new(value.X, value.Y, value.Z, value.W);
 
 	private static Vector3 ToXna(NumVector3 value) => new(value.X, value.Y, value.Z);
 

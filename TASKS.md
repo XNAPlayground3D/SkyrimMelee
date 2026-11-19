@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T3.4`
+> **Next up:** `T3.5`
 
 ---
 
@@ -248,11 +248,13 @@
 
 **Done when:** a swing that passes through torso then head produces two hits (different hurtboxes) but only one per hurtbox; the hit set resets on the next attack.
 
-### [ ] T3.4 — Blade-vs-blade block detection
+### [x] T3.4 — Blade-vs-blade block detection
 **Goal:** an active guard genuinely intercepts the incoming blade.
-- While guarding, the guard blade capsule is a query target (not just a visual).
-- Sweep classification: guard-blade contact → block candidate; body contact → clean-hit candidate; earliest time-of-impact wins.
-- Facing cone check (±60° around forward) and guard-raised timestamp determine block validity; timed block = within 250 ms of raise.
+- While guarding, the guard blade capsule is a query target (not just a visual); each fighter can register its own guard.
+- Sweep classification: guard-blade contact → block candidate; body contact → clean-hit candidate; earliest time-of-impact wins, with the guard winning ties within 1e-4 s.
+- Facing cone check (±60° around forward) and guard-held age determine block validity; younger than 250 ms is a timed block.
+- The blade sweep adds a full-blade capsule alongside the three spheres so a thin guard cannot slip between samples.
+- Tests: front block, behind, lowering, body-first, tie, no-guard, cone edges, and a swept guard contact.
 
 **Done when:** scripted swings at a guarding opponent in front always classify as block; swings from behind or during guard lowering classify as clean hits; earliest-TOI arbitration is verified with a deliberate double contact.
 
@@ -496,3 +498,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T3.1 — Bepu hurtboxes + primitive body | 2026-11-19 | `588a8f4` | developer |
 | T3.2 — Swept blade cast + hit tint | 2026-11-19 | `12c6f98` | developer |
 | T3.3 — Swing hit events | 2026-11-19 | `c08fb04` | developer |
+| T3.4 — Blade-vs-blade blocks | 2026-11-19 | `PENDING` | developer |

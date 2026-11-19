@@ -83,7 +83,7 @@ Bepu is used as a collision **query** engine: no gravity, no dynamics, no `Times
 | Hips | Capsule | 0.14 / 0.09 | (0, 0.86, 0) |
 | Legs | Capsule | 0.13 / 0.25 | (0, 0.38, 0) |
 
-The blade is approximated by three spheres along the blade segment (`t = 0 / 0.5 / 1`, radii 0.055 / 0.040 / 0.025). `BladeSweep` sweeps that chain with Bepu:
+The blade is approximated by three spheres along the blade segment (`t = 0 / 0.5 / 1`, radii 0.055 / 0.040 / 0.025) plus a full-blade capsule (radius 0.045, half-length 0.645). The capsule closes the gaps between the spheres, so a thin guard blade cannot slip between samples. `BladeSweep` sweeps both with Bepu:
 
 ```text
 per tick, while Active:
@@ -94,7 +94,7 @@ per tick, while Active:
 
 Bepu call: `Sweep(shape, poseAtPrevious, current − previous, 1, pool, handler)` — a pose plus a velocity over `maximumT`, not a from/to pair. The handler leaves `maximumT` untouched so every hurtbox on the path is reported, then `BladeSweep` deduplicates per hurtbox and sorts by time-of-impact. Contacts carry `Hurtbox` (fighter + kind), world point, normal, and TOI. A contact that starts inside a shape (`OnHitAtZeroT`) is recorded without a point or normal.
 
-The 0.35 m substep cap prevents tunneling and is asserted in debug builds. Contacts are classified by shape ownership: guard blade → block, body → hit, floor → graze. Ties within 1e-4 s favour the defender.
+The 0.35 m substep cap prevents tunneling and is asserted in debug builds. Contacts are classified by shape ownership: guard blade → block candidate, body → clean-hit candidate, floor → graze. `GuardResolver` takes the defender's earliest guard and body contacts: the guard wins ties within 1e-4 s, but only when the defender is in `GuardHold`, the attacker is inside the 120° front cone, and the guard blade is registered. A guard younger than `GuardTimedBlockWindow` (250 ms) is a timed block; older is a normal block. Behind the cone or during the raise/lower is a clean hit.
 
 `SwingHitSet` owns the per-attack hit set. It turns the first `BladeHit` for each `(fighter, hurtbox)` into a `HitEvent` carrying the attacker, target, hurtbox kind, point, normal, attack definition, and active-window progress; later contacts in the same swing are ignored, and the next attack clears the set. A confirmed hit tints the matching body primitive (and its `F2` outline) for `HitFlashDuration`.
 

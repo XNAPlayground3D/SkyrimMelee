@@ -21,7 +21,7 @@ public sealed class CombatWorld : IDisposable
 	private readonly Simulation _simulation;
 	private readonly Dictionary<FighterId, FighterEntry> _fighters = new();
 	private readonly TypedIndex _guardShape;
-	private StaticHandle? _guardHandle;
+	private readonly Dictionary<FighterId, StaticHandle> _guardHandles = new();
 	private bool _disposed;
 
 	public CombatWorld()
@@ -50,10 +50,11 @@ public sealed class CombatWorld : IDisposable
 
 	public HurtboxSet Hurtboxes { get; } = new();
 
-	public bool IsGuardBladeRegistered => _guardHandle is not null;
+	public bool IsGuardBladeRegistered(FighterId fighter) => _guardHandles.ContainsKey(fighter);
 
-	/// <summary>The live guard collidable, or null when the guard is down.</summary>
-	public StaticHandle? GuardBladeHandle => _guardHandle;
+	/// <summary>The live guard collidable for this fighter, or null when its guard is down.</summary>
+	public StaticHandle? GuardBladeHandle(FighterId fighter) =>
+		_guardHandles.TryGetValue(fighter, out var handle) ? handle : null;
 
 	public void AddFighter(FighterId id, XnaMatrix transform)
 	{
@@ -99,9 +100,9 @@ public sealed class CombatWorld : IDisposable
 		}
 	}
 
-	public void RegisterGuardBlade(BladeGeometry blade)
+	public void RegisterGuardBlade(FighterId fighter, BladeGeometry blade)
 	{
-		if (_guardHandle is not null)
+		if (_guardHandles.ContainsKey(fighter))
 		{
 			return;
 		}
@@ -117,20 +118,21 @@ public sealed class CombatWorld : IDisposable
 			ToBepu(GeometryMath.RotationFromY(Vector3.Normalize(axis))),
 			_guardShape);
 
-		_guardHandle = _simulation.Statics.Add(in description);
-		Hurtboxes.Add(_guardHandle.Value, new Hurtbox(FighterId.Player, HurtboxKind.GuardBlade));
+		var handle = _simulation.Statics.Add(in description);
+		_guardHandles[fighter] = handle;
+		Hurtboxes.Add(handle, new Hurtbox(fighter, HurtboxKind.GuardBlade));
 	}
 
-	public void UnregisterGuardBlade()
+	public void UnregisterGuardBlade(FighterId fighter)
 	{
-		if (_guardHandle is null)
+		if (!_guardHandles.TryGetValue(fighter, out var handle))
 		{
 			return;
 		}
 
-		Hurtboxes.Remove(_guardHandle.Value);
-		_simulation.Statics.Remove(_guardHandle.Value);
-		_guardHandle = null;
+		Hurtboxes.Remove(handle);
+		_simulation.Statics.Remove(handle);
+		_guardHandles.Remove(fighter);
 	}
 
 	public bool TryGetPose(StaticHandle handle, out Vector3 center, out Quaternion orientation)

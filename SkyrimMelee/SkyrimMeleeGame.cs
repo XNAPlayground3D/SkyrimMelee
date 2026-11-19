@@ -674,7 +674,7 @@ public sealed class SkyrimMeleeGame : Game
 		_combat.Reset();
 		_reactionAdvance = false;
 		_bodyMotion?.Reset();
-		_combatWorld?.UnregisterGuardBlade();
+		_combatWorld?.UnregisterGuardBlade(FighterId.Player);
 		_guardHurtbox = false;
 		_lastBlade = null;
 		_swingHits.Reset();
@@ -727,13 +727,14 @@ public sealed class SkyrimMeleeGame : Game
 			if (_swordMotion is not null && _playerSword is not null && _player is not null)
 			{
 				var swordWorld = _playerSword.GetWorld(_player.GetRightHandTransform());
-				_combatWorld.RegisterGuardBlade(BladeGeometry.FromWorld(swordWorld));
+				_combatWorld.RegisterGuardBlade(
+					FighterId.Player, BladeGeometry.FromWorld(swordWorld));
 				_guardHurtbox = true;
 			}
 		}
 		else if (!guarding && _guardHurtbox)
 		{
-			_combatWorld.UnregisterGuardBlade();
+			_combatWorld.UnregisterGuardBlade(FighterId.Player);
 			_guardHurtbox = false;
 		}
 	}

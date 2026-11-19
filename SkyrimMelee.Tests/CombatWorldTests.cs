@@ -76,24 +76,51 @@ public class CombatWorldTests
 			0.0425f,
 			0.018f);
 
-		world.RegisterGuardBlade(blade);
-		Assert.True(world.IsGuardBladeRegistered);
+		world.RegisterGuardBlade(FighterId.Player, blade);
+		Assert.True(world.IsGuardBladeRegistered(FighterId.Player));
 		Assert.Equal(5, world.Hurtboxes.Count);
 
-		var handle = world.GuardBladeHandle!.Value;
+		var handle = world.GuardBladeHandle(FighterId.Player)!.Value;
 		Assert.True(world.Hurtboxes.TryGet(handle, out var hurtbox));
 		Assert.Equal(FighterId.Player, hurtbox.Fighter);
 		Assert.Equal(HurtboxKind.GuardBlade, hurtbox.Kind);
 
-		world.RegisterGuardBlade(blade);
+		world.RegisterGuardBlade(FighterId.Player, blade);
 		Assert.Equal(5, world.Hurtboxes.Count);
-		Assert.Equal(handle, world.GuardBladeHandle!.Value);
+		Assert.Equal(handle, world.GuardBladeHandle(FighterId.Player)!.Value);
 
-		world.UnregisterGuardBlade();
-		Assert.False(world.IsGuardBladeRegistered);
-		Assert.Null(world.GuardBladeHandle);
+		world.UnregisterGuardBlade(FighterId.Player);
+		Assert.False(world.IsGuardBladeRegistered(FighterId.Player));
+		Assert.Null(world.GuardBladeHandle(FighterId.Player));
 		Assert.Equal(4, world.Hurtboxes.Count);
 		Assert.False(world.TryGetPose(handle, out _, out _));
+	}
+
+	[Fact]
+	public void BothFightersCanGuardIndependently()
+	{
+		using var world = new CombatWorld();
+		world.AddFighter(FighterId.Player, Matrix.Identity);
+		world.AddFighter(FighterId.Opponent, Matrix.CreateTranslation(1f, 0f, 0f));
+
+		var blade = new BladeGeometry(
+			new Vector3(0.5f, 1.0f, 0.2f),
+			new Vector3(0.5f, 1.2f, 0.2f),
+			new Vector3(0.5f, 2.3f, 0.2f),
+			0.0425f,
+			0.018f);
+
+		world.RegisterGuardBlade(FighterId.Player, blade);
+		world.RegisterGuardBlade(FighterId.Opponent, blade);
+
+		Assert.True(world.IsGuardBladeRegistered(FighterId.Player));
+		Assert.True(world.IsGuardBladeRegistered(FighterId.Opponent));
+		Assert.Equal(10, world.Hurtboxes.Count);
+
+		world.UnregisterGuardBlade(FighterId.Player);
+		Assert.False(world.IsGuardBladeRegistered(FighterId.Player));
+		Assert.True(world.IsGuardBladeRegistered(FighterId.Opponent));
+		Assert.Equal(9, world.Hurtboxes.Count);
 	}
 
 	[Fact]
@@ -106,8 +133,8 @@ public class CombatWorldTests
 		var tip = new Vector3(1.5f, 1.8f, 0.2f);
 		var blade = new BladeGeometry(basePoint, basePoint, tip, 0.0425f, 0.018f);
 
-		world.RegisterGuardBlade(blade);
-		var handle = world.GuardBladeHandle!.Value;
+		world.RegisterGuardBlade(FighterId.Player, blade);
+		var handle = world.GuardBladeHandle(FighterId.Player)!.Value;
 		Assert.True(world.TryGetPose(handle, out var center, out var orientation));
 
 		Assert.Equal((basePoint + tip) * 0.5f, center);

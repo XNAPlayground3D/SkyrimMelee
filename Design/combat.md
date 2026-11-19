@@ -115,7 +115,7 @@ Each attack owns a `SwingHitSet`. The first contact with a hurtbox produces a `H
 
 ## Blocking
 
-A hit is blocked only if the defender is in `GuardHold`, the guard shape is registered, contact is with the guard blade, and the attacker is inside the front 120° cone.
+A hit is blocked only if the defender is in `GuardHold`, the guard shape is registered, contact is with the guard blade, and the attacker is inside the front 120° cone. `GuardResolver` compares the earliest guard contact with the earliest body contact; the guard wins a tie within 1e-4 s, otherwise the first contact decides. A guard held for less than `GuardTimedBlockWindow` (250 ms) is a timed block; older is a normal block. The 100 ms lower bound in the table is a T5 balance target.
 
 | Timing / stamina | Outcome |
 | --- | --- |

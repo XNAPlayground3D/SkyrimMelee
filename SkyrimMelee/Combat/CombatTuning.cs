@@ -22,6 +22,12 @@ public static class CombatTuning
 	public const float GuardHoldDuration = 2.0f;
 	public const float GuardLowerDuration = 0.15f;
 
+	/// <summary>Half-angle of the defender's front cone that can block.</summary>
+	public const float GuardConeDegrees = 60f;
+
+	/// <summary>A guard younger than this is a timed block; older is a normal block.</summary>
+	public const float GuardTimedBlockWindow = 0.25f;
+
 	public const float StaggerSmallDuration = 0.60f;
 	public const float StaggerLargeDuration = 1.00f;
 	public const float DeathDuration = 1.20f;
