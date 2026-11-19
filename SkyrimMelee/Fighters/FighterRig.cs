@@ -24,6 +24,12 @@ public sealed class FighterRig : IDisposable
 	public DrModelInstance Instance { get; }
 	public Matrix Transform { get; }
 
+	/// <summary>Rigid reaction pose applied to the capsule only; the sword rig keeps its own clip.</summary>
+	public Matrix BodyTransform { get; set; } = Matrix.Identity;
+
+	/// <summary>Root transform used to draw the body, including the rigid reaction pose.</summary>
+	public Matrix DrawTransform => BodyTransform * Transform;
+
 	/// <summary>World transform of the right hand, including the fighter root.</summary>
 	public Matrix GetRightHandTransform() => Instance.GetBoneGlobalTransform(_rightHandIndex) * Transform;
 

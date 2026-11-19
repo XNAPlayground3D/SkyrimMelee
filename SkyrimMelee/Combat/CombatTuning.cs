@@ -22,6 +22,11 @@ public static class CombatTuning
 	public const float GuardHoldDuration = 2.0f;
 	public const float GuardLowerDuration = 0.15f;
 
+	public const float StaggerSmallDuration = 0.60f;
+	public const float StaggerLargeDuration = 1.00f;
+	public const float DeathDuration = 1.20f;
+	public const float VictoryDuration = 1.60f;
+
 	public const float WeaponBaseDamage = 20f;
 	public const float BladeReach = 1.47f;
 

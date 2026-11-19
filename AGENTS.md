@@ -9,7 +9,7 @@ This file is the contract for any agent (human or AI) contributing to SkyrimMele
 Read [README.md](README.md) → **Hard rules** first. In short:
 
 1. **No 3D model files.** All geometry comes from DigitalRiseModel's `MeshPrimitives` or hand-written vertex data.
-2. **No skeletal animation.** The humanoid body is a static statue; only the sword and its hand pivot move.
+2. **No skeletal animation.** The humanoid body is a single rigid capsule with no joints; reaction clips may tip or topple it as a whole. The sword moves on its hand pivot.
 3. **Combat numbers live in `CombatTuning.cs`**, never inline in logic.
 4. **Combat must stay deterministic and headless-testable.**
 5. **`dotnet build SkyrimMelee.slnx` must be green** before you report anything as finished.

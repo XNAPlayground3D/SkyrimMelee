@@ -60,13 +60,13 @@ Two geometry quirks are handled in the library/renderer: DigitalRise line primit
 
 The arena is a `DrModel`: a root bone plus one bone/mesh per item (floor, each ring, each marker, each pillar). `ForwardRenderer.Draw(DrModelInstance, Matrix)` applies bone transforms, traverses the meshes, and picks the lit or unlit pass from `PrimitiveType`. Mesh parts are clones that share the library's vertex/index buffers.
 
-**Capsule fighter** (~1.8 m): one white capsule (1.24 m cylinder + two 0.28 m caps) plus scale-free `HandR` / `HandL` attachment bones; the right hand owns the sword pivot. Fighters are `DrModel` rigs in local space (+X forward, +Z side) placed by a root transform. The capsule is the placeholder body; it stays static.
+**Capsule fighter** (~1.8 m): one white capsule (1.24 m cylinder + two 0.28 m caps) plus scale-free `HandR` / `HandL` attachment bones; the right hand owns the sword pivot. Fighters are `DrModel` rigs in local space (+X forward, +Z side) placed by a root transform. The capsule has no joints: reaction clips apply one rigid `BodyTransform` (lean, topple, rise) before the root, and the sword pivot is animated independently.
 
-**Greatsword** (1.47 m blade reach): grip cylinder, pommel sphere, crossguard box, two tapered blade boxes, cone tip, inset fuller. Local origin at the grip, blade along `+Y`. It attaches to the scale-free `HandR` bone; the grip-relative `Pivot` is the only animated transform in the game.
+**Greatsword** (1.47 m blade reach): grip cylinder, pommel sphere, crossguard box, two tapered blade boxes, cone tip, inset fuller. Local origin at the grip, blade along `+Y`. It attaches to the scale-free `HandR` bone; the grip-relative `Pivot` is the only animated sword transform.
 
 ### The two-handed grip
 
-Both hands are attached to the sword rig and travel with the hilt; the capsule body stays static ([rationale](overview.md#the-two-handed-grip)).
+Both hands are attached to the sword rig and travel with the hilt; the capsule body only takes a rigid reaction pose ([rationale](overview.md#the-two-handed-grip)).
 
 **Camera presets:** third-person duel (default, over the player's right shoulder at `(-6.0, 3.1, 2.4)` looking at `(-0.2, 1.0, 0)`), profile (`(0, 1.9, −7.5)`), top-down debug. Idle sway ±0.6°, impact shake 0.15 s decay, small FOV punch on power attacks.
 

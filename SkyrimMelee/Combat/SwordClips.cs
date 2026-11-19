@@ -24,7 +24,11 @@ public static class SwordClips
 		PowerSlash(),
 		GuardRaise(),
 		GuardHold(),
-		GuardLower()
+		GuardLower(),
+		StaggerSmall(),
+		StaggerLarge(),
+		Death(),
+		Victory()
 	};
 
 	private static SwordPose IdlePose() => Pose(
@@ -181,6 +185,92 @@ public static class SwordClips
 			Key(0f, GuardPose(), Easing.EaseIn),
 			Key(0.7f, settle, Easing.EaseOut),
 			Key(1f, IdlePose()));
+	}
+
+	private static SwordClip StaggerSmall()
+	{
+		var duration = CombatTuning.StaggerSmallDuration;
+
+		// A light hit snaps the blade off to the right and dips the hilt; the
+		// sword settles back to the idle guard as the fighter recovers.
+		var jolt = Pose(
+			new Vector3(0.35f, 1.00f, 0.42f),
+			new Vector3(0f, -90f, -25f));
+		var sag = Pose(
+			new Vector3(0.42f, 0.95f, 0.36f),
+			new Vector3(5f, -90f, -15f));
+
+		return new SwordClip("StaggerSmall", duration, false,
+			Key(0f, IdlePose(), Easing.EaseOut),
+			Key(0.12f / duration, jolt),
+			Key(0.30f / duration, sag),
+			Key(1f, IdlePose()));
+	}
+
+	private static SwordClip StaggerLarge()
+	{
+		var duration = CombatTuning.StaggerLargeDuration;
+
+		// A power hit throws the blade diagonally down and out; the body does
+		// most of the staggering, so the sword stops short of horizontal.
+		var jolt = Pose(
+			new Vector3(0.30f, 1.05f, 0.42f),
+			new Vector3(0f, -90f, -35f));
+		var droop = Pose(
+			new Vector3(0.42f, 0.88f, 0.42f),
+			new Vector3(0f, -90f, -55f));
+		var recovering = Pose(
+			new Vector3(0.45f, 1.00f, 0.32f),
+			new Vector3(4f, -90f, -20f));
+
+		return new SwordClip("StaggerLarge", duration, false,
+			Key(0f, IdlePose(), Easing.EaseOut),
+			Key(0.14f / duration, jolt),
+			Key(0.38f / duration, droop),
+			Key(0.70f / duration, recovering),
+			Key(1f, IdlePose()));
+	}
+
+	private static SwordClip Death()
+	{
+		var duration = CombatTuning.DeathDuration;
+
+		// The sword is knocked up, falls forward out of the hand, and lands
+		// flat on the floor with the whole blade down. The clip holds there.
+		var hit = Pose(
+			new Vector3(0.30f, 1.20f, 0.30f),
+			new Vector3(0f, -90f, -12f));
+		var drop = Pose(
+			new Vector3(0.55f, 0.75f, 0.30f),
+			new Vector3(0f, 0f, -110f));
+		var ground = Pose(
+			new Vector3(0.80f, 0.06f, 0.30f),
+			new Vector3(0f, 0f, -90f));
+
+		return new SwordClip("Death", duration, false,
+			Key(0f, IdlePose(), Easing.EaseOut),
+			Key(0.18f / duration, hit),
+			Key(0.55f / duration, drop, Easing.EaseIn),
+			Key(1f, ground));
+	}
+
+	private static SwordClip Victory()
+	{
+		var duration = CombatTuning.VictoryDuration;
+
+		// The blade rises straight overhead and holds there in triumph.
+		var raise = Pose(
+			new Vector3(0.35f, 1.50f, 0.30f),
+			new Vector3(0f, 0f, 10f));
+		var peak = Pose(
+			new Vector3(0.30f, 1.85f, 0.30f),
+			new Vector3(0f, 0f, 0f));
+
+		return new SwordClip("Victory", duration, false,
+			Key(0f, IdlePose(), Easing.EaseIn),
+			Key(0.35f / duration, raise),
+			Key(0.55f / duration, peak),
+			Key(1f, peak));
 	}
 
 	private static SwordKey Key(float time, SwordPose pose, Easing ease = Easing.SmoothStep) =>

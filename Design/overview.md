@@ -1,6 +1,6 @@
 # Overview
 
-SkyrimMelee is a fixed-footing duel between two humanoids with greatswords. The body never moves — no locomotion, no limbs, no rig. Only the sword does. Every attack, block, stagger, and kill is expressed through the blade's arc.
+SkyrimMelee is a fixed-footing duel between two humanoids with greatswords. The bodies never articulate — no locomotion, no limbs, no rig. Every attack, block, stagger, and kill is expressed through the blade's arc, and reaction clips may tip or topple the whole capsule as one rigid piece.
 
 The game recreates Skyrim's **melee rules**, not its world: stamina economy, attack commitment, front-facing blocks, timed blocks, guard breaks, and poise. Combat depth comes from timing and resource management, because there is no movement to play with.
 
@@ -17,15 +17,15 @@ The game recreates Skyrim's **melee rules**, not its world: stamina economy, att
 | # | Constraint | Consequence |
 | --- | --- | --- |
 | 1 | **No 3D model files.** Everything is generated at runtime from primitives. | Fighters, sword, arena, and VFX are boxes, capsules, spheres, cylinders, cones, discs, and lines. No non-code assets are required: Myra embeds its default UI font. |
-| 2 | **No skeletal animation.** The body is a static white capsule. | Motion is a keyframed transform of the sword on a hand pivot. No joints, no skinning, no IK. |
+| 2 | **No skeletal animation.** The body is a single rigid white capsule with no joints. | The sword is keyframed on a hand pivot; reactions apply one rigid whole-body transform. No joints, no skinning, no IK. |
 
 ### The two-handed grip
 
-The body is a single white capsule, so there are no static arms for a moving hilt to disconnect from. The hands are still **part of the sword rig**: both hand boxes are attached to the grip and travel with it. The capsule never moves; this keeps the sword readable without pretending the body can swing it.
+The body is a single white capsule, so there are no static arms for a moving hilt to disconnect from. The hands are still **part of the sword rig**: both hand boxes are attached to the grip and travel with it. The capsule only moves as one rigid piece for reaction clips (lean, topple, rise); it never bends or articulates. This keeps the sword readable without pretending the body can swing it.
 
 ## Scope
 
-**In v1:** one arena, one weapon class, player vs AI, best of three, four attacks, block / timed block / guard break / stagger / death, health–stamina–armor–skills–poise, primitive VFX, full Myra UI.
+**In v1:** one arena, one weapon class, player vs AI, best of three, three attacks, block / timed block / guard break / stagger / death, health–stamina–armor–skills–poise, primitive VFX, full Myra UI.
 
 **Out:** locomotion, dodging, jumping, shields, one-handed weapons, ranged, magic, perks, inventory, save files, multiplayer, gamepad.
 
@@ -58,8 +58,8 @@ Verified end-to-end on 2026-11-19 with .NET SDK 10.0.401 (T0.1): window + render
 | Decision | Why |
 | --- | --- |
 | DigitalRiseModel for geometry, custom `BasicEffect` renderer | Library has no renderer; a small renderer is easier to control than an engine |
-| Bepu as a query engine only | Nothing moves except the blade; statics + `Sweep` are all we need |
-| Keyframed sword clips as the only animation | One animated transform, one source of truth for visuals and hitboxes |
+| Bepu as a query engine only | The blade sweeps and the capsule only changes rigid pose; statics + `Sweep` are all we need |
+| Keyframed clips as the only animation | One animated sword transform plus one rigid body pose, each with a single source of truth |
 | Fixed 60 Hz deterministic simulation | Reproducible tests, fair timing, AI-vs-AI balance runs |
 | xUnit for pure logic, `--self-test` for combat | Unit tests stay GPU-free; combat scenarios exercise the real loop and state machines |
 | Myra with its embedded FontStashSharp font and a runtime flat skin | No content pipeline, no font files, no image assets |

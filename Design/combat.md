@@ -42,7 +42,7 @@ Clips: `Idle`, `GuardRaise`, `GuardHold`, `GuardLower`, `SlashLeft`, `SlashRight
 
 Each attack clip covers its full wind-up + active + recovery and holds the telegraph pose for ≥ 100 ms. The active window is the only time the blade can hit. Poses are sampled at simulation time, so mesh and hitbox are identical. Clips cross-fade over 100 ms when the state changes.
 
-The dev harness: `P` pauses the simulation (the clock time scale becomes 0 and the HUD shows `PAUSE  ON`), `R` resets to idle, `Z` / `X` (or `-` / `=`) changes the sim speed, and `--clip-time=<s>` starts paused at an exact clip time. The HUD shows the current clip name, speed multiplier, progress (`50ms/120ms`), and pause status; the F1 overlay shows the clip name, normalized time, and combat state.
+The dev harness: `P` pauses the simulation (the clock time scale becomes 0 and the HUD shows `PAUSE  ON`), `R` resets to idle, `Z` / `X` (or `-` / `=`) changes the sim speed, and `--clip-time=<s>` starts paused at an exact clip time. `4`–`7` preview `StaggerSmall`, `StaggerLarge`, `Death`, and `Victory`. The HUD shows the current clip name, speed multiplier, progress (`50ms/120ms`), and pause status; the F1 overlay shows the clip name, normalized time, and combat state.
 
 The moveset has exactly three attacks: `SlashLeft`, `SlashRight`, and `PowerSlash`. All phase timings, stamina costs, damage multipliers, and stagger values live in `CombatTuning.cs` and mirror the action table above. Each attack holds its telegraph pose for at least 100 ms before the active window; the validator in `AttackDefinitionTests` enforces it.
 
@@ -56,9 +56,20 @@ The moveset has exactly three attacks: `SlashLeft`, `SlashRight`, and `PowerSlas
 
 `GuardRaise` (200 ms) starts at the idle, pulls back slightly, then settles into the guard; `GuardHold` loops for 2 s with ~1.8° of blade breathing; `GuardLower` (150 ms) drops with a small follow-through and settles back to idle. The guard pose puts the hands centered in front of the chest and the blade diagonally across the torso, flat toward the opponent, so the blade sits between the fighters. The dev harness raises on RMB press, holds while RMB is down, and lowers on release.
 
+### Reaction clips
+
+Reaction durations live in `CombatTuning` (`StaggerSmallDuration` 0.60 s, `StaggerLargeDuration` 1.00 s, `DeathDuration` 1.20 s, `VictoryDuration` 1.60 s).
+
+- `StaggerSmall` (600 ms): a light hit snaps the blade ~25° off vertical to the fighter's right and dips the hilt, then the sword settles back to the idle guard.
+- `StaggerLarge` (1000 ms): a power hit throws the blade ~45° out, droops it almost horizontal, then hauls it back up to idle.
+- `Death` (1200 ms): the blade is knocked up, falls forward and down, and holds with the tip on the floor. The final pose is permanent until a reset.
+- `Victory` (1600 ms): the blade rises straight overhead and holds there.
+
+Each reaction pairs its sword clip with a `BodyClip` that applies one rigid transform to the capsule: `StaggerSmall` rocks it 10° to the left, `StaggerLarge` 20°, `Death` topples it 88° about the feet and lifts it by the capsule radius so it rests on the floor, and `Victory` leans it back 12° and holds. There are no joints; the capsule never bends. `4`–`7` in the dev harness play each pair; `R` returns to idle.
+
 ### Blade geometry
 
-`BladeGeometry` turns a pose plus hand transform into the world-space grip, blade base, blade tip, and the base/tip radii (local base y = 0.18 m, tip y = 1.47 m, base radius 4.25 cm, tip radius 1.8 cm). The F1 overlay draws the capsule axis and base/tip rings from those values, and the T3.2 sweep will use the same struct. Sampling is shared: no second copy of the blade math. The cut sweeps across the body in the fighter's Z axis, which is the screen plane from the third-person back camera. The blade's broad face is rolled toward the camera on every key so the sweep stays readable. Both hands are part of the sword rig and travel with the hilt; the white capsule body stays static.
+`BladeGeometry` turns a pose plus hand transform into the world-space grip, blade base, blade tip, and the base/tip radii (local base y = 0.18 m, tip y = 1.47 m, base radius 4.25 cm, tip radius 1.8 cm). The F1 overlay draws the capsule axis and base/tip rings from those values, and the T3.2 sweep will use the same struct. Sampling is shared: no second copy of the blade math. The cut sweeps across the body in the fighter's Z axis, which is the screen plane from the third-person back camera. The blade's broad face is rolled toward the camera on every key so the sweep stays readable. Both hands are part of the sword rig and travel with the hilt; the white capsule body only moves as a rigid reaction pose.
 
 | State | Clip | Exits |
 | --- | --- | --- |

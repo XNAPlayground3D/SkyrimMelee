@@ -1,22 +1,22 @@
 # SkyrimMelee
 
-A Skyrim-inspired greatsword duel between two white capsule fighters — with a twist: **the body never moves.** No rig, no limbs, no walking. Only the sword does. Every attack, block, stagger and kill is expressed through the blade's arc, and all geometry is generated at runtime from 3D primitives.
+A Skyrim-inspired greatsword duel between two white capsule fighters — with a twist: **the bodies never articulate.** No rig, no limbs, no walking. Every attack, block, stagger and kill is expressed through the blade's arc; reactions tip or topple the whole capsule as one rigid piece. All geometry is generated at runtime from 3D primitives.
 
 **Hard rules**
 
 - **No 3D models.** Everything is built from DigitalRiseModel primitives (box, capsule, sphere, cylinder, cone, disc, plane).
-- **No skeletal animation.** The body is a static white capsule; a keyframed hand pivot moves the sword and nothing else.
+- **No skeletal animation.** The body is a single rigid white capsule with no joints. Reaction clips may tip or topple it as a whole; a keyframed hand pivot moves the sword.
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, capsule fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, three attack clips (SlashLeft, SlashRight, PowerSlash overhead), pause status · **Next:** `T2.10`
+**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, capsule fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, three attack clips (SlashLeft, SlashRight, PowerSlash overhead), reaction clips with rigid capsule motion, pause status · **Next:** `T3.1`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 70 passing |
+| Tests | ✅ xUnit project, 87 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
@@ -31,7 +31,7 @@ A Skyrim-inspired greatsword duel between two white capsule fighters — with a 
 | Combat state machine | ✅ `T2.5` |
 | SlashRight clip | ✅ `T2.6` |
 | Three-attack moveset (PowerSlash overhead) | ✅ `T2.9` |
-| Reaction clips | ⬜ `T2.10` |
+| Reaction clips (rigid capsule) | ✅ `T2.10` |
 | Combat rules | ⬜ `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |
 | HUD & menus | ⬜ `T7.1` |
@@ -64,7 +64,7 @@ dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # headless 
 
 UI markup lives in `SkyrimMelee/Ui/Hud.xmmp` and `DebugOverlay.xmmp`; after editing, run `myra-export <file>.xmmp`.
 
-**Controls:** `LMB` slash · `Shift+LMB` power slash · `1`/`2` forced arcs · `RMB` block · `F1` debug overlay · `F2` wireframe · `Esc` quit.
+**Controls:** `LMB` slash · `Shift+LMB` power slash · `1`/`2` forced arcs · `RMB` block · `4`–`7` reaction previews · `F1` debug overlay · `F2` wireframe · `Esc` quit.
 
 ## License
 

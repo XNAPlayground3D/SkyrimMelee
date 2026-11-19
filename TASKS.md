@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T2.10`
+> **Next up:** `T3.1`
 
 ---
 
@@ -20,7 +20,7 @@
 ## Invariants (do not delete or weaken)
 
 1. No 3D model files, ever. Everything is built from `MeshPrimitives` primitives or hand-written vertex data.
-2. No skeletal animation, no skinning, no rig hierarchy with animated joints. The body is a static white capsule; only the sword (and its hand pivot) moves.
+2. No skeletal animation, no skinning, no rig hierarchy with animated joints. The body is a single rigid white capsule; reaction clips may tip or topple it as one piece. The sword moves on its hand pivot.
 3. Combat numbers live in `CombatTuning.cs`, not inline in logic.
 4. Combat resolution is deterministic and runnable headless (`--self-test`).
 5. `dotnet build SkyrimMelee.slnx` is green before any task is reported finished.
@@ -202,10 +202,13 @@
 
 **Done when:** developer approval of the three-attack set and of the `PowerSlash` overhead arc, timing, and hilt/hand motion.
 
-### [ ] T2.10 — Reaction clips
+### [x] T2.10 — Reaction clips
 **Goal:** add the non-guard reaction animations as their own deliverable (split out of T2.3).
-- `StaggerSmall`, `StaggerLarge`, `Death`, `Victory` clips.
-- Route them through the same `SwordPose`/`SwordClip` authoring; keep the body static.
+- `StaggerSmall` (600 ms), `StaggerLarge` (1000 ms), `Death` (1200 ms), `Victory` (1600 ms); durations in `CombatTuning`.
+- Sword side: `SwordClip` keys for each reaction.
+- Body side: a rigid `BodyClip` per reaction applied to the capsule (no joints); `StaggerSmall`/`Large` rock and recover, `Death` topples onto the floor, `Victory` leans back and holds.
+- Tests: durations/names, staggers recover, death rests on the floor, victory holds; `BodyClips` match their sword clips.
+- Dev harness: `4`–`7` play the clips, `R` resets to idle.
 
 **Done when:** each reaction reads clearly from the back camera and the developer approves the set.
 
@@ -218,6 +221,7 @@
 - `CombatWorld` owns one `Simulation` (no gravity), one static floor, and per-fighter static shapes: torso capsule, head sphere, hips capsule.
 - Guard blade registers/unregisters its static capsule as the guard state changes.
 - `HurtboxSet` maps Bepu collidable handles back to `FighterId` + `HurtboxKind`.
+- Hurtboxes follow the fighter's `BodyTransform`, so they match the capsule during reaction clips.
 - `F2` wireframe draws every registered shape in world space.
 
 **Done when:** debug shapes match the rendered statue parts; unregistering the guard removes its collidable without leaking.
@@ -482,3 +486,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.7 — Overhead clip | 2026-11-19 | `66b0bd8` | developer |
 | T2.8 — PowerSlash clip | 2026-11-19 | `0960141` | developer |
 | T2.9 — Three-attack moveset | 2026-11-19 | `2243f3d` | developer |
+| T2.10 — Reaction clips | 2026-11-19 | `PENDING` | developer |
