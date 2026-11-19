@@ -8,6 +8,13 @@ public enum CameraMode
 	FirstPerson
 }
 
+public enum CameraPreset
+{
+	Gameplay,
+	SideProfile,
+	TopDown
+}
+
 /// <summary>
 /// Skyrim-style camera: an over-the-shoulder orbit in third person and an
 /// eye-level view in first person. Mouse look drives yaw and pitch; the target
@@ -38,6 +45,14 @@ public sealed class Camera
 	private float _pitch = -0.32f;
 	private float _distance = DefaultDistance;
 	private float _firstPersonFov = FirstPersonFov;
+	private float _fovPunch;
+	private float _fovPunchAmplitude;
+	private float _fovPunchDuration;
+	private float _fovPunchRemaining;
+	private float _driftTime;
+	private float _savedYaw;
+	private float _savedPitch;
+	private float _savedDistance = DefaultDistance;
 	private Vector3 _eye;
 	private Vector3 _lookAt;
 	private float _shakeAmplitude;
@@ -48,6 +63,11 @@ public sealed class Camera
 	public CameraMode Mode { get; private set; } = CameraMode.ThirdPerson;
 
 	public bool FirstPerson => Mode == CameraMode.FirstPerson;
+
+	public CameraPreset Preset { get; private set; } = CameraPreset.Gameplay;
+
+	/// <summary>Subtle breathing motion while the fighter stands still.</summary>
+	public bool IdleDrift { get; set; }
 
 	public float NearPlane { get; set; } = 0.1f;
 	public float FarPlane { get; set; } = 100f;
@@ -62,7 +82,8 @@ public sealed class Camera
 	}
 
 	/// <summary>Third person keeps a fixed FOV; first person has its own zoomable FOV.</summary>
-	public float FieldOfView => FirstPerson ? _firstPersonFov : ThirdPersonFov;
+	public float FieldOfView =>
+		(FirstPerson ? _firstPersonFov : ThirdPersonFov) + _fovPunch;
 
 	public Vector3 Eye => _eye;
 	public Vector3 LookAt => _lookAt;
@@ -74,6 +95,45 @@ public sealed class Camera
 
 	public void ToggleMode() =>
 		Mode = FirstPerson ? CameraMode.ThirdPerson : CameraMode.FirstPerson;
+
+	/// <summary>Cycles gameplay → side profile → top-down → gameplay.</summary>
+	public void CyclePreset()
+	{
+		switch (Preset)
+		{
+			case CameraPreset.Gameplay:
+				_savedYaw = _yaw;
+				_savedPitch = _pitch;
+				_savedDistance = _distance;
+				Preset = CameraPreset.SideProfile;
+				Mode = CameraMode.ThirdPerson;
+				_yaw = MathHelper.PiOver2;
+				_pitch = -0.25f;
+				Distance = 6f;
+				break;
+			case CameraPreset.SideProfile:
+				Preset = CameraPreset.TopDown;
+				_yaw = 0f;
+				_pitch = -1.45f;
+				Distance = 7f;
+				break;
+			default:
+				Preset = CameraPreset.Gameplay;
+				_yaw = _savedYaw;
+				_pitch = _savedPitch;
+				Distance = _savedDistance;
+				break;
+		}
+	}
+
+	/// <summary>Short additive FOV kick, e.g. on a power attack.</summary>
+	public void PunchFov(float degrees, float duration)
+	{
+		_fovPunchAmplitude = MathF.Max(_fovPunchAmplitude, degrees);
+		_fovPunchDuration = MathF.Max(_fovPunchDuration, duration);
+		_fovPunchRemaining = MathF.Max(_fovPunchRemaining, duration);
+		_fovPunch = _fovPunchAmplitude;
+	}
 
 	/// <summary>Wheel notches; positive zooms in (closer or narrower FOV).</summary>
 	public void Zoom(float notches)
@@ -92,6 +152,11 @@ public sealed class Camera
 
 	public void AddLook(float deltaX, float deltaY)
 	{
+		if (Preset != CameraPreset.Gameplay)
+		{
+			return;
+		}
+
 		_yaw += deltaX * LookSensitivity;
 		_pitch = Math.Clamp(_pitch - deltaY * LookSensitivity, MinPitch, MaxPitch);
 
@@ -108,6 +173,8 @@ public sealed class Camera
 	/// <summary>Follows the focus (the player's feet) and advances shake decay.</summary>
 	public void Update(Vector3 focus, float elapsedSeconds)
 	{
+		AdvanceEffects(elapsedSeconds);
+
 		var forward = new Vector3(
 			MathF.Cos(_pitch) * MathF.Cos(_yaw),
 			MathF.Sin(_pitch),
@@ -133,8 +200,39 @@ public sealed class Camera
 
 		var eye = target - forward * _distance + right * Shoulder;
 		_eye = eye + shake;
-		_lookAt = target + shake * 0.5f;
+		_lookAt = target + shake * 0.5f + DriftOffset();
 	}
+
+	private void AdvanceEffects(float elapsedSeconds)
+	{
+		if (_fovPunchRemaining > 0f)
+		{
+			_fovPunchRemaining = MathF.Max(0f, _fovPunchRemaining - elapsedSeconds);
+			var fade = _fovPunchDuration > 0f ? _fovPunchRemaining / _fovPunchDuration : 0f;
+			_fovPunch = _fovPunchAmplitude * fade;
+		}
+		else
+		{
+			_fovPunch = 0f;
+			_fovPunchAmplitude = 0f;
+		}
+
+		if (IdleDrift)
+		{
+			_driftTime += elapsedSeconds;
+		}
+		else
+		{
+			_driftTime = 0f;
+		}
+	}
+
+	private Vector3 DriftOffset() => IdleDrift
+		? new Vector3(
+			MathF.Sin(_driftTime * 0.9f) * 0.012f,
+			MathF.Cos(_driftTime * 0.6f) * 0.008f,
+			0f)
+		: Vector3.Zero;
 
 	private Vector3 ShakeOffset(float elapsedSeconds)
 	{

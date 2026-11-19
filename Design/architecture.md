@@ -72,7 +72,9 @@ The arena is a `DrModel`: a root bone plus one bone/mesh per item (floor, each r
 
 Both hands are attached to the sword rig and travel with the hilt; the primitive body only takes a rigid reaction pose ([rationale](overview.md#the-two-handed-grip)).
 
-**Camera:** Skyrim-style first/third person. Third person is an orbit over the player's right shoulder; mouse look drives yaw/pitch, the target follows the player at chest height with a 1 m look-ahead, and the default distance is 5 m. `F` toggles first person (eye at 1.60 m, same look, player capsule hidden, sword visible); the wheel zooms the third-person distance (0.4 m/notch, 2.5–7 m) or the first-person FOV (2°/notch, 55–90°). `F3` presets and impact shake are T5.4.
+**Camera:** Skyrim-style first/third person. Third person is an orbit over the player's right shoulder; mouse look drives yaw/pitch, the target follows the player at chest height with a 1 m look-ahead, and the default distance is 5 m. `F` toggles first person (eye at 1.60 m, same look, player capsule hidden, sword visible); the wheel zooms the third-person distance (0.4 m/notch, 2.5–7 m) or the first-person FOV (2°/notch, 55–90°).
+
+**Camera feel:** hits add a short shake scaled by damage (`0.012 + 0.10 × damage/maxHealth`, 90 ms), a power slash adds a 2.5°/180 ms FOV punch, and standing still applies a slow ±1.2 cm look drift. `--no-shake` disables the shake for captures. `F3` cycles gameplay → side profile → top-down → gameplay; presets force third person, ignore mouse look, and restore the saved look when returning to gameplay.
 
 **VFX:** a hit flashes the defender's whole body coral for 300 ms; pooled 256 box shards and expanding torus rings add the blue block ring, red guard-break shards, and dark grounding disc. Zero allocations in combat.
 

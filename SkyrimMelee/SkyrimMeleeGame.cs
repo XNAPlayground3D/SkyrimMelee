@@ -91,6 +91,7 @@ public sealed class SkyrimMeleeGame : Game
 	private double _labelTimer;
 	private bool _f1WasDown;
 	private bool _f2WasDown;
+	private bool _f3WasDown;
 	private bool _viewWasDown;
 	private int _scrollWheelValue;
 	private bool _pauseWasDown;
@@ -273,6 +274,14 @@ public sealed class SkyrimMeleeGame : Game
 		var elapsed = gameTime.ElapsedGameTime.TotalSeconds;
 		var uiCaptured = _ui?.CapturesInput == true;
 
+		var f3Down = keyboard.IsKeyDown(Keys.F3);
+		if (f3Down && !_f3WasDown && !uiCaptured)
+		{
+			_camera.CyclePreset();
+		}
+
+		_f3WasDown = f3Down;
+
 		var viewToggle = keyboard.IsKeyDown(Keys.F);
 		if (viewToggle && !_viewWasDown && !uiCaptured && !_paused)
 		{
@@ -349,6 +358,8 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_staminaCue = MathF.Max(0f, _staminaCue - (float)elapsed);
+		_camera.IdleDrift = !_paused && _combat.State == CombatState.Idle &&
+			_moveInput.LengthSquared() < 0.01f;
 		_camera.Update(_player?.Position ?? Vector3.Zero, (float)elapsed);
 
 		_labelTimer += elapsed;
@@ -549,6 +560,13 @@ public sealed class SkyrimMeleeGame : Game
 			var defense = DefenseResolver.Resolve(
 				hitEvent.Attack, _playerStats, _opponentStats, HitOutcome.Clean);
 			_opponentStats.ApplyDamage(defense.Damage.Final);
+
+			if (_options.ScreenShake)
+			{
+				var severity = Math.Clamp(
+					defense.Damage.Final / _opponentStats.MaxHealth, 0f, 1f);
+				_camera.AddShake(0.012f + severity * 0.10f, 0.09f);
+			}
 
 			if (_opponentStats.IsDead)
 			{
@@ -861,6 +879,12 @@ public sealed class SkyrimMeleeGame : Game
 		_playerStats.Spend(attack);
 		_swingHits.Begin(attack);
 		PlayClip(attack.Name);
+
+		if (attack.Name == "PowerSlash")
+		{
+			_camera.PunchFov(2.5f, 0.18f);
+		}
+
 		_lastRejection = powerFallback ? "no stamina: power->slash" : "-";
 		return true;
 	}

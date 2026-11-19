@@ -125,4 +125,85 @@ public class CameraTests
 		camera.Zoom(-1000f);
 		Assert.Equal(Camera.MaxFirstPersonFov, camera.FieldOfView, 4);
 	}
+
+	[Fact]
+	public void ShakeMovesTheEyeAndDecays()
+	{
+		var camera = new Camera();
+		camera.Update(Focus, 0f);
+		var rest = camera.Eye;
+
+		camera.AddShake(0.2f, 0.09f);
+		camera.Update(Focus, 0.01f);
+		Assert.True(Vector3.Distance(rest, camera.Eye) > 1e-4f);
+
+		camera.Update(Focus, 0.2f);
+		Assert.Equal(0f, Vector3.Distance(rest, camera.Eye), 4);
+	}
+
+	[Fact]
+	public void PowerPunchAddsThenDropsTheFov()
+	{
+		var camera = new Camera();
+		var rest = camera.FieldOfView;
+
+		camera.PunchFov(3f, 0.18f);
+		camera.Update(Focus, 0.05f);
+		Assert.True(camera.FieldOfView > rest);
+
+		camera.Update(Focus, 0.3f);
+		Assert.Equal(rest, camera.FieldOfView, 5);
+	}
+
+	[Fact]
+	public void PresetsCycleAndRestoreTheLook()
+	{
+		var camera = new Camera();
+		camera.AddLook(40f, 20f);
+		camera.Update(Focus, 0f);
+		var yaw = camera.Yaw;
+		var pitch = camera.Pitch;
+
+		camera.CyclePreset();
+		Assert.Equal(CameraPreset.SideProfile, camera.Preset);
+		Assert.False(camera.FirstPerson);
+		Assert.Equal(MathHelper.PiOver2, camera.Yaw, 3);
+		Assert.Equal(6f, camera.Distance, 3);
+
+		camera.CyclePreset();
+		Assert.Equal(CameraPreset.TopDown, camera.Preset);
+		Assert.Equal(7f, camera.Distance, 3);
+		Assert.True(camera.Pitch < -1.4f);
+
+		camera.CyclePreset();
+		Assert.Equal(CameraPreset.Gameplay, camera.Preset);
+		Assert.Equal(yaw, camera.Yaw, 4);
+		Assert.Equal(pitch, camera.Pitch, 4);
+	}
+
+	[Fact]
+	public void PresetsIgnoreMouseLookAndLeaveFirstPerson()
+	{
+		var camera = new Camera();
+		camera.ToggleMode();
+		camera.CyclePreset();
+		Assert.False(camera.FirstPerson);
+
+		var yaw = camera.Yaw;
+		camera.AddLook(2000f, 2000f);
+		Assert.Equal(yaw, camera.Yaw, 4);
+	}
+
+	[Fact]
+	public void IdleDriftMovesTheLookPointSlowly()
+	{
+		var camera = new Camera { IdleDrift = true };
+		camera.Update(Focus, 0.5f);
+		var first = camera.LookAt;
+
+		camera.Update(Focus, 0.5f);
+		var second = camera.LookAt;
+
+		Assert.True(Vector3.Distance(first, second) > 1e-5f);
+	}
 }

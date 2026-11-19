@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T5.4`
+> **Next up:** `T5.5`
 
 ---
 
@@ -374,11 +374,14 @@
 
 **Done when:** `F` switches modes cleanly and the wheel zooms without clipping or losing the opponent.
 
-### [ ] T5.4 — Camera feel
+### [x] T5.4 — Camera feel
 **Goal:** impact is felt in the camera, not just seen.
-- Impact shake (health- and block-scaled), 3–5 frame decay, optional disable in settings.
-- Slight FOV punch on power attacks; slow drift during idle.
-- `F3` cycles presets: gameplay 3/4, side profile, top-down debug.
+- Impact shake on a landed hit: amplitude `0.012 + 0.10 × damage/maxHealth` (≈0.027 m for a slash, ≈0.045 m for a power slash), 90 ms decay (5 frames); `--no-shake` disables it. Block-scaled shake arrives with opponent attacks (T6).
+- Power slash adds a 2.5° FOV punch over 180 ms.
+- Standing still applies a slow ±1.2 cm look drift; movement and attacks stop it.
+- `F3` cycles presets: gameplay 3/4 → side profile (6 m) → top-down debug (7 m, pitch -1.45) → gameplay. Presets force third person, ignore mouse look, and restore the saved yaw/pitch/distance.
+- Tests: shake moves then decays, FOV punch rises then clears, preset cycle/restore, presets ignore look, first person leaves on preset, idle drift, `--no-shake` parse.
+- Visual: side and top-down presets frame both fighters.
 
 **Done when:** shake is noticeable but never hides a wind-up; presets all frame both fighters.
 
@@ -588,4 +591,5 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T5.1 — Input intent buffer | 2026-11-20 | `e220f9a` | developer |
 | T5.2 — Skyrim locomotion, camera, input feel, hit feedback | 2026-11-20 | `0b6c643` | developer |
 | T5.3 — First/third person, zoom, bash key (and blade-side slash fix) | 2026-11-20 | `1808e37` | developer |
+| T5.4 — Camera shake, FOV punch, idle drift, F3 presets | 2026-11-20 | PENDING | developer |
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |
