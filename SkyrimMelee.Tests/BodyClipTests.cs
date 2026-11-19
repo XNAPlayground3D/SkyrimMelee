@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using SkyrimMelee.Combat;
-using SkyrimMelee.Fighters;
 
 namespace SkyrimMelee.Tests;
 
@@ -49,17 +48,33 @@ public class BodyClipTests
 	}
 
 	[Fact]
-	public void DeathLiesTheCapsuleOnTheFloor()
+	public void DeathLiesTheBodyOnTheFloor()
 	{
 		var final = Clip("Death").Keys[^1].Pose;
 		var up = Up(final);
 
 		Assert.True(MathF.Abs(Vector3.Dot(up, Vector3.UnitY)) < 0.1f,
-			$"Death leaves the capsule upright: up={up}");
+			$"Death leaves the body upright: up={up}");
 
-		var bottomCap = Vector3.Transform(
-			new Vector3(0f, FighterRigBuilder.BodyRadius, 0f), final.ToMatrix());
-		Assert.InRange(bottomCap.Y - FighterRigBuilder.BodyRadius, -0.02f, 0.02f);
+		var matrix = final.ToMatrix();
+		var rotation = Matrix.CreateFromQuaternion(final.Rotation);
+		var lowest = float.MaxValue;
+
+		foreach (var kind in new[]
+		{
+			HurtboxKind.Head, HurtboxKind.Torso, HurtboxKind.Hips, HurtboxKind.Legs
+		})
+		{
+			var definition = HurtboxDefinition.For(kind);
+			var center = Vector3.Transform(definition.Center, matrix);
+			var bottom = definition.Shape == HurtboxShapeKind.Capsule
+				? Vector3.TransformNormal(-Vector3.UnitY * definition.HalfLength, rotation)
+				: Vector3.Zero;
+
+			lowest = MathF.Min(lowest, center.Y + bottom.Y - definition.Radius);
+		}
+
+		Assert.InRange(lowest, -0.02f, 0.02f);
 	}
 
 	[Fact]

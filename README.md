@@ -1,27 +1,27 @@
 # SkyrimMelee
 
-A Skyrim-inspired greatsword duel between two white capsule fighters — with a twist: **the bodies never articulate.** No rig, no limbs, no walking. Every attack, block, stagger and kill is expressed through the blade's arc; reactions tip or topple the whole capsule as one rigid piece. All geometry is generated at runtime from 3D primitives.
+A Skyrim-inspired greatsword duel between two white primitive fighters — with a twist: **the bodies never articulate.** No rig, no limbs, no walking. Every attack, block, stagger and kill is expressed through the blade's arc; reactions tip or topple the whole body as one rigid piece. All geometry is generated at runtime from 3D primitives.
 
 **Hard rules**
 
 - **No 3D models.** Everything is built from DigitalRiseModel primitives (box, capsule, sphere, cylinder, cone, disc, plane).
-- **No skeletal animation.** The body is a single rigid white capsule with no joints. Reaction clips may tip or topple it as a whole; a keyframed hand pivot moves the sword.
+- **No skeletal animation.** The body is a rigid white primitive assembly (head, torso, hips, legs) with no joints. Reaction clips may tip or topple it as a whole; a keyframed hand pivot moves the sword.
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, capsule fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, three attack clips (SlashLeft, SlashRight, PowerSlash overhead), reaction clips with rigid capsule motion, pause status · **Next:** `T3.1`
+**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, three attack clips (SlashLeft, SlashRight, PowerSlash overhead), reaction clips with rigid body motion, Bepu hurtboxes, pause status · **Next:** `T3.2`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 87 passing |
+| Tests | ✅ xUnit project, 92 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
 | Arena & camera | ✅ `T1.2` |
-| Capsule fighter & hand pivots | ✅ `T1.3` (capsule placeholder) |
+| Fighter body & hand pivots | ✅ `T1.3` / `T3.1` (primitive assembly) |
 | Greatswords & hand pivot | ✅ `T1.4` |
 | HUD from Myra markup | ✅ `T1.5` |
 | Sword clip system | ✅ `T2.1` |
@@ -33,7 +33,7 @@ A Skyrim-inspired greatsword duel between two white capsule fighters — with a 
 | Three-attack moveset (PowerSlash overhead) | ✅ `T2.9` |
 | Reaction clips (rigid capsule) | ✅ `T2.10` |
 | Combat rules | ⬜ `T4.1` |
-| Physics hit detection | ⬜ `T3.1` |
+| Physics hurtboxes | ✅ `T3.1` |
 | HUD & menus | ⬜ `T7.1` |
 
 ## Stack

@@ -60,13 +60,13 @@ Two geometry quirks are handled in the library/renderer: DigitalRise line primit
 
 The arena is a `DrModel`: a root bone plus one bone/mesh per item (floor, each ring, each marker, each pillar). `ForwardRenderer.Draw(DrModelInstance, Matrix)` applies bone transforms, traverses the meshes, and picks the lit or unlit pass from `PrimitiveType`. Mesh parts are clones that share the library's vertex/index buffers.
 
-**Capsule fighter** (~1.8 m): one white capsule (1.24 m cylinder + two 0.28 m caps) plus scale-free `HandR` / `HandL` attachment bones; the right hand owns the sword pivot. Fighters are `DrModel` rigs in local space (+X forward, +Z side) placed by a root transform. The capsule has no joints: reaction clips apply one rigid `BodyTransform` (lean, topple, rise) before the root, and the sword pivot is animated independently.
+**Primitive fighter** (~1.8 m): four white primitives — head sphere, torso, hips, and legs capsules — plus scale-free `HandR` / `HandL` attachment bones; the right hand owns the sword pivot. `FighterRigBuilder` reads the same `HurtboxDefinition` table the colliders use, so every rendered part is also its hurtbox. Fighters are `DrModel` rigs in local space (+X forward, +Z side) placed by a root transform. The parts have no joints: reaction clips apply one rigid `BodyTransform` (lean, topple, rise) before the root, and the sword pivot is animated independently.
 
 **Greatsword** (1.47 m blade reach): grip cylinder, pommel sphere, crossguard box, two tapered blade boxes, cone tip, inset fuller. Local origin at the grip, blade along `+Y`. It attaches to the scale-free `HandR` bone; the grip-relative `Pivot` is the only animated sword transform.
 
 ### The two-handed grip
 
-Both hands are attached to the sword rig and travel with the hilt; the capsule body only takes a rigid reaction pose ([rationale](overview.md#the-two-handed-grip)).
+Both hands are attached to the sword rig and travel with the hilt; the primitive body only takes a rigid reaction pose ([rationale](overview.md#the-two-handed-grip)).
 
 **Camera presets:** third-person duel (default, over the player's right shoulder at `(-6.0, 3.1, 2.4)` looking at `(-0.2, 1.0, 0)`), profile (`(0, 1.9, −7.5)`), top-down debug. Idle sway ±0.6°, impact shake 0.15 s decay, small FOV punch on power attacks.
 
@@ -74,14 +74,14 @@ Both hands are attached to the sword rig and travel with the hilt; the capsule b
 
 ## Physics
 
-Bepu is used as a collision **query** engine: no gravity, no dynamics, no `Timestep` in combat. Static shapes are added at fight start, plus a guard-blade capsule while guarding.
+Bepu is used as a collision **query** engine: no gravity, no dynamics, no `Timestep` in combat. `CombatWorld` owns one `Simulation`, a floor box, and four static hurtboxes per fighter. Hurtbox poses are rewritten from `BodyTransform * fighterRoot` whenever the rigid body reaction changes, so the statues and their collidables stay aligned. A guard-blade capsule is added when the guard completes and removed as soon as the guard drops. `HurtboxSet` maps each `StaticHandle` back to `FighterId` + `HurtboxKind`, and `F2` draws every registered shape (green body, amber guard blade).
 
 | Hurtbox | Shape | Radius / half-length | Centre |
 | --- | --- | --- | --- |
 | Head | Sphere | 0.115 | (0, 1.67, 0) |
 | Torso | Capsule | 0.16 / 0.21 | (0, 1.26, 0) |
 | Hips | Capsule | 0.14 / 0.09 | (0, 0.86, 0) |
-| Legs | Capsule | 0.13 / 0.25 | (0, 0.42, 0) |
+| Legs | Capsule | 0.13 / 0.25 | (0, 0.38, 0) |
 
 The blade is approximated by three spheres along the blade segment (`t = 0 / 0.5 / 1`, radii 0.055 / 0.040 / 0.025).
 

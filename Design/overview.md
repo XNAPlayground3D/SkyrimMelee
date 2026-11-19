@@ -1,6 +1,6 @@
 # Overview
 
-SkyrimMelee is a fixed-footing duel between two humanoids with greatswords. The bodies never articulate — no locomotion, no limbs, no rig. Every attack, block, stagger, and kill is expressed through the blade's arc, and reaction clips may tip or topple the whole capsule as one rigid piece.
+SkyrimMelee is a fixed-footing duel between two humanoids with greatswords. The bodies never articulate — no locomotion, no limbs, no rig. Every attack, block, stagger, and kill is expressed through the blade's arc, and reaction clips may tip or topple the whole primitive body as one rigid piece.
 
 The game recreates Skyrim's **melee rules**, not its world: stamina economy, attack commitment, front-facing blocks, timed blocks, guard breaks, and poise. Combat depth comes from timing and resource management, because there is no movement to play with.
 
@@ -17,11 +17,11 @@ The game recreates Skyrim's **melee rules**, not its world: stamina economy, att
 | # | Constraint | Consequence |
 | --- | --- | --- |
 | 1 | **No 3D model files.** Everything is generated at runtime from primitives. | Fighters, sword, arena, and VFX are boxes, capsules, spheres, cylinders, cones, discs, and lines. No non-code assets are required: Myra embeds its default UI font. |
-| 2 | **No skeletal animation.** The body is a single rigid white capsule with no joints. | The sword is keyframed on a hand pivot; reactions apply one rigid whole-body transform. No joints, no skinning, no IK. |
+| 2 | **No skeletal animation.** The body is a rigid white primitive assembly (head, torso, hips, legs) with no joints. | The sword is keyframed on a hand pivot; reactions apply one rigid whole-body transform. No joints, no skinning, no IK. |
 
 ### The two-handed grip
 
-The body is a single white capsule, so there are no static arms for a moving hilt to disconnect from. The hands are still **part of the sword rig**: both hand boxes are attached to the grip and travel with it. The capsule only moves as one rigid piece for reaction clips (lean, topple, rise); it never bends or articulates. This keeps the sword readable without pretending the body can swing it.
+The body is a small rigid assembly of white primitives, so there are no static arms for a moving hilt to disconnect from. The hands are still **part of the sword rig**: both hand boxes are attached to the grip and travel with it. The assembly only moves as one rigid piece for reaction clips (lean, topple, rise); it never bends or articulates. This keeps the sword readable without pretending the body can swing it.
 
 ## Scope
 
@@ -73,7 +73,7 @@ Verified end-to-end on 2026-11-19 with .NET SDK 10.0.401 (T0.1): window + render
 | R2 | Bepu `Sweep` API differs from assumptions | ✅ Retired: `Sweep(shape, pose, velocity, maxT, pool, handler)` verified |
 | R3 | Myra font/content pipeline on .NET 10 | ✅ Retired: Myra ships a `DynamicSpriteFont`; no content pipeline needed |
 | R4 | Blade tunneling at high swing speed | Open — T3.2 / T3.5 |
-| R5 | Primitive statue reads as a pile of boxes | ✅ Retired: the body is a single white capsule |
+| R5 | Primitive statue reads as a pile of boxes | ✅ Retired: the body is four clean white primitives matched to the hurtboxes |
 | R6 | Off-hand gap visible during wide arcs | ✅ Retired: the capsule has no arms to gap against |
 
 ## Open questions (defaults already assumed)

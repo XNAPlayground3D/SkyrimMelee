@@ -3,8 +3,8 @@ using Microsoft.Xna.Framework;
 namespace SkyrimMelee.Combat;
 
 /// <summary>
-/// Authored rigid capsule reactions. Offsets are fighter-local; rotation is
-/// Euler X/Y/Z in degrees. The capsule never bends or articulates.
+/// Authored rigid body reactions. Offsets are fighter-local; rotation is
+/// Euler X/Y/Z in degrees. The primitive body never bends or articulates.
 /// </summary>
 public static class BodyClips
 {
@@ -22,7 +22,7 @@ public static class BodyClips
 	{
 		var duration = CombatTuning.StaggerSmallDuration;
 
-		// A light hit rocks the whole capsule to its left and slightly back,
+		// A light hit rocks the whole body to its left and slightly back,
 		// then it straightens up with the sword.
 		var lean = Pose(-10f, 0f, 5f);
 		var settle = Pose(-4f, 0f, 2f);
@@ -38,7 +38,7 @@ public static class BodyClips
 	{
 		var duration = CombatTuning.StaggerLargeDuration;
 
-		// A power hit throws the capsule hard to its left and back before it
+		// A power hit throws the body hard to its left and back before it
 		// hauls itself upright.
 		var jolt = Pose(-20f, 0f, 8f);
 		var recover = Pose(-7f, 0f, 3f);
@@ -54,12 +54,12 @@ public static class BodyClips
 	{
 		var duration = CombatTuning.DeathDuration;
 
-		// The capsule rocks back, then topples left about its feet. The lift is
-		// the capsule radius times (1 - cos angle), so the body rests on the floor.
+		// The body rocks back, then topples left about its feet. The lift keeps
+		// the lowest primitive (the legs capsule) resting on the floor.
 		var recoil = Pose(0f, 0f, 6f);
-		var falling = Pose(-35f, 0f, 0f, 0.051f);
-		var low = Pose(-75f, 0f, 0f, 0.208f);
-		var floor = Pose(-88f, 0f, 0f, 0.270f);
+		var falling = Pose(-35f, 0f, 0f, 0.024f);
+		var low = Pose(-75f, 0f, 0f, 0.096f);
+		var floor = Pose(-88f, 0f, 0f, 0.126f);
 
 		return new BodyClip("Death", duration,
 			Key(0f, BodyPose.Identity, Easing.EaseOut),
@@ -73,7 +73,7 @@ public static class BodyClips
 	{
 		var duration = CombatTuning.VictoryDuration;
 
-		// The capsule rocks back and to its left, chest out, then holds.
+		// The body rocks back and to its left, chest out, then holds.
 		var rise = Pose(-3f, 0f, 6f);
 		var proud = Pose(-6f, 0f, 12f);
 

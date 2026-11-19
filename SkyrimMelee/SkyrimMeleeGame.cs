@@ -41,6 +41,10 @@ public sealed class SkyrimMeleeGame : Game
 	private DrMaterial? _axisX;
 	private DrMaterial? _axisY;
 	private DrMaterial? _axisZ;
+	private DrMaterial? _hurtboxDebug;
+	private DrMaterial? _guardDebug;
+	private CombatWorld? _combatWorld;
+	private bool _guardHurtbox;
 	private ScreenGradient? _backdrop;
 	private SpriteBatch? _spriteBatch;
 	private SwordMotion? _swordMotion;
@@ -132,6 +136,8 @@ public sealed class SkyrimMeleeGame : Game
 		_axisX = _primitives.CreateMaterial(AxisXColor);
 		_axisY = _primitives.CreateMaterial(AxisYColor);
 		_axisZ = _primitives.CreateMaterial(AxisZColor);
+		_hurtboxDebug = _primitives.CreateMaterial(new Color(0x49, 0xE8, 0x8A));
+		_guardDebug = _primitives.CreateMaterial(new Color(0xFF, 0xC2, 0x4B));
 
 		_swordClips = SwordClips.Create();
 		_bodyClips = BodyClips.Create();
@@ -142,6 +148,10 @@ public sealed class SkyrimMeleeGame : Game
 		_swordMotion = new SwordMotion();
 		_swordMotion.ResetTo(_swordClips[0], _options.ClipTime ?? 0f);
 		_bodyMotion = new BodyMotion();
+
+		_combatWorld = new CombatWorld();
+		_combatWorld.AddFighter(FighterId.Player, _player.DrawTransform);
+		_combatWorld.AddFighter(FighterId.Opponent, _opponent.Transform);
 
 		if (_options.ClipTime is not null)
 		{
@@ -159,6 +169,9 @@ public sealed class SkyrimMeleeGame : Game
 
 	protected override void UnloadContent()
 	{
+		_combatWorld?.Dispose();
+		_combatWorld = null;
+
 		_playerSword?.Dispose();
 		_playerSword = null;
 
@@ -264,6 +277,7 @@ public sealed class SkyrimMeleeGame : Game
 			}
 
 			ApplySwordPose();
+			UpdateGuardHurtbox();
 
 			_hud?.UpdatePlayback(_swordMotion.Clip?.Name ?? "-", _swordClipSpeed,
 				_swordMotion.Time, _swordMotion.Clip?.Duration ?? 0f);
@@ -561,6 +575,8 @@ public sealed class SkyrimMeleeGame : Game
 		_combat.Reset();
 		_reactionAdvance = false;
 		_bodyMotion?.Reset();
+		_combatWorld?.UnregisterGuardBlade();
+		_guardHurtbox = false;
 		_swordMotion.ResetTo(_swordClips[0]);
 		ApplySwordPose();
 	}
@@ -587,6 +603,36 @@ public sealed class SkyrimMeleeGame : Game
 		if (_opponentSword is not null)
 		{
 			_opponentSword.Pivot = pivot;
+		}
+
+		if (_combatWorld is not null && _player is not null && _opponent is not null)
+		{
+			_combatWorld.UpdateFighter(FighterId.Player, _player.DrawTransform);
+			_combatWorld.UpdateFighter(FighterId.Opponent, _opponent.Transform);
+		}
+	}
+
+	private void UpdateGuardHurtbox()
+	{
+		if (_combatWorld is null)
+		{
+			return;
+		}
+
+		var guarding = _combat.State == CombatState.GuardHold;
+		if (guarding && !_guardHurtbox)
+		{
+			if (_swordMotion is not null && _playerSword is not null && _player is not null)
+			{
+				var swordWorld = _playerSword.GetWorld(_player.GetRightHandTransform());
+				_combatWorld.RegisterGuardBlade(BladeGeometry.FromWorld(swordWorld));
+				_guardHurtbox = true;
+			}
+		}
+		else if (!guarding && _guardHurtbox)
+		{
+			_combatWorld.UnregisterGuardBlade();
+			_guardHurtbox = false;
 		}
 	}
 
@@ -648,6 +694,95 @@ public sealed class SkyrimMeleeGame : Game
 					Matrix.CreateFromQuaternion(rotation) *
 					Matrix.CreateTranslation(center);
 		_renderer.DrawLines(_primitives.LineCircle, _bladeDebug, world);
+	}
+
+	private void DrawHurtboxes()
+	{
+		if (_combatWorld is null || _renderer is null || _primitives is null)
+		{
+			return;
+		}
+
+		foreach (var entry in _combatWorld.Hurtboxes.Entries)
+		{
+			if (!_combatWorld.TryGetPose(entry.Key, out var center, out var orientation))
+			{
+				continue;
+			}
+
+			var definition = HurtboxDefinition.For(entry.Value.Kind);
+			var material = entry.Value.Kind == HurtboxKind.GuardBlade ? _guardDebug : _hurtboxDebug;
+			if (material is null)
+			{
+				continue;
+			}
+
+			if (definition.Shape == HurtboxShapeKind.Sphere)
+			{
+				DrawWireSphere(center, definition.Radius, material);
+			}
+			else
+			{
+				DrawWireCapsule(center, orientation, definition.Radius,
+					definition.HalfLength, material);
+			}
+		}
+	}
+
+	private void DrawWireSphere(Vector3 center, float radius, DrMaterial material)
+	{
+		if (_renderer is null || _primitives is null)
+		{
+			return;
+		}
+
+		var xz = Matrix.CreateScale(radius) * Matrix.CreateTranslation(center);
+		var xy = Matrix.CreateScale(radius) *
+				 Matrix.CreateRotationX(MathHelper.PiOver2) *
+				 Matrix.CreateTranslation(center);
+		var yz = Matrix.CreateScale(radius) *
+				 Matrix.CreateRotationZ(MathHelper.PiOver2) *
+				 Matrix.CreateTranslation(center);
+
+		_renderer.DrawLines(_primitives.LineCircle, material, xz);
+		_renderer.DrawLines(_primitives.LineCircle, material, xy);
+		_renderer.DrawLines(_primitives.LineCircle, material, yz);
+	}
+
+	private void DrawWireCapsule(Vector3 center, Quaternion orientation,
+		float radius, float halfLength, DrMaterial material)
+	{
+		if (_renderer is null || _primitives is null)
+		{
+			return;
+		}
+
+		var rotation = Matrix.CreateFromQuaternion(orientation);
+
+		void Ring(float y)
+		{
+			var world = Matrix.CreateScale(radius) *
+						Matrix.CreateTranslation(0f, y, 0f) *
+						rotation *
+						Matrix.CreateTranslation(center);
+			_renderer.DrawLines(_primitives.LineCircle, material, world);
+		}
+
+		void Rail(float x, float z)
+		{
+			var world = Matrix.CreateScale(1f, MathF.Max(2f * halfLength, 0.0001f), 1f) *
+						Matrix.CreateTranslation(x, -halfLength, z) *
+						rotation *
+						Matrix.CreateTranslation(center);
+			_renderer.DrawLines(_primitives.LineSegment, material, world);
+		}
+
+		Ring(halfLength);
+		Ring(-halfLength);
+		Rail(radius, 0f);
+		Rail(-radius, 0f);
+		Rail(0f, radius);
+		Rail(0f, -radius);
 	}
 
 	/// <summary>
@@ -796,6 +931,11 @@ public sealed class SkyrimMeleeGame : Game
 					DrawSwordGizmo(_opponentSword, swordWorld);
 					DrawBladeCapsule(swordWorld);
 				}
+			}
+
+			if (_renderer.Wireframe)
+			{
+				DrawHurtboxes();
 			}
 
 			_renderer.End();

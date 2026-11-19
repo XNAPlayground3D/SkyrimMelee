@@ -36,6 +36,7 @@ Intent tracks use absolute sim times. Output is one `PASS/FAIL` line per scenari
 | `CL-03/04` | Telegraph hold ≥ 100 ms, active window contains the centreline crossing |
 | `CL-05` | Blade never intersects the fighter's own body (120 Hz sampling) |
 | `CL-06` | Reaction body clips are jointless; staggers recover, the death capsule rests on the floor |
+| `PH-01` | Static hurtboxes map to fighter parts; the guard capsule adds/removes with no leftover collidable |
 | `ST-01/02` | Clean hit lands; attack with no hurtboxes whiffs and recovers |
 | `ST-03/04` | Normal block reduction and drain; timed block at 180 ms after raise |
 | `ST-05` | Power slash into 5 stamina ⇒ guard break, guard removed, 1000 ms stagger |

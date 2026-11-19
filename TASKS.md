@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T3.1`
+> **Next up:** `T3.2`
 
 ---
 
@@ -20,7 +20,7 @@
 ## Invariants (do not delete or weaken)
 
 1. No 3D model files, ever. Everything is built from `MeshPrimitives` primitives or hand-written vertex data.
-2. No skeletal animation, no skinning, no rig hierarchy with animated joints. The body is a single rigid white capsule; reaction clips may tip or topple it as one piece. The sword moves on its hand pivot.
+2. No skeletal animation, no skinning, no rig hierarchy with animated joints. The body is a rigid white primitive assembly (head, torso, hips, legs); reaction clips may tip or topple it as one piece. The sword moves on its hand pivot.
 3. Combat numbers live in `CombatTuning.cs`, not inline in logic.
 4. Combat resolution is deterministic and runnable headless (`--self-test`).
 5. `dotnet build SkyrimMelee.slnx` is green before any task is reported finished.
@@ -135,7 +135,7 @@
 ### [x] T2.2 — SlashLeft clip (perfection pass)
 **Goal:** author `SlashLeft` until the developer explicitly approves it.
 - Only `SlashLeft` is in `SwordClips` / `AttackCatalog` for this task; every other attack has its own task (T2.6–T2.9).
-- Fighters are a single white capsule plus invisible `HandR` / `HandL` pivots; the visible hands stay on the sword rig.
+- Fighters are four white primitives (head, torso, hips, legs) plus invisible `HandR` / `HandL` pivots; the visible hands stay on the sword rig.
 - Idle/guard uses the Skyrim standing greatsword pose: hand at the right hip, blade nearly vertical with a slight backward lean.
 - Camera is a third-person view over the player's right shoulder; the idle sword stands on that right side and the slash sweeps across the screen in the fighter's Z axis.
 - Timing matches `CombatTuning.Slash` (250 / 220 / 350 ms); 100 ms telegraph hold.
@@ -216,13 +216,14 @@
 
 ## M3 — Physics & hit detection
 
-### [ ] T3.1 — Bepu world with static hurtboxes
+### [x] T3.1 — Bepu world with static hurtboxes
 **Goal:** collision shapes exist and can be queried.
 - `CombatWorld` owns one `Simulation` (no gravity), one static floor, and per-fighter static shapes: torso capsule, head sphere, hips capsule.
 - Guard blade registers/unregisters its static capsule as the guard state changes.
 - `HurtboxSet` maps Bepu collidable handles back to `FighterId` + `HurtboxKind`.
 - Hurtboxes follow the fighter's `BodyTransform`, so they match the capsule during reaction clips.
 - `F2` wireframe draws every registered shape in world space.
+- Tests: four hurtboxes per fighter, handle mapping, body transform application, guard add/remove, guard pose alignment.
 
 **Done when:** debug shapes match the rendered statue parts; unregistering the guard removes its collidable without leaking.
 
@@ -487,3 +488,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T2.8 — PowerSlash clip | 2026-11-19 | `0960141` | developer |
 | T2.9 — Three-attack moveset | 2026-11-19 | `2243f3d` | developer |
 | T2.10 — Reaction clips | 2026-11-19 | `d9f4d14` | developer |
+| T3.1 — Bepu hurtboxes + primitive body | 2026-11-19 | `PENDING` | developer |

@@ -18,8 +18,8 @@ public readonly record struct BodyPose(Vector3 Offset, Quaternion Rotation)
 public readonly record struct BodyKey(float Time, BodyPose Pose, Easing EaseToNext = Easing.SmoothStep);
 
 /// <summary>
-/// A keyframed rigid body motion. There are no joints: the whole capsule
-/// rotates and shifts as one. Normalized key times run 0..1; sampling is in seconds.
+/// A keyframed rigid body motion. There are no joints: the whole primitive
+/// assembly rotates and shifts as one. Normalized key times run 0..1; sampling is in seconds.
 /// </summary>
 public sealed class BodyClip
 {

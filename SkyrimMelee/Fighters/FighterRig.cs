@@ -4,7 +4,7 @@ using SkyrimMelee.Graphics;
 
 namespace SkyrimMelee.Fighters;
 
-/// <summary>A white capsule placeholder plus its placement in the arena.</summary>
+/// <summary>White primitive body parts plus their placement in the arena.</summary>
 public sealed class FighterRig : IDisposable
 {
 	private readonly int _rightHandIndex;

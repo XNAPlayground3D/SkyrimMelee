@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 
 namespace SkyrimMelee.Fighters;
 
-/// <summary>Visible hand colours; the capsule body is white.</summary>
+/// <summary>Visible hand colours; the primitive body is white.</summary>
 public static class FighterVisuals
 {
 	public static readonly Color PlayerHand = new(0xC9, 0xA0, 0x7A);

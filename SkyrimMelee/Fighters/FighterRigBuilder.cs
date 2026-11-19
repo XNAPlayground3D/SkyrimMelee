@@ -1,35 +1,43 @@
 using DigitalRiseModel;
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Combat;
 using SkyrimMelee.Graphics;
 
 namespace SkyrimMelee.Fighters;
 
 /// <summary>
-/// Builds the fighter placeholder: one white capsule plus invisible hand pivots.
-/// Local space: +X forward, +Y up, +Z side-to-side; the root transform supplies
-/// position and facing.
+/// Builds the fighter placeholder from the same primitive definitions as its
+/// hurtboxes: head sphere, torso, hips, and legs capsules, plus invisible hand
+/// pivots. Local space: +X forward, +Y up, +Z side-to-side.
 /// </summary>
 public static class FighterRigBuilder
 {
-	public const float BodyHeight = 1.8f;
-	public const float BodyRadius = 0.28f;
-	public const float BodyCenterY = BodyHeight * 0.5f;
-	public const float BodyCylinderHeight = BodyHeight - 2f * BodyRadius;
-
 	public static DrModel Build(PrimitiveLibrary primitives)
 	{
 		var white = primitives.CreateMaterial(Color.White);
 		var bones = new List<DrModelBone>();
 
-		// Total height 1.8 m: 1.24 m cylinder + two 0.28 m caps.
-		var bodyPart = primitives.GetCapsule(BodyCylinderHeight, BodyRadius).Clone();
-		bodyPart.Material = white;
-
-		var body = new DrMesh(bodyPart) { Name = "Body" };
-		bones.Add(new DrModelBone("Body", body)
+		foreach (var kind in new[]
 		{
-			DefaultPose = new SrtTransform(new Vector3(0f, BodyCenterY, 0f), Quaternion.Identity, Vector3.One)
-		});
+			HurtboxKind.Legs, HurtboxKind.Hips, HurtboxKind.Torso, HurtboxKind.Head
+		})
+		{
+			var definition = HurtboxDefinition.For(kind);
+			var part = definition.Shape == HurtboxShapeKind.Sphere
+				? primitives.Sphere.Clone()
+				: primitives.GetCapsule(definition.HalfLength * 2f, definition.Radius).Clone();
+			part.Material = white;
+
+			var scale = definition.Shape == HurtboxShapeKind.Sphere
+				? Vector3.One * (definition.Radius * 2f)
+				: Vector3.One;
+
+			var mesh = new DrMesh(part) { Name = $"Body{kind}" };
+			bones.Add(new DrModelBone($"Body{kind}", mesh)
+			{
+				DefaultPose = new SrtTransform(definition.Center, Quaternion.Identity, scale)
+			});
+		}
 
 		// Scale-free attachment points; the visible hands belong to the sword rig.
 		void AddHandPivot(string name, Vector3 position)
