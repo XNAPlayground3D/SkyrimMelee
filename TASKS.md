@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T5.2`
+> **Next up:** `T5.3`
 
 ---
 
@@ -349,7 +349,7 @@
 
 **Done when:** mashing during recovery yields exactly one queued attack; holding block during recovery raises guard on the first legal frame.
 
-### [~] T5.2 — Player locomotion and follow camera
+### [x] T5.2 — Player locomotion and follow camera
 **Goal:** move the player around the arena with Skyrim-style camera-relative control.
 - Camera-relative WASD, mouse look, walk speed in `CombatTuning`, arena radius clamp, and a minimum separation from the opponent.
 - The rigid capsule slides and keeps facing the camera while strafing/backpedaling (Skyrim-style); attacks turn to the camera forward. No walk animation, no rig. Hurtboxes and sword follow the player root automatically.
@@ -585,4 +585,5 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.4 — Timed block & guard break | 2026-11-20 | `8f5fc89` | developer |
 | T4.5 — Death, rounds, reset | 2026-11-20 | `b47d3ee` | developer |
 | T5.1 — Input intent buffer | 2026-11-20 | `e220f9a` | developer |
+| T5.2 — Skyrim locomotion, camera, input feel, hit feedback | 2026-11-20 | `0b6c643` | developer |
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |
