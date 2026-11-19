@@ -585,4 +585,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.4 — Timed block & guard break | 2026-11-20 | `8f5fc89` | developer |
 | T4.5 — Death, rounds, reset | 2026-11-20 | `b47d3ee` | developer |
 | T5.1 — Input intent buffer | 2026-11-20 | `e220f9a` | developer |
-| T5.7 — Split game code into top-level folders | 2026-11-20 | PENDING | developer |
+| T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |
