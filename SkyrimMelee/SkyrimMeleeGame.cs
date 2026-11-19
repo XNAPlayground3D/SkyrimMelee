@@ -48,8 +48,11 @@ public sealed class SkyrimMeleeGame : Game
 	private CombatWorld? _combatWorld;
 	private BladeSweep? _bladeSweep;
 	private readonly SwingHitSet _swingHits = new();
+	private readonly FighterStats _playerStats = new();
+	private readonly FighterStats _opponentStats = new();
 	private BladeGeometry? _lastBlade;
 	private readonly float[] _hitFlashes = new float[2 * 5];
+	private float _staminaCue;
 	private bool _guardHurtbox;
 	private ScreenGradient? _backdrop;
 	private SpriteBatch? _spriteBatch;
@@ -291,6 +294,7 @@ public sealed class SkyrimMeleeGame : Game
 				_swordMotion.Time, _swordMotion.Clip?.Duration ?? 0f);
 		}
 
+		_staminaCue = MathF.Max(0f, _staminaCue - (float)elapsed);
 		_camera.Update(_clock.SimTime, (float)elapsed);
 
 		_labelTimer += elapsed;
@@ -330,6 +334,11 @@ public sealed class SkyrimMeleeGame : Game
 
 		_lastBlade = blade;
 		UpdateHitFlashes(step);
+
+		var blocking = _combat.State is CombatState.GuardRaise or
+			CombatState.GuardHold or CombatState.GuardLower;
+		_playerStats.Update(step, blocking);
+		_opponentStats.Update(step, false);
 	}
 
 	private BladeGeometry? CurrentPlayerBlade()
@@ -543,37 +552,52 @@ public sealed class SkyrimMeleeGame : Game
 	private void PlaySlash()
 	{
 		if (_paused || _swordMotion is null || _slashAttack is null ||
-			!_combat.TryStartAttack(_slashAttack))
+			!TryBeginAttack(_slashAttack))
 		{
 			return;
 		}
 
-		_swingHits.Begin(_slashAttack);
 		PlayClip("SlashLeft");
 	}
 
 	private void PlaySlashRight()
 	{
 		if (_paused || _swordMotion is null || _slashRightAttack is null ||
-			!_combat.TryStartAttack(_slashRightAttack))
+			!TryBeginAttack(_slashRightAttack))
 		{
 			return;
 		}
 
-		_swingHits.Begin(_slashRightAttack);
 		PlayClip("SlashRight");
 	}
 
 	private void PlayPowerSlash()
 	{
 		if (_paused || _swordMotion is null || _powerSlashAttack is null ||
-			!_combat.TryStartAttack(_powerSlashAttack))
+			!TryBeginAttack(_powerSlashAttack))
 		{
 			return;
 		}
 
-		_swingHits.Begin(_powerSlashAttack);
 		PlayClip("PowerSlash");
+	}
+
+	private bool TryBeginAttack(AttackDefinition attack)
+	{
+		if (!_playerStats.CanAfford(attack))
+		{
+			_staminaCue = 0.8f;
+			return false;
+		}
+
+		if (!_combat.TryStartAttack(attack))
+		{
+			return false;
+		}
+
+		_playerStats.Spend(attack);
+		_swingHits.Begin(attack);
+		return true;
 	}
 
 	private void PlayGuardRaise()
@@ -679,6 +703,9 @@ public sealed class SkyrimMeleeGame : Game
 		_lastBlade = null;
 		_swingHits.Reset();
 		ClearHitFlashes();
+		_playerStats.Reset();
+		_opponentStats.Reset();
+		_staminaCue = 0f;
 		_swordMotion.ResetTo(_swordClips[0]);
 		ApplySwordPose();
 	}
@@ -995,6 +1022,8 @@ public sealed class SkyrimMeleeGame : Game
 
 		_hud.UpdateStats(_fps, _renderer?.DrawCalls ?? 0, _renderer?.PrimitivesDrawn ?? 0);
 		_hud.UpdatePause(_paused);
+		_hud.UpdateVitals(_playerStats.Health, _playerStats.MaxHealth,
+			_playerStats.Stamina, _playerStats.MaxStamina, _staminaCue > 0f);
 		_overlay?.Update(_clock, _combat, _swordMotion?.Clip?.Name ?? "-",
 			_swordMotion?.NormalizedTime ?? 0f);
 	}

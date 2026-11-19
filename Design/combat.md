@@ -23,7 +23,8 @@ Weapon: Iron Greatsword, base damage 20, reach 1.47 m.
 
 `1` and `2` force left/right arcs for practice. LMB alternates arcs and starts with right-to-left. Shift+LMB is the single power attack: an overhead slam.
 
-- Stamina is charged at wind-up start. Insufficient stamina ⇒ power attack rejected (no state change, no cost).
+- Stamina is charged at wind-up start. Insufficient stamina ⇒ power attack rejected (no state change, no cost); the HUD shows `POWER DENIED`. Light attacks are always allowed and clamp stamina at 0.
+- `FighterStats` owns health, stamina, poise, armor, and skills. Stamina regenerates at 25/s after 0.6 s and is frozen while the guard is up; poise regenerates at 25/s after 1 s.
 - `LightSlash` from `Idle` alternates the arc; the clip determines the visual, the definition determines the phases.
 
 ## Sword motion

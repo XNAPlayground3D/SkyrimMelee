@@ -16,6 +16,17 @@ public readonly record struct AttackTuning(
 /// <summary>Every gameplay number lives here; docs mirror this file.</summary>
 public static class CombatTuning
 {
+	public const float MaxHealth = 150f;
+	public const float MaxStamina = 100f;
+	public const float MaxPoise = 100f;
+	public const float StaminaRegenPerSecond = 25f;
+	public const float StaminaRegenDelay = 0.6f;
+	public const float PoiseRegenPerSecond = 25f;
+	public const float PoiseRegenDelay = 1.0f;
+	public const float DefaultArmor = 0f;
+	public const float DefaultTwoHandedSkill = 60f;
+	public const float DefaultBlockSkill = 50f;
+
 	public const float CrossfadeDuration = 0.1f;
 	public const float IdleDuration = 2.5f;
 	public const float GuardRaiseDuration = 0.20f;

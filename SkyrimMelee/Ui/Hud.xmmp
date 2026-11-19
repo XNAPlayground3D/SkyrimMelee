@@ -15,6 +15,19 @@
       <Label Id="_clipProgress" Text="Progress  0ms/0ms" TextColor="#E6DCC8" />
     </VerticalStackPanel>
 
+    <VerticalStackPanel Id="_vitals" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                        Margin="24,0,0,24" Spacing="2" Padding="10" Background="#00000066">
+      <Label Text="VITALS" TextColor="#8FA6C0" />
+      <Label Id="_healthText" Text="Health  150/150" TextColor="#E6DCC8" />
+      <HorizontalProgressBar Id="_healthBar" Width="260" Height="14"
+                             Minimum="0" Maximum="150" Value="150"
+                             Filler="#B03A34" Background="#331A1A" />
+      <Label Id="_staminaText" Text="Stamina  100/100" TextColor="#E6DCC8" />
+      <HorizontalProgressBar Id="_staminaBar" Width="260" Height="10"
+                             Minimum="0" Maximum="100" Value="100"
+                             Filler="#6FA76F" Background="#1A2A1A" />
+    </VerticalStackPanel>
+
     <VerticalStackPanel Id="_controls" HorizontalAlignment="Right" VerticalAlignment="Top"
                         Margin="0,20,24,0" Spacing="2" Padding="10" Background="#00000066">
       <Label Text="CONTROLS" TextColor="#8FA6C0" />

@@ -28,6 +28,8 @@ Boot → MainMenu → Duel → Pause → Options
 
 HUD layout: player bars anchored top-left (health at most 420 × 18, stamina at most 340 × 10, both in a 24 px inset), opponent mirrored top-right, round pips centre-top, banner centred. Bars animate; text is cached; zero allocations per frame. On narrow windows bars shrink with their anchor; they never overlap the centre.
 
+The current dev HUD already has a separate **VITALS** block at the bottom-left (24 px inset): a label above each `HorizontalProgressBar` (`Health 150/150`, `Stamina 88/100`). The bars use the palette's health red and stamina green; a denied power attack appends `POWER DENIED` to the stamina label.
+
 **Input ownership:** blocking screens give Myra all input; the HUD never captures. Closing a screen sets a release latch so the click that resumed the game cannot swing. Losing focus auto-pauses, clears the intent buffer, and latches. `Esc` belongs to the UI.
 
 **Accessibility:** no damage numbers by default; guard break and timed block have non-colour cues; shake toggle; no flashing above 3 Hz.

@@ -18,6 +18,7 @@ public static class SelfTestRunner
 		CleanHit(),
 		BlockedHit(),
 		TimedBlock(),
+		PowerRejected(),
 		GuardBreak(),
 		StaggerInterrupt(),
 		Whiff(),
@@ -67,6 +68,22 @@ public static class SelfTestRunner
 
 		return new SelfTestResult("timed block", outcome == HitOutcome.TimedBlock,
 			$"outcome={outcome}");
+	}
+
+	private static SelfTestResult PowerRejected()
+	{
+		var attack = AttackCatalog.Create(SwordClips.Create())
+			.Single(candidate => candidate.Name == "PowerSlash");
+		var stats = new FighterStats(stamina: 5f);
+		var fsm = new CombatStateMachine();
+
+		var accepted = stats.CanAfford(attack) && fsm.TryStartAttack(attack);
+		var passed = !accepted &&
+					 fsm.State == CombatState.Idle &&
+					 MathF.Abs(stats.Stamina - 5f) < 1e-4f;
+
+		return new SelfTestResult("power rejected", passed,
+			$"accepted={accepted} stamina={stats.Stamina:0.0} state={fsm.State}");
 	}
 
 	private static SelfTestResult GuardBreak()

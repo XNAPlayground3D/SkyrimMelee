@@ -34,6 +34,7 @@ Current scenarios: clean hit, blocked hit, timed block, guard break, stagger int
 | `PH-02` | `PowerSlash` max-speed sweep hits the target torso first, once, at 60 Hz and 10 FPS; no tunneling |
 | `ST-18` | `HitEvent` carries attacker/target/kind/point/normal/attack/progress; one hit per hurtbox per swing; a new swing resets the set |
 | `ST-19` | Guard in front blocks; behind/lowering/body-first are clean; ties favour the guard; a fresh guard is a timed block |
+| `ST-20` | Stamina spend/regen delay, guard freeze, poise regen, and power-attack rejection with no cost or state change |
 | `ST-01/02` | Clean hit lands; attack with no hurtboxes whiffs and recovers |
 | `ST-03/04` | Normal block reduction and drain; timed block at 180 ms after raise |
 | `ST-05` | Power slash into 5 stamina ⇒ guard break, guard removed, 1000 ms stagger |

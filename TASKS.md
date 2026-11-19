@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T4.1`
+> **Next up:** `T4.2`
 
 ---
 
@@ -272,11 +272,13 @@
 
 ## M4 — Combat rules
 
-### [ ] T4.1 — Stats and stamina economy
+### [x] T4.1 — Stats and stamina economy
 **Goal:** stamina is a resource you feel.
 - `FighterStats`: health, max health, stamina, armor rating, two-handed skill, block skill, poise.
 - Regen: 25/s stamina after 0.6 s delay; disabled while blocking; poise regen 25/s after 1 s.
 - Costs charged at wind-up; power attack rejected below cost (with a UI cue); light attacks always allowed.
+- HUD vitals block: a label above each `HorizontalProgressBar` (`Health 150/150`, `Stamina 100/100`); denial appends `POWER DENIED` to the stamina label. The self-test gains a power-rejection scenario.
+- Tests: spend/clamp, regen delay, guard freeze, poise regen/damage reset, reset, rejection.
 
 **Done when:** stamina math is covered by xUnit or self-test assertions; a rejected power attack consumes no stamina and plays no clip.
 
@@ -502,3 +504,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T3.3 — Swing hit events | 2026-11-19 | `c08fb04` | developer |
 | T3.4 — Blade-vs-blade blocks | 2026-11-19 | `28ff76a` | developer |
 | T3.5 — Headless self-test | 2026-11-19 | `0ee29e0` | developer |
+| T4.1 — Stats, stamina, vitals HUD | 2026-11-19 | `PENDING` | developer |
