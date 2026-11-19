@@ -23,6 +23,7 @@ public static class SelfTestRunner
 		PoiseStagger(),
 		Bash(),
 		DefenseOutcomes(),
+		BestOfThree(),
 		GuardBreak(),
 		StaggerInterrupt(),
 		Whiff(),
@@ -193,6 +194,61 @@ public static class SelfTestRunner
 
 		return new SelfTestResult("defense outcomes", passed,
 			$"block={block.Damage.Final} timed={timed.Damage.Final} broken={broken.GuardBroken}");
+	}
+
+	private static SelfTestResult BestOfThree()
+	{
+		var duel = new DuelDirector();
+		var player = new FighterStats();
+		var opponent = new FighterStats();
+		var playerFsm = new CombatStateMachine();
+		var opponentFsm = new CombatStateMachine();
+
+		void Kill(FighterId loser)
+		{
+			if (loser == FighterId.Player)
+			{
+				player.ApplyDamage(999f);
+				playerFsm.Kill();
+			}
+			else
+			{
+				opponent.ApplyDamage(999f);
+				opponentFsm.Kill();
+			}
+
+			duel.ReportDeath(loser);
+		}
+
+		void ResetFighters()
+		{
+			player.Reset();
+			opponent.Reset();
+			playerFsm.Reset();
+			opponentFsm.Reset();
+		}
+
+		Kill(FighterId.Opponent);
+		duel.Update(DuelDirector.PostDeathHold);
+		ResetFighters();
+
+		Kill(FighterId.Player);
+		duel.Update(DuelDirector.PostDeathHold);
+		ResetFighters();
+
+		Kill(FighterId.Opponent);
+		duel.Update(DuelDirector.PostDeathHold);
+
+		var passed = duel.Round == 3 &&
+					 duel.PlayerScore == 2 &&
+					 duel.OpponentScore == 1 &&
+					 duel.Phase == DuelPhase.MatchOver &&
+					 duel.MatchWinner == FighterId.Player &&
+					 opponent.IsDead &&
+					 opponentFsm.State == CombatState.Dead;
+
+		return new SelfTestResult("best of three", passed,
+			$"round={duel.Round} score={duel.PlayerScore}-{duel.OpponentScore} phase={duel.Phase}");
 	}
 
 	private static SelfTestResult GuardBreak()

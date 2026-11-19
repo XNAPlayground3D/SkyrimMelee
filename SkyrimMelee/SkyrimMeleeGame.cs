@@ -66,6 +66,7 @@ public sealed class SkyrimMeleeGame : Game
 	private AttackDefinition? _bashAttack;
 	private readonly CombatStateMachine _combat = new();
 	private readonly CombatStateMachine _opponentCombat = new();
+	private readonly DuelDirector _duel = new();
 	private bool _paused;
 	private double _baseTimeScale = 1.0;
 	private float _swordClipSpeed = 1f;
@@ -349,6 +350,11 @@ public sealed class SkyrimMeleeGame : Game
 			CombatState.GuardHold or CombatState.GuardLower;
 		_playerStats.Update(step, blocking);
 		_opponentStats.Update(step, false);
+
+		if (_duel.Update(step))
+		{
+			ResetRound();
+		}
 	}
 
 	private BladeGeometry? CurrentPlayerBlade()
@@ -378,7 +384,8 @@ public sealed class SkyrimMeleeGame : Game
 			}
 
 			if (hitEvent.Target != FighterId.Opponent ||
-				hitEvent.Hurtbox == HurtboxKind.GuardBlade)
+				hitEvent.Hurtbox == HurtboxKind.GuardBlade ||
+				_opponentStats.IsDead)
 			{
 				continue;
 			}
@@ -391,6 +398,16 @@ public sealed class SkyrimMeleeGame : Game
 			if (stagger.Staggered)
 			{
 				_opponentCombat.ApplyStagger(stagger.Duration);
+			}
+
+			var defense = DefenseResolver.Resolve(
+				hitEvent.Attack, _playerStats, _opponentStats, HitOutcome.Clean);
+			_opponentStats.ApplyDamage(defense.Damage.Final);
+
+			if (_opponentStats.IsDead)
+			{
+				_opponentCombat.Kill();
+				_duel.ReportDeath(FighterId.Opponent);
 			}
 		}
 	}
@@ -761,6 +778,12 @@ public sealed class SkyrimMeleeGame : Game
 
 	private void RestartSwordClip()
 	{
+		_duel.Reset();
+		ResetRound();
+	}
+
+	private void ResetRound()
+	{
 		if (_swordMotion is null || _swordClips.Count == 0)
 		{
 			return;
@@ -1096,6 +1119,7 @@ public sealed class SkyrimMeleeGame : Game
 		_hud.UpdatePause(_paused);
 		_hud.UpdateVitals(_playerStats.Health, _playerStats.MaxHealth,
 			_playerStats.Stamina, _playerStats.MaxStamina, _staminaCue > 0f);
+		_hud.UpdateDuel(_duel.Round, _duel.PlayerScore, _duel.OpponentScore);
 		_overlay?.Update(_clock, _combat, _swordMotion?.Clip?.Name ?? "-",
 			_swordMotion?.NormalizedTime ?? 0f);
 	}

@@ -9,14 +9,14 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 
 ## Project state
 
-**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash, headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, hit-part tint, pause status · **Next:** `T4.5`
+**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM, four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash, headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, hit-part tint, pause status · **Next:** `T5.1`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 157 passing |
+| Tests | ✅ xUnit project, 162 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
@@ -42,6 +42,7 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 | Damage pipeline | ✅ `T4.2` |
 | Poise, stagger & bash | ✅ `T4.3` |
 | Timed block & guard break | ✅ `T4.4` |
+| Death, rounds, reset | ✅ `T4.5` |
 | HUD & menus | ⬜ `T7.1` |
 
 ## Stack

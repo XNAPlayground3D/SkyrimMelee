@@ -94,6 +94,24 @@ public class FighterStatsTests
 	}
 
 	[Fact]
+	public void DamageClampsAtZeroAndDeath()
+	{
+		var stats = new FighterStats();
+
+		stats.ApplyDamage(40f);
+		Assert.Equal(110f, stats.Health, 4);
+		Assert.False(stats.IsDead);
+
+		stats.ApplyDamage(200f);
+		Assert.Equal(0f, stats.Health, 4);
+		Assert.True(stats.IsDead);
+
+		stats.Reset();
+		Assert.Equal(CombatTuning.MaxHealth, stats.Health, 4);
+		Assert.False(stats.IsDead);
+	}
+
+	[Fact]
 	public void ResetRestoresResources()
 	{
 		var stats = new FighterStats(stamina: 10f);

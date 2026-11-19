@@ -18,6 +18,7 @@
     <VerticalStackPanel Id="_vitals" HorizontalAlignment="Left" VerticalAlignment="Bottom"
                         Margin="24,0,0,24" Spacing="2" Padding="10" Background="#00000066">
       <Label Text="VITALS" TextColor="#8FA6C0" />
+      <Label Id="_round" Text="ROUND 1  0 - 0" TextColor="#8FA6C0" />
       <Label Id="_healthText" Text="Health  150/150" TextColor="#E6DCC8" />
       <HorizontalProgressBar Id="_healthBar" Width="260" Height="14"
                              Minimum="0" Maximum="150" Value="150"

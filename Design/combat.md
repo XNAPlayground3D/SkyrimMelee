@@ -76,7 +76,7 @@ Each reaction pairs its sword clip with a `BodyClip` that applies one rigid tran
 
 `BladeGeometry` turns a pose plus hand transform into the world-space grip, blade base, blade tip, and the base/tip radii (local base y = 0.18 m, tip y = 1.47 m, base radius 4.25 cm, tip radius 1.8 cm). The F1 overlay draws the capsule axis and base/tip rings from those values, and the `BladeSweep` uses the same struct. Sampling is shared: no second copy of the blade math. The cut sweeps across the body in the fighter's Z axis, which is the screen plane from the third-person back camera. The blade's broad face is rolled toward the camera on every key so the sweep stays readable. Both hands are part of the sword rig and travel with the hilt; the white primitive body only moves as a rigid reaction pose.
 
-A confirmed contact tints the hit body primitive (head, torso, hips, or legs) for `HitFlashDuration` (180 ms); the same part's `F2` hurtbox outline uses the tint. This is visual feedback only; damage bookkeeping is separate.
+A confirmed contact tints the hit body primitive (head, torso, hips, or legs) for `HitFlashDuration` (300 ms); the same part's `F2` hurtbox outline uses the tint. This is visual feedback only; damage bookkeeping is separate.
 
 | State | Clip | Exits |
 | --- | --- | --- |
@@ -118,7 +118,7 @@ Rounded once at the end (`AwayFromZero`), minimum 1 on any connecting hit. Examp
 
 `DamageModel.Compute` is the single implementation of the formula. It returns a `DamageBreakdown` (kind, raw, armored, final, reduction %, stamina cost); block stamina is `0.6 × armored`, timed block `0.3 × armored`. Damage rounds once with `AwayFromZero`, with a minimum of 1 on any connecting hit.
 
-Each attack owns a `SwingHitSet`. The first contact with a hurtbox produces a `HitEvent` (attacker, target, hurtbox kind, world point, normal, attack definition, active-window progress); later contacts with that same hurtbox in the same swing are ignored. The next attack starts with a clean set. A confirmed hit tints the hit primitive for `HitFlashDuration`. Damage is applied separately.
+Each attack owns a `SwingHitSet`. The first contact with a hurtbox produces a `HitEvent` (attacker, target, hurtbox kind, world point, normal, attack definition, active-window progress); later contacts with that same hurtbox in the same swing are ignored. The next attack starts with a clean set. A confirmed hit tints the hit primitive for `HitFlashDuration` (300 ms). Damage is applied separately.
 
 ## Blocking
 
@@ -165,6 +165,7 @@ Stagger cancels any action and blocks all input, guard included. Damage can stil
 ## Rounds and input
 
 - Best of three, 5 s intro, 3 s post-death hold, full reset between rounds.
+- `DuelDirector` owns the round, score, phase, and match winner. A death scores the round and starts the 3 s hold; the first to 2 wins. A double KO replays the round without score. On a new round the caller resets stats, FSMs, clips, hit sets, and guard shapes.
 - Attack intents buffer for 120 ms; one pending intent, newest wins; blocked/rejected intents are consumed.
 - Guard is level-triggered, never buffered. Input is snapshotted once per simulation tick; UI captures first.
 

@@ -16,6 +16,12 @@ namespace SkyrimMelee.Ui
 			_primitives.Text = $"Primitives  {primitives}";
 		}
 
+		public void UpdateDuel(int round, int playerScore, int opponentScore)
+		{
+			_round.Text = FormattableString.Invariant(
+				$"ROUND {round}  {playerScore} - {opponentScore}");
+		}
+
 		public void UpdateVitals(float health, float maxHealth, float stamina, float maxStamina,
 			bool powerDenied)
 		{

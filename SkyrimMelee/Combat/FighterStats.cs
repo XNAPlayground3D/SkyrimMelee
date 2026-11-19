@@ -29,6 +29,18 @@ public sealed class FighterStats
 
 	public bool IsStaminaRegenerating => _staminaDelay <= 0f;
 
+	public bool IsDead => Health <= 0f;
+
+	public void ApplyDamage(float amount)
+	{
+		if (amount <= 0f)
+		{
+			return;
+		}
+
+		Health = MathF.Max(0f, Health - amount);
+	}
+
 	/// <summary>Power attacks need their full cost; light attacks are always allowed.</summary>
 	public bool CanAfford(AttackDefinition attack) =>
 		!attack.RequiresStamina || Stamina + 1e-4f >= attack.StaminaCost;

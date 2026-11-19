@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T4.5`
+> **Next up:** `T5.1`
 
 ---
 
@@ -313,11 +313,15 @@
 
 **Done when:** all three defensive outcomes (clean hit / block / guard break) are reproducible from the same incoming attack by varying guard timing and stamina.
 
-### [ ] T4.5 — Death, rounds, reset
+### [x] T4.5 — Death, rounds, reset
 **Goal:** a complete duel loop without UI.
 - Health ≤ 0 → death clip, 3 s hold, round scored, fighters reset (stats, clips, shapes, hit sets).
-- Best of three; `DuelDirector` exposes round number, score, and phase.
+- Best of three; `DuelDirector` exposes round number, score, phase, and match winner.
+- A double KO replays the round without score. `R` resets the match.
 - Reset must leave no state behind (verified by running the same scenario twice).
+- The game applies clean-hit damage to the opponent and reports its death; the opponent's independent death animation is deferred to the AI/duel presentation.
+- Tests: best-of-three, draw replay, 3 s hold, reset, health/death clamp; self-test best of three.
+- HUD: round/score line in the VITALS block.
 
 **Done when:** a scripted best-of-three completes correctly; back-to-back duels produce byte-identical self-test output.
 
@@ -515,3 +519,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.2 — Damage pipeline | 2026-11-19 | `0c4d6d4` | developer |
 | T4.3 — Poise, stagger, block bash | 2026-11-20 | `521ebce` | developer |
 | T4.4 — Timed block & guard break | 2026-11-20 | `8f5fc89` | developer |
+| T4.5 — Death, rounds, reset | 2026-11-20 | `PENDING` | developer |
