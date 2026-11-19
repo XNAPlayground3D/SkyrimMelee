@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T1.4`
+> **Next up:** `T2.1`
 
 ---
 
@@ -62,7 +62,7 @@
 **Goal:** the developer can inspect the game from day one.
 - CLI flags: `--debug`, `--god`, `--slowmo`, `--no-ui`, `--self-test` (stub that exits non-zero if assertions aren't implemented yet).
 - Deterministic clock: `GameClock` exposes `FrameIndex`, `SimTime`, `DeltaTime`, `TimeScale`.
-- `Debug/DebugOverlay.cs` scaffold (toggle with `F1`).
+- Debug overlay scaffold (toggle with `F1`).
 
 **Done when:** each flag changes behavior observably; `--self-test` exits 0 with "no tests yet"; README documents the flags.
 
@@ -93,18 +93,30 @@
 - One permanent combat stance pose, mirrored by the root transform, both facing each other at ±1.0 m on X (2.0 m gap).
 - Built as `DrModel` rigs and drawn with `ForwardRenderer.Draw(DrModelInstance, Matrix)`.
 - `FighterVisuals`: distinct palettes (steel-blue vs rust-red), so the two are readable at a glance.
-- Wireframe toggle: `F1` shows the overlay and switches the renderer to wireframe.
+- Wireframe toggle: `F2` switches every mesh to flat, unlit wireframe; `F1` toggles the overlay.
 
 **Done when:** silhouettes read as humanoids from the gameplay camera; no part intersects the floor; toggling wireframe shows the exact primitive decomposition.
 
-### [ ] T1.4 — The greatsword
+### [x] T1.4 — The greatsword
 **Goal:** the star of the show, and its pivot.
 - `GreatswordRig`: blade (long box, slightly tapered by two stacked boxes), fuller (thin inset box), crossguard (box), grip (cylinder), pommel (sphere). Local origin at the grip.
-- Hand pivot node parented to the right hand; sword's local transform is the only animated transform in the whole game.
-- Dev handle: rotate the pivot with arrow keys/`IJKL` to sanity-check reach and framing; `F3` shows a debug gizmo at grip, mid-blade, and tip.
-- Review the off-hand compromise from [Design/architecture](Design/architecture.md#the-two-handed-grip) and either accept it or implement the documented fallback.
+- Hand pivot: the sword attaches to the scale-free `HandR` bone (the hand box is a scaled child bone), so the sword does not inherit the box scale.
+- Dev handle: arrows or `IJKL` rotate yaw/pitch, `Q`/`E` roll; the grip/mid/tip gizmo appears with the `F1` debug overlay.
+- Off-hand compromise reviewed in the default guard pose: accepted. The fallback (hands attached to the sword rig) remains documented.
 
 **Done when:** sword looks like a two-handed greatsword, sits naturally in the right hand, and the dev rotation can sweep it through every pose without clipping the body.
+
+### [x] T1.5 — HUD from Myra markup
+**Goal:** the HUD is authored in Myra markup and exported, not built in C#.
+- `SkyrimMelee/Ui/Hud.xmmp`: two `VerticalStackPanel` blocks — render statistics (FPS, draw calls, primitives) and controls usage; every row is a `Label`.
+- `SkyrimMelee/Ui/DebugOverlay.xmmp`: the F1 debug panel follows the same pattern (a `VerticalStackPanel`, one `Label` per row).
+- Export with `myra-export SkyrimMelee/Ui/Hud.xmmp` and `myra-export SkyrimMelee/Ui/DebugOverlay.xmmp`; commit the manual and generated files.
+- `ForwardRenderer` exposes `DrawCalls` and `PrimitivesDrawn`; the stats block updates live.
+- Panel backgrounds are markup brushes with alpha (`Background="#00000066"`).
+- Unimplemented controls are amber; a muted legend line explains the colour.
+- The F1 debug overlay follows the same markup/export pattern.
+
+**Done when:** both blocks render at native resolution, the stats update live, and no HUD widget is constructed in C#.
 
 ---
 
@@ -159,7 +171,7 @@
 - `CombatWorld` owns one `Simulation` (no gravity), one static floor, and per-fighter static shapes: torso capsule, head sphere, hips capsule.
 - Guard blade registers/unregisters its static capsule as the guard state changes.
 - `HurtboxSet` maps Bepu collidable handles back to `FighterId` + `HurtboxKind`.
-- `F1` wireframe draws every registered shape in world space.
+- `F2` wireframe draws every registered shape in world space.
 
 **Done when:** debug shapes match the rendered statue parts; unregistering the guard removes its collidable without leaking.
 
@@ -412,3 +424,5 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T1.1 — primitive cache + showcase | 2026-11-19 | `80917e4` | developer |
 | T1.2 — arena, camera, forward renderer | 2026-11-19 | `648c0a9` | developer |
 | T1.3 — fighter rigs & palettes | 2026-11-19 | `fa3ce24` | developer |
+| T1.4 — greatswords & hand pivot | 2026-11-19 | _pending_ | developer |
+| T1.5 — HUD + debug markup | 2026-11-19 | _pending_ | developer |

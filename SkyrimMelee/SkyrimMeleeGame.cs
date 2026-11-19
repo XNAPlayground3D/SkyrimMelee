@@ -1,10 +1,8 @@
+using DigitalRiseModel;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Myra;
-using Myra.Graphics2D.UI;
 using SkyrimMelee.Core;
-using SkyrimMelee.Debug;
 using SkyrimMelee.Fighters;
 using SkyrimMelee.Graphics;
 using SkyrimMelee.Ui;
@@ -14,13 +12,6 @@ namespace SkyrimMelee;
 public sealed class SkyrimMeleeGame : Game
 {
 	private static readonly Color BackgroundColor = new(14, 15, 20);
-	private static readonly Color TextColor = new(230, 220, 200);
-
-#if DEBUG
-	private const string BuildConfiguration = "Debug";
-#else
-	private const string BuildConfiguration = "Release";
-#endif
 
 	private readonly GameOptions _options;
 	private readonly GameClock _clock = new();
@@ -28,19 +19,28 @@ public sealed class SkyrimMeleeGame : Game
 	private readonly GraphicsDeviceManager _graphics;
 
 	private MyraHost? _ui;
-	private Label? _debugLabel;
+	private HudPanel? _hud;
 	private DebugOverlay? _overlay;
 	private PrimitiveLibrary? _primitives;
 	private ForwardRenderer? _renderer;
 	private Arena? _arena;
 	private FighterRig? _player;
 	private FighterRig? _opponent;
+	private GreatswordRig? _playerSword;
+	private GreatswordRig? _opponentSword;
+	private DrMaterial? _gizmoGrip;
+	private DrMaterial? _gizmoMid;
+	private DrMaterial? _gizmoTip;
 	private ScreenGradient? _backdrop;
+	private float _swordYaw;
+	private float _swordPitch = 0.18f;
+	private float _swordRoll = -0.85f;
 	private float _fps;
 	private double _fpsWindowTime;
 	private int _fpsWindowFrames;
 	private double _labelTimer;
 	private bool _f1WasDown;
+	private bool _f2WasDown;
 
 	public SkyrimMeleeGame(GameOptions options)
 	{
@@ -80,24 +80,12 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			_ui = new MyraHost(this);
 
-			_debugLabel = new Label
-			{
-				Text = "SkyrimMelee",
-				Font = DefaultAssets.DebugFontSystem.GetFont(20),
-				TextColor = TextColor,
-				HorizontalAlignment = HorizontalAlignment.Left,
-				VerticalAlignment = VerticalAlignment.Top,
-				Left = 24,
-				Top = 20
-			};
-
+			_hud = new HudPanel();
 			_overlay = new DebugOverlay(_options);
 			_overlay.Visible = _options.Debug;
+			_hud.Widgets.Add(_overlay);
 
-			var root = new Panel();
-			root.Widgets.Add(_debugLabel);
-			root.Widgets.Add(_overlay.Widget);
-			_ui.Root = root;
+			_ui.Root = _hud;
 		}
 
 		_primitives = new PrimitiveLibrary(GraphicsDevice);
@@ -105,6 +93,13 @@ public sealed class SkyrimMeleeGame : Game
 		_arena = new Arena(_primitives);
 		_player = new FighterRig(_primitives, FighterVisuals.Player, new Vector3(-1f, 0f, 0f), 0f);
 		_opponent = new FighterRig(_primitives, FighterVisuals.Opponent, new Vector3(1f, 0f, 0f), MathHelper.Pi);
+		_playerSword = new GreatswordRig(_primitives);
+		_opponentSword = new GreatswordRig(_primitives);
+		_gizmoGrip = _primitives.CreateMaterial(new Color(0xFF, 0x6B, 0x4A));
+		_gizmoMid = _primitives.CreateMaterial(new Color(0x9F, 0xD8, 0xFF));
+		_gizmoTip = _primitives.CreateMaterial(new Color(0xFF, 0xD2, 0x7A));
+		UpdateSwordPivot();
+
 		_backdrop = new ScreenGradient(GraphicsDevice);
 		_camera.Update(_clock.SimTime, 0f);
 
@@ -113,6 +108,12 @@ public sealed class SkyrimMeleeGame : Game
 
 	protected override void UnloadContent()
 	{
+		_playerSword?.Dispose();
+		_playerSword = null;
+
+		_opponentSword?.Dispose();
+		_opponentSword = null;
+
 		_player?.Dispose();
 		_player = null;
 
@@ -150,17 +151,21 @@ public sealed class SkyrimMeleeGame : Game
 		if (f1Down && !_f1WasDown)
 		{
 			_overlay?.Toggle();
-
-			if (_renderer is not null)
-			{
-				_renderer.Wireframe = _overlay?.Visible == true;
-			}
 		}
 
 		_f1WasDown = f1Down;
 
+		var f2Down = keyboard.IsKeyDown(Keys.F2);
+		if (f2Down && !_f2WasDown && _renderer is not null)
+		{
+			_renderer.Wireframe = !_renderer.Wireframe;
+		}
+
+		_f2WasDown = f2Down;
+
 		var elapsed = gameTime.ElapsedGameTime.TotalSeconds;
 		UpdateFps(elapsed);
+		UpdateSwordPivotInput(keyboard, (float)elapsed);
 
 		var steps = _clock.Advance(elapsed);
 		for (var i = 0; i < steps; i++)
@@ -200,21 +205,90 @@ public sealed class SkyrimMeleeGame : Game
 		_fpsWindowFrames = 0;
 	}
 
-	private void UpdateDebugText()
+	private void UpdateSwordPivotInput(KeyboardState keyboard, float elapsed)
 	{
-		if (_debugLabel is null || _ui is null)
+		const float rate = 1.6f;
+
+		if (keyboard.IsKeyDown(Keys.Left) || keyboard.IsKeyDown(Keys.J))
+		{
+			_swordYaw -= rate * elapsed;
+		}
+
+		if (keyboard.IsKeyDown(Keys.Right) || keyboard.IsKeyDown(Keys.L))
+		{
+			_swordYaw += rate * elapsed;
+		}
+
+		if (keyboard.IsKeyDown(Keys.Up) || keyboard.IsKeyDown(Keys.I))
+		{
+			_swordPitch -= rate * elapsed;
+		}
+
+		if (keyboard.IsKeyDown(Keys.Down) || keyboard.IsKeyDown(Keys.K))
+		{
+			_swordPitch += rate * elapsed;
+		}
+
+		if (keyboard.IsKeyDown(Keys.Q))
+		{
+			_swordRoll += rate * elapsed;
+		}
+
+		if (keyboard.IsKeyDown(Keys.E))
+		{
+			_swordRoll -= rate * elapsed;
+		}
+
+		UpdateSwordPivot();
+	}
+
+	private void UpdateSwordPivot()
+	{
+		var pivot = Matrix.CreateFromYawPitchRoll(_swordYaw, _swordPitch, _swordRoll);
+
+		if (_playerSword is not null)
+		{
+			_playerSword.Pivot = pivot;
+		}
+
+		if (_opponentSword is not null)
+		{
+			_opponentSword.Pivot = pivot;
+		}
+	}
+
+	private void DrawSwordGizmo(GreatswordRig sword, Matrix swordWorld)
+	{
+		if (_overlay?.Visible != true)
 		{
 			return;
 		}
 
-		var width = GraphicsDevice.PresentationParameters.BackBufferWidth;
-		var height = GraphicsDevice.PresentationParameters.BackBufferHeight;
-		var driftMs = _clock.Drift * 1000.0;
-		var god = _options.GodMode ? "  |  god" : string.Empty;
+		DrawSwordMarker(swordWorld, Vector3.Zero, _gizmoGrip);
+		DrawSwordMarker(swordWorld, new Vector3(0f, 0.8f, 0f), _gizmoMid);
+		DrawSwordMarker(swordWorld, new Vector3(0f, GreatswordRig.BladeTipY, 0f), _gizmoTip);
+	}
 
-		_debugLabel.Text = FormattableString.Invariant(
-			$"SkyrimMelee  |  {BuildConfiguration}  |  {_fps:0.0} FPS\n{width}x{height}  |  sim {_clock.FrameIndex}  |  {_clock.TimeScale:0.00}x  |  drift {driftMs:+0.0;-0.0;0.0} ms  |  dropped {_clock.TotalDroppedSteps}{god}");
+	private void DrawSwordMarker(Matrix swordWorld, Vector3 localPosition, DrMaterial? material)
+	{
+		if (_renderer is null || _primitives is null || material is null)
+		{
+			return;
+		}
 
+		var world = Matrix.CreateScale(0.06f) *
+					Matrix.CreateTranslation(Vector3.Transform(localPosition, swordWorld));
+		_renderer.Draw(_primitives.Sphere, material, world);
+	}
+
+	private void UpdateDebugText()
+	{
+		if (_hud is null)
+		{
+			return;
+		}
+
+		_hud.UpdateStats(_fps, _renderer?.DrawCalls ?? 0, _renderer?.PrimitivesDrawn ?? 0);
 		_overlay?.Update(_clock);
 	}
 
@@ -235,11 +309,25 @@ public sealed class SkyrimMeleeGame : Game
 			if (_player is not null)
 			{
 				_renderer.Draw(_player.Instance, _player.Transform);
+
+				if (_playerSword is not null)
+				{
+					var swordWorld = _playerSword.GetWorld(_player.GetRightHandTransform());
+					_renderer.Draw(_playerSword.Instance, swordWorld);
+					DrawSwordGizmo(_playerSword, swordWorld);
+				}
 			}
 
 			if (_opponent is not null)
 			{
 				_renderer.Draw(_opponent.Instance, _opponent.Transform);
+
+				if (_opponentSword is not null)
+				{
+					var swordWorld = _opponentSword.GetWorld(_opponent.GetRightHandTransform());
+					_renderer.Draw(_opponentSword.Instance, swordWorld);
+					DrawSwordGizmo(_opponentSword, swordWorld);
+				}
 			}
 
 			_renderer.End();

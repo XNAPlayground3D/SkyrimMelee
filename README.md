@@ -9,7 +9,7 @@ A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the 
 
 ## Project state
 
-**Last updated:** 2026-11-19 · **Phase:** 1 — fighters · **Code:** solution, clock, Myra, renderer, arena, camera, fighter rigs · **Next:** `T1.4`
+**Last updated:** 2026-11-19 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, camera, fighters, greatswords, HUD · **Next:** `T2.1`
 
 | Area | State |
 | --- | --- |
@@ -22,6 +22,8 @@ A Skyrim-inspired greatsword duel between two humanoids — with a twist: **the 
 | Primitive library & showcase | ✅ `T1.1` |
 | Arena & camera | ✅ `T1.2` |
 | Fighter rigs & palettes | ✅ `T1.3` |
+| Greatswords & hand pivot | ✅ `T1.4` |
+| HUD from Myra markup | ✅ `T1.5` |
 | Sword motion & combat | ⬜ `T2.1` / `T4.1` |
 | Physics hit detection | ⬜ `T3.1` |
 | HUD & menus | ⬜ `T7.1` |
@@ -52,7 +54,9 @@ dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # headless 
 
 `--debug` (overlay on launch) · `--god` · `--slowmo` · `--no-ui` · `--self-test` · `--help`
 
-**Controls:** `LMB` slash · `Shift+LMB` power slash · `1`/`2`/`3` forced arcs · `RMB` hold to block · `Esc` pause · `F1` debug · `F2` slow motion · `F5` reset duel.
+UI markup lives in `SkyrimMelee/Ui/Hud.xmmp` and `DebugOverlay.xmmp`; after editing, run `myra-export <file>.xmmp`.
+
+**Controls:** `LMB` slash · `Shift+LMB` power slash · `1`/`2`/`3` forced arcs · `RMB` block · `F1` debug overlay · `F2` wireframe · `Esc` quit.
 
 ## License
 

@@ -54,10 +54,10 @@ Then, depending on what the task touched:
 | Rendering / visuals | Run the game, look at it. Check the new visuals from every camera preset. Check resize and alt-tab. |
 | Combat logic | Run `--self-test`; add or extend scenarios so the new behavior is asserted. Run it twice — results must match. |
 | Pure logic / math | Add or extend xUnit tests in `SkyrimMelee.Tests`; `dotnet test` must pass. |
-| Physics | Verify with `F1` shape visualization that physics shapes match rendered geometry. Test at 60 FPS and with a simulated low frame rate. |
+| Physics | Verify with `F2` wireframe that physics shapes match rendered geometry. Test at 60 FPS and with a simulated low frame rate. |
 | UI | Exercise every new screen with mouse **and** keyboard. Check that clicks don't leak into gameplay. |
 | Input | Test the rejection paths (insufficient stamina, mid-recovery, UI open), not just the happy path. |
-| Timings / tuning | Verify slow motion (`F2`) and that constants match `CombatTuning.cs`. |
+| Timings / tuning | Verify slow motion (`--slowmo`) and that constants match `CombatTuning.cs`. |
 
 Rules for test claims:
 
@@ -166,6 +166,7 @@ A task is done only when **all** of these are true:
 
 - C# latest, nullable enabled, file-scoped namespaces, one public type per file.
 - **Tabs for indentation in C#** (`.editorconfig` enforces it); project/XML files keep the SDK's two-space style.
+- **HUD and debug layouts live in `.xmmp`** and are exported with `myra-export`; never build HUD widgets in C#. Re-export after markup changes and commit both `*.cs` and `*.Generated.cs`.
 - Namespace root `SkyrimMelee`; folder structure mirrors namespaces.
 - Gameplay data as `record`/`readonly struct`; avoid mutable static state.
 - `CombatTuning.cs` is the single source of truth for every timing, cost, multiplier, and threshold. If you need a new number, add it there with a comment.

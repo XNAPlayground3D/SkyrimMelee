@@ -1,0 +1,14 @@
+<Project>
+  <Project.ExportOptions Namespace="SkyrimMelee.Ui" Class="DebugOverlay" />
+  <VerticalStackPanel Left="24" Top="180" HorizontalAlignment="Left" VerticalAlignment="Top"
+                      Spacing="2" Padding="10" Background="#00000066" Visible="False">
+    <Label Text="DEBUG" TextColor="#8FA6C0" />
+    <Label Id="_frame" Text="frame 0" TextColor="#9FD8FF" />
+    <Label Id="_sim" Text="sim 0.000 s" TextColor="#9FD8FF" />
+    <Label Id="_dt" Text="dt 16.67 ms" TextColor="#9FD8FF" />
+    <Label Id="_scale" Text="scale 1.00x" TextColor="#9FD8FF" />
+    <Label Id="_acc" Text="acc 0.0 ms" TextColor="#9FD8FF" />
+    <Label Id="_dropped" Text="dropped 0" TextColor="#9FD8FF" />
+    <Label Id="_mode" Text="mode" TextColor="#9FD8FF" />
+  </VerticalStackPanel>
+</Project>

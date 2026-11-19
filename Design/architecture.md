@@ -16,8 +16,8 @@ SkyrimMelee/
   Physics/    CombatWorld, HurtboxSet, BladeSweep, HitResolver
   Input/      InputRouter, PlayerController
   Ai/         DuelistAi, AiProfile
-  Ui/         MyraHost, Menu/Pause/Result screens, HudScreen, UiSkin
-  Debug/      DebugOverlay, HeadlessSelfTest
+  Ui/         MyraHost, Hud.xmmp, HudPanel, DebugOverlay.xmmp, DebugOverlay, UiSkin
+  Debug/      HeadlessSelfTest
 SkyrimMelee.Tests/
   FixedStepLoopTests.cs      xUnit tests for pure logic
 ```
@@ -62,7 +62,7 @@ The arena is a `DrModel`: a root bone plus one bone/mesh per item (floor, each r
 
 **Statue** (~1.78 m, 14 parts): head sphere, neck/chest/abdomen/pelvis boxes, arm and leg capsules, hand and boot boxes, permanent bladed stance, right hand owns the sword pivot. Fighters are `DrModel` rigs in local space (+X forward, +Z side) placed by a root transform; palettes come from `FighterVisuals`.
 
-**Greatsword** (1.64 m): grip cylinder, pommel sphere, crossguard box, two tapered blade boxes, cone tip, inset fuller. Local origin at the grip, blade along `+Y`, reach 1.47 m.
+**Greatsword** (1.47 m blade reach): grip cylinder, pommel sphere, crossguard box, two tapered blade boxes, cone tip, inset fuller. Local origin at the grip, blade along `+Y`. It attaches to the scale-free `HandR` bone; the grip-relative `Pivot` is the only animated transform in the game.
 
 ### The two-handed grip
 
@@ -104,4 +104,4 @@ The guard hitbox is frozen when the guard completes; the 1.2° visual breathing 
 
 `GameClock` owns `FrameIndex`, `SimTime`, fixed `DeltaTime`, `TimeScale`, real/scaled time, accumulator and dropped steps. Slow motion scales incoming time, never the step duration.
 
-`F1` draws hurtboxes, the blade sphere chain, the last 20 swept segments, contact points and normals, plus the rejection reason for any ignored contact.
+`F1` toggles the debug overlay; `F2` toggles flat wireframe. The overlay draws hurtboxes, the blade sphere chain, the last 20 swept segments, contact points and normals, plus the rejection reason for any ignored contact.

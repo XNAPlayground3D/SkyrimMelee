@@ -40,6 +40,27 @@ public static class FighterRigBuilder
 				(start + end) * 0.5f, Vector3.One, RotationFromY(delta));
 		}
 
+		// A scale-free hand pivot with the hand box as a scaled child, so attached
+		// objects (the sword) do not inherit the box scale.
+		void AddHand(string name, Vector3 position)
+		{
+			var part = primitives.Box.Clone();
+			part.Material = skin;
+
+			var boxMesh = new DrMesh(part) { Name = name + "Box" };
+			var boxBone = new DrModelBone(name + "Box", boxMesh)
+			{
+				DefaultPose = new SrtTransform(Vector3.Zero, Quaternion.Identity,
+					new Vector3(0.09f, 0.13f, 0.07f))
+			};
+
+			bones.Add(new DrModelBone(name)
+			{
+				DefaultPose = new SrtTransform(position, Quaternion.Identity, Vector3.One),
+				Children = new[] { boxBone }
+			});
+		}
+
 		// Head and torso. The camera sees the fighters in profile, so keep some chest depth on X.
 		Add("Head", primitives.Sphere, skin, new Vector3(0f, 1.67f, 0f), new Vector3(0.21f));
 		Add("Neck", primitives.Cylinder, skin, new Vector3(0f, 1.55f, 0f), new Vector3(0.10f, 0.09f, 0.10f));
@@ -53,8 +74,7 @@ public static class FighterRigBuilder
 		var wristR = new Vector3(0.50f, 1.00f, -0.26f);
 		AddSegment("UpperArmR", shoulderR, elbowR, 0.06f, cloth);
 		AddSegment("ForearmR", elbowR, wristR, 0.05f, cloth);
-		Add("HandR", primitives.Box, skin,
-			wristR + new Vector3(0.04f, -0.02f, 0f), new Vector3(0.09f, 0.13f, 0.07f));
+		AddHand("HandR", wristR + new Vector3(0.04f, -0.02f, 0f));
 
 		// Left arm braces across the torso; it does not grip the hilt.
 		var shoulderL = new Vector3(0.02f, 1.46f, 0.24f);
@@ -62,8 +82,7 @@ public static class FighterRigBuilder
 		var wristL = new Vector3(0.40f, 1.02f, -0.02f);
 		AddSegment("UpperArmL", shoulderL, elbowL, 0.06f, cloth);
 		AddSegment("ForearmL", elbowL, wristL, 0.05f, cloth);
-		Add("HandL", primitives.Box, skin,
-			wristL + new Vector3(0.04f, -0.02f, 0f), new Vector3(0.09f, 0.13f, 0.07f));
+		AddHand("HandL", wristL + new Vector3(0.04f, -0.02f, 0f));
 
 		// Legs in a bladed stance: left foot forward, right foot back.
 		var hipL = new Vector3(0f, 0.90f, 0.11f);

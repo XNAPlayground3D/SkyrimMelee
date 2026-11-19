@@ -1,0 +1,29 @@
+<Project>
+  <Project.ExportOptions Namespace="SkyrimMelee.Ui" Class="HudPanel" />
+  <Panel>
+    <VerticalStackPanel Id="_renderStats" Left="24" Top="20"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Spacing="2" Padding="10" Background="#00000066">
+      <Label Text="RENDER" TextColor="#8FA6C0" />
+      <Label Id="_fps" Text="FPS  0.0" TextColor="#E6DCC8" />
+      <Label Id="_drawCalls" Text="Draw calls  0" TextColor="#E6DCC8" />
+      <Label Id="_primitives" Text="Primitives  0" TextColor="#E6DCC8" />
+    </VerticalStackPanel>
+
+    <VerticalStackPanel Id="_controls" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="0,20,24,0" Spacing="2" Padding="10" Background="#00000066">
+      <Label Text="CONTROLS" TextColor="#8FA6C0" />
+      <Label Text="amber = not yet implemented" TextColor="#7A7A86" />
+      <Label Text="LMB              Slash" TextColor="#C9A24B" />
+      <Label Text="Shift + LMB      Power slash" TextColor="#C9A24B" />
+      <Label Text="1 / 2 / 3        Left / right / overhead" TextColor="#C9A24B" />
+      <Label Text="Shift + 3        Power overhead" TextColor="#C9A24B" />
+      <Label Text="RMB (hold)       Block" TextColor="#C9A24B" />
+      <Label Text="Arrows / IJKL    Sword pose (dev)" TextColor="#E6DCC8" />
+      <Label Text="Q / E            Sword roll (dev)" TextColor="#E6DCC8" />
+      <Label Text="F1               Debug overlay" TextColor="#E6DCC8" />
+      <Label Text="F2               Wireframe" TextColor="#E6DCC8" />
+      <Label Text="Esc              Quit" TextColor="#E6DCC8" />
+    </VerticalStackPanel>
+  </Panel>
+</Project>

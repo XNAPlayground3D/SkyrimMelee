@@ -15,7 +15,7 @@ public sealed class ForwardRenderer : IDisposable
 	private static readonly RasterizerState CullOff = new() { CullMode = CullMode.None };
 	private static readonly RasterizerState WireframeState = new()
 	{
-		CullMode = CullMode.None,
+		CullMode = CullMode.CullCounterClockwiseFace,
 		FillMode = FillMode.WireFrame
 	};
 
@@ -28,6 +28,12 @@ public sealed class ForwardRenderer : IDisposable
 
 	/// <summary>Debug wireframe mode, toggled with the overlay.</summary>
 	public bool Wireframe { get; set; }
+
+	/// <summary>Draw calls issued in the last frame.</summary>
+	public int DrawCalls { get; private set; }
+
+	/// <summary>Mesh primitives (triangles or lines) submitted in the last frame.</summary>
+	public int PrimitivesDrawn { get; private set; }
 
 	public ForwardRenderer(GraphicsDevice device)
 	{
@@ -57,6 +63,9 @@ public sealed class ForwardRenderer : IDisposable
 
 	public void Begin(Matrix view, Matrix projection)
 	{
+		DrawCalls = 0;
+		PrimitivesDrawn = 0;
+
 		_view = view;
 		_projection = projection;
 
@@ -96,23 +105,34 @@ public sealed class ForwardRenderer : IDisposable
 	public void Draw(DrMeshPart part, DrMaterial material, Matrix world,
 		CullMode cullMode = CullMode.CullCounterClockwiseFace)
 	{
-		_device.RasterizerState = Wireframe
-			? WireframeState
-			: cullMode switch
+		if (Wireframe)
+		{
+			// Flat, unlit wireframe: dense primitive meshes still read as a cage, not a solid surface.
+			_device.RasterizerState = WireframeState;
+			_unlit.World = world;
+			_unlit.View = _view;
+			_unlit.Projection = _projection;
+			_unlit.DiffuseColor = new Vector3(0.75f, 0.90f, 1f);
+			_unlit.CurrentTechnique.Passes[0].Apply();
+		}
+		else
+		{
+			_device.RasterizerState = cullMode switch
 			{
 				CullMode.None => CullOff,
 				CullMode.CullClockwiseFace => CullFront,
 				_ => CullBack
 			};
 
-		_lit.World = world;
-		_lit.View = _view;
-		_lit.Projection = _projection;
-		_lit.DiffuseColor = material.DiffuseColor.ToVector3();
-		_lit.SpecularColor = material.SpecularColor.ToVector3();
-		_lit.SpecularPower = material.Shininess > 0f ? material.Shininess : 16f;
-		_lit.EmissiveColor = material.EmissiveColor.ToVector3();
-		_lit.CurrentTechnique.Passes[0].Apply();
+			_lit.World = world;
+			_lit.View = _view;
+			_lit.Projection = _projection;
+			_lit.DiffuseColor = material.DiffuseColor.ToVector3();
+			_lit.SpecularColor = material.SpecularColor.ToVector3();
+			_lit.SpecularPower = material.Shininess > 0f ? material.Shininess : 16f;
+			_lit.EmissiveColor = material.EmissiveColor.ToVector3();
+			_lit.CurrentTechnique.Passes[0].Apply();
+		}
 
 		DrawPart(part);
 	}
@@ -145,6 +165,9 @@ public sealed class ForwardRenderer : IDisposable
 
 	private void DrawPart(DrMeshPart part)
 	{
+		DrawCalls++;
+		PrimitivesDrawn += part.PrimitiveCount;
+
 		_device.SetVertexBuffer(part.VertexBuffer);
 		_device.Indices = part.IndexBuffer;
 		_device.DrawIndexedPrimitives(
