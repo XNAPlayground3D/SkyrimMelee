@@ -16,6 +16,9 @@
           <Button Id="_options" HorizontalAlignment="Center">
             <Label Id="_optionsText" Text="Options" HorizontalAlignment="Center" />
           </Button>
+          <Button Id="_rules" HorizontalAlignment="Center">
+            <Label Id="_rulesText" Text="Rules" HorizontalAlignment="Center" />
+          </Button>
           <Button Id="_quit" HorizontalAlignment="Center">
             <Label Id="_quitText" Text="Quit" HorizontalAlignment="Center" />
           </Button>
@@ -31,6 +34,19 @@
         </HorizontalStackPanel>
         <Label Id="_difficultyHint" Text="difficulty" HorizontalAlignment="Center" />
         <Label Id="_hint" Text="up / down select    enter confirm" HorizontalAlignment="Center" Margin="0,26,0,0" />
+      </VerticalStackPanel>
+    </Panel>
+    <Panel Id="_rulesContent" Visible="False" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <VerticalStackPanel Spacing="2">
+        <Label Id="_rulesTitle" Text="RULES" HorizontalAlignment="Center" />
+        <ScrollViewer Id="_rulesScroll" Width="1040" Height="340" Margin="0,18,0,0" HorizontalAlignment="Center">
+          <Label Id="_rulesBody" Width="1000" TextAlign="Center" Wrap="True" VerticalSpacing="4"
+                 Text="Best of three: the first fighter to win two rounds takes the duel.&#10;LMB tap swings; tap again during the follow-through to chain the other side.&#10;Hold LMB for a power slash: slower, heavier, and it always staggers.&#10;Hold RMB to block. A guard raised in the last 0.25 s is a timed block.&#10;Blocking spends stamina. At zero stamina the guard breaks and you stagger.&#10;Bash with B, or LMB while blocking, to interrupt an attack or shove a guard.&#10;Attacks spend stamina: 12 for a slash, 30 for a power slash, 15 for a bash.&#10;With no stamina a power slash becomes a light slash; the stamina bar flashes.&#10;Health potions appear on the arena rim; walk over one to restore 35 health.&#10;WASD move · Mouse look · Wheel zoom · F first/third person&#10;Esc pause · F1 debug · F2 wireframe · F3 camera preset" />
+        </ScrollViewer>
+        <Button Id="_rulesBack" HorizontalAlignment="Center" Margin="0,20,0,0">
+          <Label Id="_rulesBackText" Text="Back" HorizontalAlignment="Center" />
+        </Button>
+        <Label Id="_rulesHint" Text="esc back" HorizontalAlignment="Center" Margin="0,14,0,0" />
       </VerticalStackPanel>
     </Panel>
     <Panel Id="_optionsContent" Visible="False" HorizontalAlignment="Center" VerticalAlignment="Center">

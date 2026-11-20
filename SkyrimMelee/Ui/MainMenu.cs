@@ -8,6 +8,7 @@ namespace SkyrimMelee.Ui
 	{
 		private readonly List<Widget> _menuOrder = new();
 		private readonly List<Widget> _optionOrder = new();
+		private readonly List<Widget> _rulesOrder = new();
 		private readonly Dictionary<Widget, Action> _actions = new();
 		private readonly GameSettings _settings;
 		private Desktop? _desktop;
@@ -29,7 +30,10 @@ namespace SkyrimMelee.Ui
 
 		public AiProfile Profile => _settings.Difficulty;
 
-		public bool OptionsOpen => _optionsContent.Visible; 
+		public bool OptionsOpen => _optionsContent.Visible;
+
+		public bool RulesOpen => _rulesContent.Visible;
+
 		public void Attach(Desktop desktop)
 		{
 			_desktop = desktop;
@@ -42,6 +46,7 @@ namespace SkyrimMelee.Ui
 		{
 			_menuContent.Visible = true;
 			_optionsContent.Visible = false;
+			_rulesContent.Visible = false;
 			UpdateProfileLabels();
 			UpdateSettingLabels();
 		}
@@ -73,7 +78,11 @@ namespace SkyrimMelee.Ui
 
 		public void Back()
 		{
-			if (OptionsOpen)
+			if (RulesOpen)
+			{
+				CloseRules();
+			}
+			else if (OptionsOpen)
 			{
 				CloseOptions();
 			}
@@ -88,11 +97,15 @@ namespace SkyrimMelee.Ui
 			UiSkin.StyleLabel(_difficulty, UiSkin.BodyFont, UiSkin.Parchment);
 			UiSkin.StyleLabel(_optionsTitle, UiSkin.HeadingFont, UiSkin.Parchment);
 			UiSkin.StyleLabel(_optionsHint, UiSkin.SmallFont, UiSkin.Muted);
+			UiSkin.StyleLabel(_rulesTitle, UiSkin.HeadingFont, UiSkin.Parchment);
+			UiSkin.StyleLabel(_rulesHint, UiSkin.SmallFont, UiSkin.Muted);
+			UiSkin.StyleLabel(_rulesBody, UiSkin.BodyFont, UiSkin.Parchment);
 
 			foreach (var button in new[]
 					 {
-						 _duel, _practice, _options, _quit,
+						 _duel, _practice, _options, _rules, _quit,
 						 _optionsDifficulty, _screenShake, _debugOverlay, _back,
+						 _rulesBack
 					 })
 			{
 				UiSkin.StyleButton(button);
@@ -105,17 +118,19 @@ namespace SkyrimMelee.Ui
 
 			_menuOrder.AddRange(new Widget[]
 			{
-				_duel, _practice, _options, _quit,
+				_duel, _practice, _options, _rules, _quit,
 				_previousDifficulty, _nextDifficulty
 			});
 			_optionOrder.AddRange(new Widget[]
 			{
 				_optionsDifficulty, _screenShake, _debugOverlay, _back
 			});
+			_rulesOrder.Add(_rulesBack);
 
 			_actions[_duel] = () => DuelSelected?.Invoke();
 			_actions[_practice] = () => PracticeSelected?.Invoke();
 			_actions[_options] = OpenOptions;
+			_actions[_rules] = OpenRules;
 			_actions[_quit] = () => QuitSelected?.Invoke();
 			_actions[_previousDifficulty] = () => CycleProfile(-1);
 			_actions[_nextDifficulty] = () => CycleProfile(1);
@@ -123,6 +138,7 @@ namespace SkyrimMelee.Ui
 			_actions[_screenShake] = ToggleShake;
 			_actions[_debugOverlay] = ToggleDebug;
 			_actions[_back] = CloseOptions;
+			_actions[_rulesBack] = CloseRules;
 		}
 
 		private void Wire()
@@ -130,6 +146,7 @@ namespace SkyrimMelee.Ui
 			_duel.Click += (_, _) => DuelSelected?.Invoke();
 			_practice.Click += (_, _) => PracticeSelected?.Invoke();
 			_options.Click += (_, _) => OpenOptions();
+			_rules.Click += (_, _) => OpenRules();
 			_quit.Click += (_, _) => QuitSelected?.Invoke();
 			_previousDifficulty.Click += (_, _) => CycleProfile(-1);
 			_nextDifficulty.Click += (_, _) => CycleProfile(1);
@@ -137,14 +154,31 @@ namespace SkyrimMelee.Ui
 			_screenShake.Click += (_, _) => ToggleShake();
 			_debugOverlay.Click += (_, _) => ToggleDebug();
 			_back.Click += (_, _) => CloseOptions();
+			_rulesBack.Click += (_, _) => CloseRules();
 		}
 
 		private void OpenOptions()
 		{
 			_menuContent.Visible = false;
+			_rulesContent.Visible = false;
 			_optionsContent.Visible = true;
 			UpdateProfileLabels();
 			_optionOrder[0].SetKeyboardFocus();
+		}
+
+		private void OpenRules()
+		{
+			_menuContent.Visible = false;
+			_optionsContent.Visible = false;
+			_rulesContent.Visible = true;
+			_rulesBack.SetKeyboardFocus();
+		}
+
+		private void CloseRules()
+		{
+			_rulesContent.Visible = false;
+			_menuContent.Visible = true;
+			_rules.SetKeyboardFocus();
 		}
 
 		private void CloseOptions()

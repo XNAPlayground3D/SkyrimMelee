@@ -22,7 +22,8 @@ Boot → MainMenu → Duel → Pause → Options
 
 | Screen | Contents |
 | --- | --- |
-| Main menu | Title, Duel, Practice, Options, Quit, difficulty |
+| Main menu | Title, Duel, Practice, Options, Rules, Quit, difficulty |
+| Rules | Best-of-three, slash/combo, power slash, block/timed block, guard break, bash, stamina, potions, controls; Back |
 | HUD | Health (with delayed damage ghost), stamina, names, round pips, centre banner |
 | Pause | Resume, Options, Quit to menu; simulation fully frozen |
 | Results | Outcome, score, hits, damage, blocks, timed blocks, guard breaks, Rematch |

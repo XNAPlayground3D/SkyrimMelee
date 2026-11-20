@@ -9,7 +9,7 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 
 ## Project state
 
-**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM (top-level Tuning, Animation, Physics, Attacks, Combat, SelfTest), four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash (interrupt-only stagger), headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, input buffer, WASD movement and follow camera, move-while-attacking/guarding (bash roots the fighter), alternating slash combo, Skyrim stamina gate, player-only sword motion, opponent hit/death reactions, whole-body hit flash, first/third person with wheel zoom, damage-scaled camera shake, F3 presets, debug overlay v2 (blade trail, contact marker, live tuning), reactive opponent AI (chase, guard, attack, punish), incoming attacks, 35° guard cone, difficulty profiles (Novice default, Adept, Master), headless AI duels, AI decision log and fight stats, main menu (Duel/Practice/Options/Quit), UiSkin with focus ring, practice mode, fade transitions, fight HUD (health ghost, stamina, round pips, banners), arena health potions, pause/options/results with session settings, pause status · **Next:** `T7.4`
+**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM (top-level Tuning, Animation, Physics, Attacks, Combat, SelfTest), four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash (interrupt-only stagger), headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, input buffer, WASD movement and follow camera, move-while-attacking/guarding (bash roots the fighter), alternating slash combo, Skyrim stamina gate, player-only sword motion, opponent hit/death reactions, whole-body hit flash, first/third person with wheel zoom, damage-scaled camera shake, F3 presets, debug overlay v2 (blade trail, contact marker, live tuning), reactive opponent AI (chase, guard, attack, punish), incoming attacks, 35° guard cone, difficulty profiles (Novice default, Adept, Master), headless AI duels, AI decision log and fight stats, main menu (Duel/Practice/Options/Rules/Quit), UiSkin with focus ring, practice mode, fade transitions, fight HUD (health ghost, stamina, round pips, banners), arena health potions, pause/options/results with session settings, rules screen, pause status · **Next:** `T7.4`
 
 | Area | State |
 | --- | --- |
@@ -57,6 +57,7 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 | Fight HUD | ✅ `T7.2` |
 | Arena potions | ✅ `T6.4` |
 | Pause, options & results | ✅ `T7.3` |
+| Rules screen | ✅ `T7.5` |
 
 ## Stack
 

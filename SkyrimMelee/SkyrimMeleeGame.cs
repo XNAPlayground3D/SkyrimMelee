@@ -573,7 +573,7 @@ public sealed class SkyrimMeleeGame : Game
 				_menu.Back();
 			}
 
-			if (!_menu.OptionsOpen)
+			if (!_menu.OptionsOpen && !_menu.RulesOpen)
 			{
 				if (Pressed(keyboard, Keys.Left))
 				{

@@ -528,6 +528,15 @@
 
 **Done when:** a click on "Resume" does not produce a slash; alt-tabbing mid-swing pauses safely.
 
+### [x] T7.5 — Rules screen
+**Goal:** the menu explains the duel without leaving the game.
+- Main menu gains a **Rules** item between Options and Quit.
+- `MainMenu.xmmp` holds a centered rules panel: best-of-three, slash/combo, power slash, block/timed block, guard break, bash, stamina costs, potion pickups, and the basic controls. Rules text is one centered 21 px Label inside a 1040 × 340 `ScrollViewer` with wrapping, so long lines and small windows scroll instead of shrinking.
+- Rules replace the menu content; Back (mouse, Enter/Space, Esc) returns to the menu and restores focus to the Rules item.
+- Keyboard focus order and Left/Right difficulty handling exclude the Rules panel.
+
+**Done when:** Rules is reachable by mouse and keyboard, the described controls match the game, and Back returns to the main menu.
+
 ---
 
 ## M8 — Polish & release
@@ -662,6 +671,7 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T6.4 — Arena health potions | 2026-11-20 | `c8199c6` | developer |
 | T4.8 — One damage instance per swing | 2026-11-20 | `8e6e01b` | developer |
 | T7.3 — Pause, options, results | 2026-11-20 | `37c3ab0` | developer |
+| T7.5 — Rules screen | 2026-11-20 | PENDING | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
 
 

@@ -62,6 +62,7 @@ Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash
 - [ ] HUD health ghost lags behind a hit, round pips change with the score, and a denied attack blinks the stamina bar.
 - [ ] Pausing mid-swing freezes the blade and resumes exactly; volume/shake/debug/difficulty persist between the menu and pause options.
 - [ ] Results show score, round history, hits/damage/blocks/breaks; Rematch resets and Menu returns to the main menu.
+- [ ] Rules opens from the main menu, fits at 1280×720, and Back returns focus to the Rules item.
 - [ ] Pause freezes the blade mid-air; results numbers match debug counters.
 
 ## Performance
