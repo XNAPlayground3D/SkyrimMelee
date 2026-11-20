@@ -1,15 +1,17 @@
 # SkyrimMelee
 
-A Skyrim-inspired greatsword duel between two white primitive fighters — with a twist: **the bodies never articulate.** No rig, no limbs, no walking. Every attack, block, stagger and kill is expressed through the blade's arc; reactions tip or topple the whole body as one rigid piece. All geometry is generated at runtime from 3D primitives.
+A Skyrim-inspired greatsword duel. The current build uses white primitive fighters and a keyframed sword; M9 replaces both with authored glTF assets and skeletal animation. Until T9.8 flips the default, the primitive build remains the shipping path.
+
+Combat stays deterministic at 60 Hz: authored clips supply poses only; attack phases, stamina, damage, and hit resolution remain in the existing rules.
 
 **Hard rules**
 
-- **No 3D models.** Everything is built from DigitalRiseModel primitives (box, capsule, sphere, cylinder, cone, disc, plane).
-- **No skeletal animation.** The body is a rigid white primitive assembly (head, torso, hips, legs) with no joints. Reaction clips may tip or topple it as a whole; a keyframed hand pivot moves the sword.
+- **Only the approved asset set may be imported.** The shipping build still uses primitives; once T9.8 lands, only `Content/Models/fighter.glb` and `sword.glb` are imported. Arena, VFX, and UI remain generated.
+- **Skeletal animation is fighter-only.** Clips have no root motion and no IK; the sword is a static attachment on `weapon_r`. Combat timing remains authoritative in `CombatTuning`.
 
 ## Project state
 
-**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM (top-level Tuning, Animation, Physics, Attacks, Combat, SelfTest), four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash (interrupt-only stagger), headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, input buffer, WASD movement and follow camera, move-while-attacking/guarding (bash roots the fighter), alternating slash combo, Skyrim stamina gate, player-only sword motion, opponent hit/death reactions, whole-body hit flash, first/third person with wheel zoom, damage-scaled camera shake, F3 presets, debug overlay v2 (blade trail, contact marker, live tuning), reactive opponent AI (chase, guard, attack, punish), incoming attacks, 35° guard cone, difficulty profiles (Novice default, Adept, Master), headless AI duels, AI decision log and fight stats, main menu (Duel/Practice/Options/Rules/Quit), UiSkin with focus ring, practice mode, fade transitions, fight HUD (health ghost, stamina, round pips, banners), arena health potions, pause/options/results with session settings, rules screen, focus-loss pause and click latch, pause status · **Next:** `T9.1`
+**Last updated:** 2026-11-20 · **Phase:** M9 — authored models (spec) · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM (top-level Tuning, Animation, Physics, Attacks, Combat, SelfTest), four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash (interrupt-only stagger), headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, input buffer, WASD movement and follow camera, move-while-attacking/guarding (bash roots the fighter), alternating slash combo, Skyrim stamina gate, player-only sword motion, opponent hit/death reactions, whole-body hit flash, first/third person with wheel zoom, damage-scaled camera shake, F3 presets, debug overlay v2 (blade trail, contact marker, live tuning), reactive opponent AI (chase, guard, attack, punish), incoming attacks, 35° guard cone, difficulty profiles (Novice default, Adept, Master), headless AI duels, AI decision log and fight stats, main menu (Duel/Practice/Options/Rules/Quit), UiSkin with focus ring, practice mode, fade transitions, fight HUD (health ghost, stamina, round pips, banners), arena health potions, pause/options/results with session settings, rules screen, focus-loss pause and click latch, pause status · **Next:** `T9.2`
 
 | Area | State |
 | --- | --- |
@@ -59,20 +61,20 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 | Pause, options & results | ✅ `T7.3` |
 | Rules screen | ✅ `T7.5` |
 | Input ownership | ✅ `T7.4` |
-| Authored models (M9) | ⬜ `T9.1` |
+| Authored models (M9) | 🚧 `T9.2` next (spec done) |
 
 ## Stack
 
 | Layer | Library |
 | --- | --- |
 | Runtime | MonoGame 3.8.6.1 (DesktopGL), `net10.0` |
-| Geometry | DigitalRiseModel 0.7.6 (primitives, no renderer) |
+| Geometry | DigitalRiseModel 0.7.6 (primitives, glTF importer, skinning/animation data; M9 adds stock `SkinnedEffect`) |
 | UI | Myra 1.6.8 |
 | Collision | BepuPhysics2 2.4.0 (static hurtboxes + swept blade) |
 
 ## Documentation
 
-Detailed specifications live in [`Design/`](Design/overview.md): [overview](Design/overview.md), [architecture](Design/architecture.md), [combat](Design/combat.md), [Skyrim reference](Design/reference.md), [UI & AI](Design/ui-and-ai.md), [testing](Design/testing.md). Start there for anything beyond the summary above. The work plan is in [TASKS.md](TASKS.md); the agent workflow is in [AGENTS.md](AGENTS.md).
+Detailed specifications live in [`Design/`](Design/overview.md): [overview](Design/overview.md), [architecture](Design/architecture.md), [combat](Design/combat.md), [Skyrim reference](Design/reference.md), [UI & AI](Design/ui-and-ai.md), [testing](Design/testing.md), [models](Design/models.md). Start there for anything beyond the summary above. The work plan is in [TASKS.md](TASKS.md); the agent workflow is in [AGENTS.md](AGENTS.md).
 
 ## Build & run
 

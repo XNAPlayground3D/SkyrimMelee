@@ -1,6 +1,6 @@
 # Overview
 
-SkyrimMelee is a duel between two humanoids with greatswords, with free player movement and a Skyrim-style camera. The bodies never articulate — no rig, no limbs, no walk cycle. Every attack, block, stagger, and kill is expressed through the blade's arc, and reaction clips may tip or topple the whole primitive body as one rigid piece.
+SkyrimMelee is a duel between two humanoids with greatswords, with free player movement and a Skyrim-style camera. The current build uses rigid primitive bodies and a keyframed sword; M9 replaces both with authored glTF models and skeletal animation. Every attack, block, stagger, and kill remains expressed through the blade's arc and the combat rules, not through animation events.
 
 The game recreates Skyrim's **melee rules**, not its world: stamina economy, attack commitment, front-facing blocks, timed blocks, guard breaks, and poise. Combat depth comes from timing, resource management, spacing, and camera control.
 
@@ -16,16 +16,18 @@ The game recreates Skyrim's **melee rules**, not its world: stamina economy, att
 
 | # | Constraint | Consequence |
 | --- | --- | --- |
-| 1 | **No 3D model files.** Everything is generated at runtime from primitives. | Fighters, sword, arena, and VFX are boxes, capsules, spheres, cylinders, cones, discs, and lines. No non-code assets are required: Myra embeds its default UI font. |
-| 2 | **No skeletal animation.** The body is a rigid white primitive assembly (head, torso, hips, legs) with no joints. | The sword is keyframed on a hand pivot; reactions apply one rigid whole-body transform. No joints, no skinning, no IK. |
+| 1 | **Only the approved M9 asset set may be imported.** Current build: primitives. Target: `Content/Models/fighter.glb` and `sword.glb` only. | Arena, VFX, and UI remain generated. The technical contract is [models.md](models.md). |
+| 2 | **Skeletal animation is fighter-only.** Clips have no root motion and no IK; the sword is a static attachment on `weapon_r`. | The fixed 60 Hz `CombatTuning` timings remain authoritative; animation supplies poses, never hit timing. |
 
 ### The two-handed grip
 
-The body is a small rigid assembly of white primitives, so there are no static arms for a moving hilt to disconnect from. The hands are still **part of the sword rig**: both hand boxes are attached to the grip and travel with it. The assembly only moves as one rigid piece for reaction clips (lean, topple, rise); it never bends or articulates. This keeps the sword readable without pretending the body can swing it.
+**Current build:** a rigid assembly of white primitives; both hand boxes are part of the sword rig and travel with the grip, so the body never bends.
+
+**M9 target:** a skinned fighter with `hand_l`/`hand_r` bones; the sword is a static mesh on `weapon_r`, attached to `hand_r`. The two-handed grip is posed by the animation; the sword remains the only moving threat. Exact dimensions, joints, and clip timing are in [models.md](models.md).
 
 ## Scope
 
-**In v1:** one arena, one weapon class, player vs AI, best of three, four attacks (SlashLeft, SlashRight, PowerSlash, Bash), free player movement with mouse look, first/third-person camera with wheel zoom, block / timed block / guard break / stagger / death, health–stamina–armor–skills–poise, primitive VFX, full Myra UI.
+**In v1:** one arena, one weapon class, player vs AI, best of three, four attacks (SlashLeft, SlashRight, PowerSlash, Bash), free player movement with mouse look, first/third-person camera with wheel zoom, block / timed block / guard break / stagger / death, health–stamina–armor–skills–poise, authored fighter/sword (M9), primitive arena/VFX, full Myra UI.
 
 **Out:** dodging, jumping, shields, one-handed weapons, ranged, magic, perks, inventory, save files, multiplayer, gamepad.
 
@@ -53,7 +55,7 @@ Deliberate divergences and their reasons are listed in
 | Layer | Library |
 | --- | --- |
 | Runtime | MonoGame 3.8.6.1 DesktopGL, `net10.0` |
-| Geometry | DigitalRiseModel 0.7.6 — primitives only, no renderer |
+| Geometry | DigitalRiseModel 0.7.6 — primitives, glTF importer, skinning data, animation; M9 renders with stock `SkinnedEffect` |
 | UI | Myra 1.6.8 |
 | Collision | BepuPhysics2 2.4.0 — static shapes + sweeps, no dynamics |
 

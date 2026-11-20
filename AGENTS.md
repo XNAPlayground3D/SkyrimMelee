@@ -8,8 +8,8 @@ This file is the contract for any agent (human or AI) contributing to SkyrimMele
 
 Read [README.md](README.md) → **Hard rules** first. In short:
 
-1. **No 3D model files.** All geometry comes from DigitalRiseModel's `MeshPrimitives` or hand-written vertex data.
-2. **No skeletal animation.** The humanoid body is a rigid white primitive assembly (head, torso, hips, legs) with no joints; reaction clips may tip or topple it as a whole. The sword moves on its hand pivot.
+1. **Only the approved asset set may be imported.** The shipping build still uses primitives; once T9.8 lands, only `Content/Models/fighter.glb` and `sword.glb` are imported. Arena, VFX, and UI remain generated.
+2. **Skeletal animation is fighter-only.** Clips have no root motion and no IK; the sword is a static attachment on `weapon_r`. Combat timing stays authoritative in `CombatTuning` and deterministic at the fixed 60 Hz step.
 3. **Combat numbers live in `CombatTuning.cs`**, never inline in logic.
 4. **Combat must stay deterministic and headless-testable.**
 5. **`dotnet build SkyrimMelee.slnx` must be green** before you report anything as finished.
@@ -154,7 +154,7 @@ A task is done only when **all** of these are true:
 - [ ] `dotnet test SkyrimMelee.slnx` passes, with new xUnit coverage for pure logic.
 - [ ] `--self-test` passes, and the task's behavior has a scenario (if it is combat logic).
 - [ ] Visual/UI changes were actually looked at, not just compiled.
-- [ ] No guardrail was violated: no imported models, no skeletal animation, no magic numbers in logic.
+- [ ] No guardrail was violated: no imported models outside the approved M9 set, no skeletal animation outside the fighter, no magic numbers in logic.
 - [ ] README **Project state** reflects reality, including the new next task, and README is still brief.
 - [ ] The affected `Design/` docs describe the new behavior and match `CombatTuning.cs`.
 - [ ] The developer explicitly confirmed the task.

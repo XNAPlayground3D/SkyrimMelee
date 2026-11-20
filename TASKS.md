@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T9.1`
+> **Next up:** `T9.2`
 
 ---
 
@@ -21,8 +21,8 @@
 
 ## Invariants (do not delete or weaken)
 
-1. No 3D model files, ever. Everything is built from `MeshPrimitives` primitives or hand-written vertex data.
-2. No skeletal animation, no skinning, no rig hierarchy with animated joints. The body is a rigid white primitive assembly (head, torso, hips, legs); reaction clips may tip or topple it as one piece. The sword moves on its hand pivot.
+1. Only the approved M9 asset set may be imported: `Content/Models/fighter.glb` and `sword.glb`. The arena, VFX, and UI remain generated; the primitive build stays the shipping default until T9.8.
+2. Skeletal animation is fighter-only, with no root motion and no IK; the sword is a static attachment on `weapon_r`. The body is authored, but combat timing, hit resolution, and damage stay in `CombatTuning` at the fixed 60 Hz step.
 3. Combat numbers live in `CombatTuning.cs`, not inline in logic.
 4. Combat resolution is deterministic and runnable headless (`--self-test`).
 5. `dotnet build SkyrimMelee.slnx` is green before any task is reported finished.
@@ -547,32 +547,15 @@
 >
 > **Existing support:** `DigitalRiseModel.MonoGame` already imports glTF/GLB (`DigitalRiseModelAssetsExt.LoadModel`) and exposes `DrSkin`, `DrSkinJoint`, `DrModelInstance.GetBoneGlobalTransform`/`GetSkinTransforms`, `DrModel.Animations`, and `AnimationController`. No new model-loader package is needed; the work is a skinned draw path using MonoGame's stock `SkinnedEffect`, FSM/pose integration, and validation.
 
-### [ ] T9.1 — Technical asset specification (fighter, sword, animations)
+### [x] T9.1 — Technical asset specification (fighter, sword, animations)
 **Goal:** a written, testable contract for the modeler; technical only, no visual direction.
-- Add `Design/models.md`: glTF 2.0 binary (`.glb`), metres, Y-up, floor origin between the feet, exact forward axis, identity object transforms, no root motion, no constraints/IK, no morph targets, no LOD.
-- Fighter: 1.80 m tall (±0.02), eye line at 1.60 m; maximum 20 k triangles, one UV set, position/normal/UV0 plus `JOINTS_0`/`WEIGHTS_0`, up to 4 influences, weights normalised, maximum 72 joints (stock `SkinnedEffect` limit), embedded 1024/2048 base-colour PNG textures, up to 3 materials. Tangents are optional; glTF PBR roughness/metalness/normal maps may be authored but v1 renders base colour and optional emissive only.
-- Skeleton table with exact names, parents, rest positions, and lengths: `root`, `pelvis`, `spine_01`, `spine_02`, `neck`, `head`, `clavicle_l/r`, `upperarm_l/r`, `forearm_l/r`, `hand_l/r`, `thigh_l/r`, `calf_l/r`, `foot_l/r`, `weapon_r` (21 joints). `weapon_r` is a child of `hand_r`; bind pose is the T-pose.
-- Sword: separate `sword.glb`, static, no skeleton/animation; origin at the grip centre, blade along +Y, blade base 0.18 m and tip 1.47 m from the grip, base/tip radii 0.0425/0.018 m; two-handed grip geometry may be part of the sword. The runtime attaches it to `weapon_r`.
-- Clip contract at 60 Hz. Every clip is one-shot unless marked loop, has no root motion, and carries glTF `extras`: `windup`, `active`, `recovery` in seconds, `loop` bool.
-
-| Clip | Loop | Total frames | Wind-up | Active | Recovery |
-| --- | --- | --- | --- | --- | --- |
-| Idle | yes | 150 | — | — | — |
-| GuardRaise | no | 12 | — | — | — |
-| GuardHold | yes | 120 | — | — | — |
-| GuardLower | no | 9 | — | — | — |
-| SlashLeft / SlashRight | no | 49.2 | 15.0 | 13.2 | 21.0 |
-| PowerSlash | no | 87.6 | 36.0 | 9.6 | 42.0 |
-| Bash | no | 32.4 | 9.6 | 4.8 | 18.0 |
-| StaggerMicro | no | 15 | — | — | — |
-| StaggerSmall | no | 36 | — | — | — |
-| StaggerLarge | no | 60 | — | — | — |
-| Death | no (clamp) | 72 | — | — | — |
-| Victory | no (clamp) | 96 | — | — | — |
-
-- Phase frames are exact 60 Hz timecodes (`ms × 0.06`); keyframes land on those boundaries. The combat FSM in `CombatTuning` remains authoritative; the validator rejects clips whose `extras` disagree.
-- Validation rules: file names, joint names/hierarchy, identity bind transforms, ≤4 influences, weight sum 1 ± 0.001, triangle budget, texture limits, clip names/times, no root translation, weapon socket present, bounds and floor contact.
-- Retire H1/H2 in README, AGENTS, and `Design/overview.md`; add the asset-licensing/source note.
+- `Design/models.md` now holds the delivery contract: glTF 2.0 `.glb`, metres, +Y up, +X forward, floor origin between the feet, identity object transforms, no root motion, no constraints/IK, no morph targets, no LOD, no external texture files.
+- Fighter: 1.80 m tall (±0.01), eye line 1.60 m; ≤20 k triangles, one UV set, position/normal/UV0 + `JOINTS_0`/`WEIGHTS_0`, 4 influences, ≤72 joints, ≤3 materials, embedded 1024/2048 base-colour PNGs. Tangents optional; PBR maps are not rendered by v1.
+- 21-joint table with exact names, parents, world rest positions, and the `weapon_r` socket under `hand_r`; T-pose bind; arms along ±Z; right = +Z.
+- Sword: separate static `sword.glb`, origin at grip, blade +Y, base 0.18 m, tip 1.47 m, radii 0.0425/0.018 m, no hands/skeleton; attaches to `weapon_r` with identity.
+- 60 Hz clip table: Idle/GuardHold loops, GuardRaise 12, GuardLower 9, Slash 49.2 (15/13.2/21), PowerSlash 87.6 (36/9.6/42), Bash 32.4 (9.6/4.8/18), StaggerMicro/Small/Large 15/36/60, Death 72 clamp, Victory 96 clamp. Each row has a description of the clip's gameplay/body intent (ready stance, forehand/backhand, overhead slam, guard, shove, recoil tiers, collapse, victory). Attack `extras` carry windup/active/recovery/loop; the validator reads them from the GLB JSON because DigitalRiseModel does not expose extras.
+- Hard constraints updated: README, AGENTS, and `Design/overview.md` now allow only the approved M9 asset set and fighter-only skeletal animation; the primitive build remains the default until T9.8.
+- Asset-licensing/source note required before acceptance.
 
 **Done when:** every number cross-checks against `CombatTuning`/`BladeGeometry`, and the modeler can build and export without asking a follow-up question.
 
@@ -784,5 +767,6 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T7.5 — Rules screen | 2026-11-20 | `9f7776d` | developer |
 | T7.4 — UI/gameplay input ownership | 2026-11-20 | `1f7df98` | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
+| T9.1 — Technical asset specification | 2026-11-20 | PENDING | developer |
 
 
