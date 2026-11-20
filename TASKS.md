@@ -674,7 +674,7 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.8 — One damage instance per swing | 2026-11-20 | `8e6e01b` | developer |
 | T7.3 — Pause, options, results | 2026-11-20 | `37c3ab0` | developer |
 | T7.5 — Rules screen | 2026-11-20 | `9f7776d` | developer |
-| T7.4 — UI/gameplay input ownership | 2026-11-20 | PENDING | developer |
+| T7.4 — UI/gameplay input ownership | 2026-11-20 | `1f7df98` | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
 
 
