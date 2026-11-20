@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T7.2`
+> **Next up:** `T7.3`
 
 ---
 
@@ -477,11 +477,14 @@
 
 **Done when:** every menu item is reachable by keyboard and mouse; no text renders blurry at 1600×900 or after resize.
 
-### [ ] T7.2 — HUD
+### [x] T7.2 — HUD
 **Goal:** read the fight at a glance, Skyrim-style.
-- Player + opponent: health bar (delayed "damage ghost" chunk), stamina bar (flash on insufficient stamina), name label, round pips.
-- Center-top round banner with intro/outro timers.
-- Bars animate on change; never allocate per frame.
+- Player top-left and opponent top-right: name, 420 × 18 health with a pale delayed damage ghost, 340 × 10 stamina. Ghost holds 0.35 s then drains at 90/s; the red bar catches up at 420/s; stamina blinks at 3 Hz when denied.
+- Centre-top round pips and `ROUND N`; banner below for `ROUND N` (1.4 s), `K.O.` (1.2 s), `VICTORY`/`DEFEAT` (2.6 s). Practice shows `PRACTICE` and `RESET`.
+- Per-frame `HudPanel.UpdateFight` (no strings); round/pip labels update only when the score changes. Render stats and controls move behind F1.
+- HudPanel markup rewritten and regenerated; `HudPanel.cs` owns ghost/health/stamina animation, pips, banner, and debug visibility.
+- Tests: `HudMath.StaminaFlashActive` blink table; build 0/0, 276 tests, self-test 16/16.
+- Verified live: HUD at 1600×900, ghost chunk after a hit, round pips/banner on a new round. Stamina flash logic unit-tested; live depletion was not captured because the opponent won the round first.
 
 **Done when:** HUD updates match stats exactly at 60 FPS; damage ghost and stamina flash are visibly correct in a scripted trade.
 
@@ -580,6 +583,7 @@ Ideas that fit the constraints but are out of scope for v1. Promote into a miles
 - Photo mode with free camera and clip scrubbing.
 - First-person weapon presentation: offset/scale the sword rig so the hilt sits further from the eye.
 - Native AOT / trimming experiment.
+- Implement `--god` (documented clamp at 1 health; currently parsed but unused).
 
 ## Risks & unknowns
 
@@ -630,6 +634,7 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.7 — Bash interrupts, it does not stun | 2026-11-20 | `bf5742b` | developer |
 | T6.3 — AI visualization | 2026-11-20 | `3712217` | developer |
 | T7.1 — Skin + main menu | 2026-11-20 | `ebcffdb` | developer |
+| T7.2 — HUD | 2026-11-20 | PENDING | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
 
 

@@ -1,9 +1,60 @@
 <Project>
   <Project.ExportOptions Namespace="SkyrimMelee.Ui" Class="HudPanel" />
   <Panel>
+    <VerticalStackPanel Id="_playerHud" Left="24" Top="20"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Spacing="3">
+      <Label Id="_playerName" Text="PLAYER" TextColor="#E6DCC8" />
+      <Panel Width="420" Height="18">
+        <HorizontalProgressBar Id="_playerHealthGhost" Width="420" Height="18"
+                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                               Minimum="0" Maximum="150" Value="150"
+                               Filler="#D8B878" Background="#331A1A" />
+        <HorizontalProgressBar Id="_playerHealth" Width="420" Height="18"
+                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                               Minimum="0" Maximum="150" Value="150"
+                               Filler="#B03A34" Background="#00000000" />
+      </Panel>
+      <HorizontalProgressBar Id="_playerStamina" Width="340" Height="10"
+                             Minimum="0" Maximum="100" Value="100"
+                             Filler="#6FA76F" Background="#1A2A1A" />
+    </VerticalStackPanel>
+
+    <VerticalStackPanel Id="_opponentHud" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="0,20,24,0" Spacing="3">
+      <Label Id="_opponentName" Text="DUELIST" TextColor="#E6DCC8"
+             HorizontalAlignment="Right" />
+      <Panel Width="420" Height="18">
+        <HorizontalProgressBar Id="_opponentHealthGhost" Width="420" Height="18"
+                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                               Minimum="0" Maximum="150" Value="150"
+                               Filler="#D8B878" Background="#331A1A" />
+        <HorizontalProgressBar Id="_opponentHealth" Width="420" Height="18"
+                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                               Minimum="0" Maximum="150" Value="150"
+                               Filler="#B03A34" Background="#00000000" />
+      </Panel>
+      <HorizontalProgressBar Id="_opponentStamina" Width="340" Height="10"
+                             Minimum="0" Maximum="100" Value="100"
+                             Filler="#6FA76F" Background="#1A2A1A"
+                             HorizontalAlignment="Right" />
+    </VerticalStackPanel>
+
+    <HorizontalStackPanel Id="_roundPips" HorizontalAlignment="Center" VerticalAlignment="Top"
+                          Margin="0,18,0,0" Spacing="8">
+      <Label Id="_playerPip0" Text="○" TextColor="#C6A260" />
+      <Label Id="_playerPip1" Text="○" TextColor="#C6A260" />
+      <Label Id="_roundLabel" Text="ROUND 1" TextColor="#8FA6C0" />
+      <Label Id="_opponentPip0" Text="○" TextColor="#C4553F" />
+      <Label Id="_opponentPip1" Text="○" TextColor="#C4553F" />
+    </HorizontalStackPanel>
+
+    <Label Id="_banner" HorizontalAlignment="Center" VerticalAlignment="Top"
+           Margin="0,56,0,0" TextColor="#E6DCC8" Visible="False" />
+
     <VerticalStackPanel Id="_renderStats" Left="24" Top="20"
                         HorizontalAlignment="Left" VerticalAlignment="Top"
-                        Spacing="2" Padding="10" Background="#00000066">
+                        Spacing="2" Padding="10" Background="#00000066" Visible="False">
       <Label Text="RENDER" TextColor="#8FA6C0" />
       <Label Id="_fps" Text="FPS  0.0" TextColor="#E6DCC8" />
       <Label Id="_drawCalls" Text="Draw calls  0" TextColor="#E6DCC8" />
@@ -15,22 +66,8 @@
       <Label Id="_clipProgress" Text="Progress  0ms/0ms" TextColor="#E6DCC8" />
     </VerticalStackPanel>
 
-    <VerticalStackPanel Id="_vitals" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                        Margin="24,0,0,24" Spacing="2" Padding="10" Background="#00000066">
-      <Label Text="VITALS" TextColor="#8FA6C0" />
-      <Label Id="_round" Text="ROUND 1  0 - 0" TextColor="#8FA6C0" />
-      <Label Id="_healthText" Text="Health  150/150" TextColor="#E6DCC8" />
-      <HorizontalProgressBar Id="_healthBar" Width="260" Height="14"
-                             Minimum="0" Maximum="150" Value="150"
-                             Filler="#B03A34" Background="#331A1A" />
-      <Label Id="_staminaText" Text="Stamina  100/100" TextColor="#E6DCC8" />
-      <HorizontalProgressBar Id="_staminaBar" Width="260" Height="10"
-                             Minimum="0" Maximum="100" Value="100"
-                             Filler="#6FA76F" Background="#1A2A1A" />
-    </VerticalStackPanel>
-
     <VerticalStackPanel Id="_controls" HorizontalAlignment="Right" VerticalAlignment="Top"
-                        Margin="0,20,24,0" Spacing="2" Padding="10" Background="#00000066">
+                        Margin="0,20,24,0" Spacing="2" Padding="10" Background="#00000066" Visible="False">
       <Label Text="CONTROLS" TextColor="#8FA6C0" />
       <Label Text="amber = not yet implemented" TextColor="#7A7A86" />
       <Label Text="WASD             Move" TextColor="#E6DCC8" />

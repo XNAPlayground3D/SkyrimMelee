@@ -58,6 +58,7 @@ Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash
 - [ ] Timed block, guard break, and stagger are distinguishable in one glance.
 - [ ] Every menu works by mouse and keyboard; Resume never swings.
 - [ ] Main menu fits at 1600×900 and 1280×720; the focus ring follows Up/Down and text stays crisp.
+- [ ] HUD health ghost lags behind a hit, round pips change with the score, and a denied attack blinks the stamina bar.
 - [ ] Pause freezes the blade mid-air; results numbers match debug counters.
 
 ## Performance

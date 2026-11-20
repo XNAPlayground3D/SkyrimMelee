@@ -69,7 +69,7 @@ The arena is a `DrModel`: a root bone plus one bone/mesh per item (floor, each r
 
 **Greatsword** (1.47 m blade reach): grip cylinder, pommel sphere, crossguard box, two tapered blade boxes, cone tip, inset fuller. Local origin at the grip, blade along `+Y`. Each fighter owns its own sword and hand pivot. The player's pivot follows input clips; the opponent holds its idle pivot until the AI drives it, but plays its own stagger/death reaction clips when hit.
 
-### The two-handed grip
+## The two-handed grip
 
 Both hands are attached to the sword rig and travel with the hilt; the primitive body only takes a rigid reaction pose ([rationale](overview.md#the-two-handed-grip)).
 

@@ -144,6 +144,7 @@ public sealed class SkyrimMeleeGame : Game
 	private MainMenu? _menu;
 	private bool _practice;
 	private float _practiceReset;
+	private DuelPhase _lastDuelPhase = DuelPhase.Fighting;
 	private KeyboardState _lastKeys;
 	private Texture2D? _fadePixel;
 	private float _fadeAlpha;
@@ -287,6 +288,12 @@ public sealed class SkyrimMeleeGame : Game
 		if (_options.NoUi)
 		{
 			_screen = Screen.Playing;
+		}
+
+		if (_options.Play)
+		{
+			_camera.ResetView();
+			ResetRound();
 		}
 
 		base.LoadContent();
@@ -480,6 +487,13 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_staminaCue = MathF.Max(0f, _staminaCue - (float)elapsed);
+		_hud?.SetDebugVisible(_overlay?.Visible == true);
+		_hud?.UpdateFight(
+			_playerStats.Health, _playerStats.MaxHealth,
+			_playerStats.Stamina, _playerStats.MaxStamina,
+			_opponentStats.Health, _opponentStats.MaxHealth,
+			_opponentStats.Stamina, _opponentStats.MaxStamina,
+			_staminaCue, (float)elapsed);
 		_camera.IdleDrift = !_paused && _combat.State == CombatState.Idle &&
 			_moveInput.LengthSquared() < 0.01f;
 		_camera.Update(_player?.Position ?? Vector3.Zero, (float)elapsed);
@@ -553,6 +567,7 @@ public sealed class SkyrimMeleeGame : Game
 		_practice = practice;
 		_practiceReset = 0f;
 		_duel.Reset();
+		_lastDuelPhase = DuelPhase.Fighting;
 		_ai = new DuelistAi(
 			_menu?.Profile ?? AiProfile.Default, seed: 20261120);
 		ResetRound();
@@ -744,6 +759,20 @@ public sealed class SkyrimMeleeGame : Game
 		else if (_duel.Update(step))
 		{
 			ResetRound();
+		}
+
+		if (!_practice)
+		{
+			if (_duel.Phase == DuelPhase.MatchOver &&
+				_lastDuelPhase != DuelPhase.MatchOver)
+			{
+				var won = _duel.MatchWinner == FighterId.Player;
+				_hud?.ShowBanner(
+					won ? "VICTORY" : "DEFEAT", 2.6f,
+					won ? UiSkin.Accent : UiSkin.Danger);
+			}
+
+			_lastDuelPhase = _duel.Phase;
 		}
 	}
 
@@ -940,9 +969,13 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			_opponentCombat.Kill();
 			PlayOpponentClip("Death");
-			if (!_practice)
+			if (_practice)
 			{
-				_duel.ReportDeath(FighterId.Opponent);
+				_hud?.ShowBanner("RESET", 1.2f, UiSkin.Muted);
+			}
+			else if (_duel.ReportDeath(FighterId.Opponent))
+			{
+				_hud?.ShowBanner("K.O.", 1.2f, UiSkin.Accent);
 			}
 		}
 	}
@@ -1058,9 +1091,13 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			_opponentCombat.Kill();
 			PlayOpponentClip("Death");
-			if (!_practice)
+			if (_practice)
 			{
-				_duel.ReportDeath(FighterId.Opponent);
+				_hud?.ShowBanner("RESET", 1.2f, UiSkin.Muted);
+			}
+			else if (_duel.ReportDeath(FighterId.Opponent))
+			{
+				_hud?.ShowBanner("K.O.", 1.2f, UiSkin.Accent);
 			}
 		}
 		else if (stagger.Staggered)
@@ -1365,9 +1402,13 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			_combat.Kill();
 			PlayDeath();
-			if (!_practice)
+			if (_practice)
 			{
-				_duel.ReportDeath(FighterId.Player);
+				_hud?.ShowBanner("RESET", 1.2f, UiSkin.Muted);
+			}
+			else if (_duel.ReportDeath(FighterId.Player))
+			{
+				_hud?.ShowBanner("K.O.", 1.2f, UiSkin.Accent);
 			}
 		}
 	}
@@ -1913,6 +1954,11 @@ public sealed class SkyrimMeleeGame : Game
 		_opponentBodyMotion?.Reset();
 		ResetPositions();
 		ApplySwordPose();
+		_hud?.ShowBanner(
+			_practice
+				? "PRACTICE"
+				: FormattableString.Invariant($"ROUND {_duel.Round}"),
+			1.4f, UiSkin.Parchment);
 	}
 
 	private void ApplySwordPose()
@@ -2304,13 +2350,11 @@ public sealed class SkyrimMeleeGame : Game
 
 		_hud.UpdateStats(_fps, _renderer?.DrawCalls ?? 0, _renderer?.PrimitivesDrawn ?? 0);
 		_hud.UpdatePause(_paused);
-		_hud.UpdateVitals(_playerStats.Health, _playerStats.MaxHealth,
-			_playerStats.Stamina, _playerStats.MaxStamina, _staminaCue > 0f);
 		_hud.UpdateDuel(_duel.Round, _duel.PlayerScore, _duel.OpponentScore, _practice);
 		var buffered = _input.IsPending ? $"buffered {_input.Pending}" : "idle";
 		var rejection = _lastRejection == "-" ? string.Empty : $"  reject {_lastRejection}";
 		var motion = FormattableString.Invariant(
-			$"move {_moveInput.X:0},{_moveInput.Y:0}  pos {_player?.Position.X ?? 0f:0.00},{_player?.Position.Z ?? 0f:0.00}  yaw {_camera.Yaw:0.00}  face {_player?.FacingYaw ?? 0f:0.00}  hits {_hitCount} {_lastHit}  foe {_opponentStats.Health:0}/{_opponentStats.MaxHealth:0} @ {_opponent?.Position.X ?? 0f:0.00},{_opponent?.Position.Z ?? 0f:0.00}");
+			$"move {_moveInput.X:0},{_moveInput.Y:0}  pos {_player?.Position.X ?? 0f:0.00},{_player?.Position.Z ?? 0f:0.00}  cam {(_camera.FirstPerson ? "fp" : "tp")} d {_camera.Distance:0.0}  yaw {_camera.Yaw:0.00}  face {_player?.FacingYaw ?? 0f:0.00}  hits {_hitCount} {_lastHit}  foe {_opponentStats.Health:0}/{_opponentStats.MaxHealth:0} @ {_opponent?.Position.X ?? 0f:0.00},{_opponent?.Position.Z ?? 0f:0.00}");
 		var vitals = FormattableString.Invariant(
 			$"vitals hp {_playerStats.Health:0}/{_playerStats.MaxHealth:0} st {_playerStats.Stamina:0} poise {_playerStats.Poise:0}/{_playerStats.MaxPoise:0}");
 		var guard = $"guard blade={(_guardHurtbox ? "yes" : "no")} " +

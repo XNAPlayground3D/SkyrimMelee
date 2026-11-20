@@ -18,6 +18,7 @@ public static class UiSkin
 	public static readonly Color Muted = new(150, 158, 170);
 	public static readonly Color Steel = new(96, 110, 126);
 	public static readonly Color Accent = new(198, 162, 96);
+	public static readonly Color Danger = new(196, 85, 63);
 	public static readonly Color Panel = new(22, 25, 32, 214);
 	public static readonly Color PanelOver = new(38, 43, 54, 235);
 	public static readonly Color PanelFocus = new(52, 60, 76, 245);
