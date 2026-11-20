@@ -36,8 +36,8 @@ public class DefenseResolverTests
 
 		Assert.Equal(DamageKind.Block, result.Damage.Kind);
 		Assert.Equal(8f, result.Damage.Final, 3);
-		Assert.Equal(9.5232f, result.StaminaSpent, 3);
-		Assert.Equal(90.4768f, defender.Stamina, 3);
+		Assert.Equal(5.5552f, result.StaminaSpent, 3);
+		Assert.Equal(94.4448f, defender.Stamina, 3);
 		Assert.Equal(0f, result.AttackerStagger, 3);
 		Assert.False(result.GuardBroken);
 	}
@@ -51,8 +51,8 @@ public class DefenseResolverTests
 
 		Assert.Equal(DamageKind.TimedBlock, result.Damage.Kind);
 		Assert.Equal(5f, result.Damage.Final, 3);
-		Assert.Equal(4.7616f, result.StaminaSpent, 3);
-		Assert.Equal(95.2384f, defender.Stamina, 3);
+		Assert.Equal(2.3808f, result.StaminaSpent, 3);
+		Assert.Equal(97.6192f, defender.Stamina, 3);
 		Assert.Equal(CombatTuning.StaggerMicroDuration, result.AttackerStagger, 3);
 		Assert.False(result.GuardBroken);
 	}
@@ -60,7 +60,7 @@ public class DefenseResolverTests
 	[Fact]
 	public void BlockBelowCostBreaksTheGuard()
 	{
-		var defender = Defender(stamina: 9f);
+		var defender = Defender(stamina: 5f);
 		var result = DefenseResolver.Resolve(
 			Attack("SlashLeft"), Attacker(), defender, HitOutcome.Block);
 
@@ -74,7 +74,7 @@ public class DefenseResolverTests
 	[Fact]
 	public void TimedBlockBelowCostAlsoBreaks()
 	{
-		var defender = Defender(stamina: 4f);
+		var defender = Defender(stamina: 2f);
 		var result = DefenseResolver.Resolve(
 			Attack("SlashLeft"), Attacker(), defender, HitOutcome.TimedBlock);
 

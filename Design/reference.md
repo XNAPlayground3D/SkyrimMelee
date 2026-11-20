@@ -204,10 +204,11 @@ arena pacing, which has no Skyrim equivalent.
 | Power damage | ×2 | ×2 | ✅ matches |
 | Bash input | Tap `LMB` while blocking | Tap `LMB` (or `B`) while blocking | ✅ matches |
 | Bash damage | ×0.5 | ×0.5 | ✅ matches |
+| Bash stagger | Chance-based, interrupts power attacks | Always staggers 0.6 s when in melee range (1.7 m, 60°); no effect out of range; interrupts wind-up/active and shoves a held guard | ⚠️ deterministic |
 | Bash movement | Planted | `LocksMovement` roots the fighter | ✅ matches |
 | Attack movement | Reduced, not stopped | 0.25× walk | 🚧 tuned lower than Skyrim |
 | Block movement | ≈0.22× run | 0.45× walk | 🚧 tuned higher than Skyrim |
-| Block coverage | 35° frontal cone | Physical guard-blade capsule only | ⬜ T4.6 |
+| Block coverage | 35° frontal cone | Guard blade first, else a body hit inside the 35° cone blocks | ✅ matches |
 | Block maths | 30% base, 85% cap, ×0.66 vs power | Timed-block model (project invention) | ⚠️ deliberate |
 | Stamina gate | Action allowed above 0 stamina; power degrades at 0 | Same (`StaminaRules`); power falls back to a slash at 0 | ✅ matches |
 | Stamina costs | 74 power / 35 bash of a 100 pool with slow regen | 30 power / 15 bash of 100 with 25/s regen | ⚠️ deliberate (arena pacing) |
@@ -245,9 +246,7 @@ These are choices, not gaps. Each one is kept because of a project constraint.
 
 ## Known gaps (scheduled)
 
-- **T4.6 — Guard coverage cone.** Skyrim blocks in a 35° cone; the project
-  currently only blocks when the blade capsule intersects, so a visually correct
-  block can still be a clean hit.
 - **Power bash** and **sprint power attacks** are listed in
   [TASKS.md](../TASKS.md#backlog-not-scheduled) until the base duel is tuned.
+
 

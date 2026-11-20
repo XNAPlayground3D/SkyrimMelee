@@ -19,6 +19,7 @@ SkyrimMelee/
               DamageModel, DefenseResolver, StaggerRules, StaminaRules,
               DuelDirector, Locomotion
   Input/      InputRouter, AttackCharge, SlashCombo
+  Ai/         DuelistAi, AiProfile
   SelfTest/   SelfTestRunner
   Ui/         MyraHost, Hud.xmmp, HudPanel, DebugOverlay.xmmp, DebugOverlay
 SkyrimMelee.Tests/          xUnit tests for pure logic
@@ -75,6 +76,8 @@ Both hands are attached to the sword rig and travel with the hilt; the primitive
 **Camera:** Skyrim-style first/third person. Third person is an orbit over the player's right shoulder; mouse look drives yaw/pitch, the target follows the player at chest height with a 1 m look-ahead, and the default distance is 5 m. `F` toggles first person (eye at 1.60 m, same look, player capsule hidden, sword visible); the wheel zooms the third-person distance (0.4 m/notch, 2.5–7 m) or the first-person FOV (2°/notch, 55–90°).
 
 **Camera feel:** hits add a short shake scaled by damage (`0.012 + 0.10 × damage/maxHealth`, 90 ms), a power slash adds a 2.5°/180 ms FOV punch, and standing still applies a slow ±1.2 cm look drift. `--no-shake` disables the shake for captures. `F3` cycles gameplay → side profile → top-down → gameplay; presets force third person, ignore mouse look, and restore the saved look when returning to gameplay.
+
+**AI:** `Ai/DuelistAi` is a seeded, deterministic policy that reads only the player/self state, stamina, and distance. It emits a guard wish, one `CombatIntent`, and an approach value; the game feeds all three through the same state machine, stamina checks, movement multipliers, `GuardResolver`, and `DefenseResolver` as the player, so the AI cannot cheat. It walks toward the player past 2.3 m, gives ground inside 1.35 m, and braces during a committed attack; the opponent's blade sweeps the player's hurtboxes while its guard blade is registered, and its reactions (stagger/death) use the same clips. `AiProfile` holds reaction, block, pre-guard, aggression, power, and mistake chances; `F1` shows both sides' guard state, clip, positions, and block/timed/break/hit counters.
 
 **VFX:** a hit flashes the defender's whole body coral for 300 ms; pooled 256 box shards and expanding torus rings add the blue block ring, red guard-break shards, and dark grounding disc. Zero allocations in combat.
 

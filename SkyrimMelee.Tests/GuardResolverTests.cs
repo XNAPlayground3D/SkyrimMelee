@@ -33,6 +33,46 @@ public class GuardResolverTests
 			out contact);
 
 	[Fact]
+	public void BodyHitInsideTheConeBlocksWithoutGuardContact()
+	{
+		var outcome = Classify(
+			new[] { Hit(HurtboxKind.Legs, 0.02f) },
+			out var contact);
+
+		Assert.Equal(HitOutcome.Block, outcome);
+		Assert.Equal(HurtboxKind.Legs, contact.Hurtbox.Kind);
+	}
+
+	[Fact]
+	public void ConeBlockFollowsTheTimedWindow()
+	{
+		var outcome = Classify(
+			new[] { Hit(HurtboxKind.Legs, 0.02f) },
+			out _,
+			guardAge: 0.1f);
+
+		Assert.Equal(HitOutcome.TimedBlock, outcome);
+	}
+
+	[Fact]
+	public void BodyHitOutsideTheConeStaysClean()
+	{
+		var hit = new BladeHit(
+			new Hurtbox(FighterId.Opponent, HurtboxKind.Legs),
+			new Vector3(0.9f, 1.2f, 1f),
+			Vector3.UnitX,
+			0.02f);
+
+		var outcome = Classify(
+			new[] { hit },
+			out var contact,
+			attackerPosition: new Vector3(2f, 0f, 1.2f));
+
+		Assert.Equal(HitOutcome.Clean, outcome);
+		Assert.Equal(HurtboxKind.Legs, contact.Hurtbox.Kind);
+	}
+
+	[Fact]
 	public void GuardFirstInFrontBlocks()
 	{
 		var outcome = Classify(
@@ -41,6 +81,17 @@ public class GuardResolverTests
 
 		Assert.Equal(HitOutcome.Block, outcome);
 		Assert.Equal(HurtboxKind.GuardBlade, contact.Hurtbox.Kind);
+	}
+
+	[Fact]
+	public void BodyHitBeforeTheGuardStillBlocksInsideTheCone()
+	{
+		var outcome = Classify(
+			new[] { Hit(HurtboxKind.Torso, 0.01f), Hit(HurtboxKind.GuardBlade, 0.02f) },
+			out var contact);
+
+		Assert.Equal(HitOutcome.Block, outcome);
+		Assert.Equal(HurtboxKind.Torso, contact.Hurtbox.Kind);
 	}
 
 	[Fact]
@@ -79,11 +130,18 @@ public class GuardResolverTests
 	}
 
 	[Fact]
-	public void BodyFirstIsClean()
+	public void BodyFirstOutsideTheConeIsClean()
 	{
+		var body = new BladeHit(
+			new Hurtbox(FighterId.Opponent, HurtboxKind.Torso),
+			new Vector3(0.9f, 1.2f, 1f),
+			Vector3.UnitX,
+			0.01f);
+
 		var outcome = Classify(
-			new[] { Hit(HurtboxKind.Torso, 0.01f), Hit(HurtboxKind.GuardBlade, 0.02f) },
-			out var contact);
+			new[] { body, Hit(HurtboxKind.GuardBlade, 0.02f) },
+			out var contact,
+			attackerPosition: new Vector3(2f, 0f, 1.2f));
 
 		Assert.Equal(HitOutcome.Clean, outcome);
 		Assert.Equal(HurtboxKind.Torso, contact.Hurtbox.Kind);
@@ -100,13 +158,13 @@ public class GuardResolverTests
 	}
 
 	[Fact]
-	public void NoGuardContactIsClean()
+	public void TorsoHitWithNoGuardContactBlocksInsideTheCone()
 	{
 		var outcome = Classify(
 			new[] { Hit(HurtboxKind.Torso, 0.01f) },
 			out var contact);
 
-		Assert.Equal(HitOutcome.Clean, outcome);
+		Assert.Equal(HitOutcome.Block, outcome);
 		Assert.Equal(HurtboxKind.Torso, contact.Hurtbox.Kind);
 	}
 

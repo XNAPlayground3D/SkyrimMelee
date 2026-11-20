@@ -56,6 +56,8 @@ The moveset has exactly three attacks: `SlashLeft`, `SlashRight`, and `PowerSlas
 
 `Bash` is a short guard shove: the hilt pulls into the chest, holds for 100 ms, then drives the flat forward and returns to the guard. The fighter is rooted for the whole swing (`LocksMovement`), so wind-up, shove, and recovery happen in place even while walking or blocking. The body stays static; only the sword moves. It uses 160 / 80 / 300 ms, costs 15 stamina, has 0.5× damage and 40 poise, and is only available from `GuardRaise`/`GuardHold`. F or LMB while blocking plays it; if RMB is still held afterwards, `GuardHold` resumes directly at the guard pose — `GuardRaise` is not replayed, so the sword never dips to idle after a bash. Otherwise the sword lowers to idle.
 
+The bash uses its own forward hit volume (`BashReach` 1.7 m, `BashConeDegrees` 60°; you must be inside melee range) rather than the blade sweep, because the shove is a short body-first move. A connected bash **always staggers** for `StaggerSmallDuration` (0.6 s): a clean bash interrupts a wind-up/active attack, and a bash into a held guard shoves the guard down (the defender still pays the block stamina cost).
+
 ### Guard clips
 
 `GuardRaise` (200 ms) starts at the idle, pulls back slightly, then settles into the guard; `GuardHold` loops for 2 s with ~1.8° of blade breathing; `GuardLower` (150 ms) drops with a small follow-through and settles back to idle. The guard pose puts the hands centered in front of the chest and the blade diagonally across the torso, flat toward the opponent, so the blade sits between the fighters. The dev harness raises on RMB press, holds while RMB is down, and lowers on release.
@@ -118,24 +120,24 @@ Rounded once at the end (`AwayFromZero`), minimum 1 on any connecting hit. Examp
 | Guard break | 16 |
 | Power slash clean | 32 |
 
-`DamageModel.Compute` is the single implementation of the formula. It returns a `DamageBreakdown` (kind, raw, armored, final, reduction %, stamina cost); block stamina is `0.6 × armored`, timed block `0.3 × armored`. Damage rounds once with `AwayFromZero`, with a minimum of 1 on any connecting hit.
+`DamageModel.Compute` is the single implementation of the formula. It returns a `DamageBreakdown` (kind, raw, armored, final, reduction %, stamina cost); block stamina is `0.35 × armored`, timed block `0.15 × armored`. Damage rounds once with `AwayFromZero`, with a minimum of 1 on any connecting hit.
 
 Each attack owns a `SwingHitSet`. The first contact with a hurtbox produces a `HitEvent` (attacker, target, hurtbox kind, world point, normal, attack definition, active-window progress); later contacts with that same hurtbox in the same swing are ignored. The next attack starts with a clean set. `TryMarkDamagingHit` allows **one damaging instance per swing**: a sweep that crosses hips and legs flashes both but deals damage (and stagger) once. A confirmed hit flashes the whole defender for `HitFlashDuration` (300 ms).
 
 ## Blocking
 
-A hit is blocked only if the defender is in `GuardHold`, the guard shape is registered, contact is with the guard blade, and the attacker is inside the front 120° cone. `GuardResolver` compares the earliest guard contact with the earliest body contact; the guard wins a tie within 1e-4 s, otherwise the first contact decides. A guard held for less than `GuardTimedBlockWindow` (250 ms) is a timed block; older is a normal block. The 100 ms lower bound in the table is a T5 balance target.
+A hit is blocked when the defender is in `GuardHold` and either the guard blade is contacted first, or the body contact lands inside the `GuardBlockConeDegrees` (35° half-angle) frontal cone. The guard also requires the attacker to be inside the front 120° positional cone. `GuardResolver` prefers the earliest guard contact; if the guard blade was missed, a body hit inside the 35° cone still blocks, matching Skyrim's cone-based block. A guard held for less than `GuardTimedBlockWindow` (250 ms) is a timed block; older is a normal block. The 100 ms lower bound in the table is a T5 balance target.
 
 | Timing / stamina | Outcome |
 | --- | --- |
-| Guard held > 250 ms | Block: reduced damage, stamina cost `0.6 × armored` |
+| Guard held > 250 ms | Block: reduced damage, stamina cost `0.35 × armored` |
 | Guard raised 100–250 ms before impact | Timed block: stronger reduction, half stamina, attacker gets 250 ms `StaggerMicro` |
 | Block cost > remaining stamina | Guard break: full damage, guard removed, 1000 ms stagger |
 | From outside the cone, or while raising/lowering | Clean hit |
 
 Stamina drain on a blocked hit is paid by the defender. A timed block is the reward for reading, not reacting.
 
-`DefenseResolver` applies the same incoming attack to a defender: a block or timed block spends its stamina cost (0.6× / 0.3× armored). If the cost exceeds the defender's remaining stamina, the guard breaks instead: full armored damage, stamina drained to 0, guard force-lowered, and a 1000 ms stagger. A successful timed block also gives the attacker a 250 ms `StaggerMicro`; the guard cannot be re-raised while staggered.
+`DefenseResolver` applies the same incoming attack to a defender: a block or timed block spends its stamina cost (0.35× / 0.15× armored). If the cost exceeds the defender's remaining stamina, the guard breaks instead: full armored damage, stamina drained to 0, guard force-lowered, and a 1000 ms stagger. A successful timed block also gives the attacker a 250 ms `StaggerMicro`; the guard cannot be re-raised while staggered.
 
 ## Poise and stagger
 

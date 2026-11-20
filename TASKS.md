@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T6.1`
+> **Next up:** `T6.2`
 
 ---
 
@@ -327,13 +327,12 @@
 
 **Done when:** a scripted best-of-three completes correctly; back-to-back duels produce byte-identical self-test output.
 
-### [ ] T4.6 — Guard coverage cone
+### [x] T4.6 — Guard coverage cone
 **Goal:** a visually correct block is actually a block, as in Skyrim.
-- Skyrim blocks inside a **35°** frontal cone regardless of the exact weapon pose; the project currently needs the guard blade capsule to intersect the incoming sweep.
-- Add a cone test to `GuardResolver`: defender in `GuardHold`, attacker inside `BlockConeAngle` (35°), and the guard blade within reach ⇒ block even when the sweep misses the blade capsule.
-- Keep the existing blade-contact path as the primary, more precise test; the cone is the fallback.
-- Tuning: `BlockConeAngle` in `CombatTuning.cs`; docs in [reference.md](Design/reference.md#4-blocking) and [combat.md](Design/combat.md#blocking).
-- Tests: hit inside the cone blocks even with an offset blade; hit outside the cone stays clean; self-test cone scenario.
+- Skyrim blocks inside a **35°** frontal cone regardless of the exact weapon pose; the project previously required the guard blade capsule to intersect the incoming sweep.
+- `GuardResolver` now keeps the blade-contact path as the primary test and falls back to a body hit inside `GuardBlockConeDegrees` (35° half-angle) of the defender's forward direction.
+- Tuning: `GuardBlockConeDegrees` in `CombatTuning.cs`; docs in [reference.md](Design/reference.md#4-blocking) and [combat.md](Design/combat.md#blocking).
+- Tests: body hit inside the cone blocks without a blade contact, the timed window still applies, and a hit outside the cone stays clean.
 
 **Done when:** a guard held straight ahead blocks a chest-height sweep that misses the blade by ≤ 0.15 m, and a flanking hit still lands.
 
@@ -414,12 +413,16 @@
 
 ## M6 — Opponent AI
 
-### [ ] T6.1 — Reactive duelist AI
-**Goal:** a believable sparring partner with no movement.
-- Behavior: observe wind-up → choose block / trade / punish recovery / power attack; guard-break opportunism when player stamina is low.
-- Reaction delay per profile; mistake chance (late block, greedy attack).
-- Outputs `CombatIntent` only — AI cannot cheat the state machine.
-- The opponent's attacks run the same damage/defense pipeline against the player; incoming blocked and clean hits add the block-scaled camera shake noted in T5.4.
+### [x] T6.1 — Reactive duelist AI
+**Goal:** a believable sparring partner that closes distance and fights back.
+- `Ai/DuelistAi`: seeded, deterministic policy. It sees only the player/self state, stamina, and distance; it emits one `CombatIntent`, a guard wish, and an approach value.
+- Movement: walks toward the player when farther than 2.3 m, gives ground inside 1.35 m, and braces while the player's attack is committed. `MoveOpponent` uses the same `PlayerWalkSpeed × Locomotion.MovementMultiplier` as the player (0.25× attacking, 0.45× guarding), clamped by the arena radius and the 1.15 m separation, and faces the player.
+- Behavior: reacts to a player wind-up after a profile delay to guard (timed if late), occasionally pre-guards (normal blocks), punishes recovery, presses a held guard with a power attack, attacks an idle player, and sometimes makes a greedy trade.
+- `AiProfile.Adept`: 100 ms reaction, 75% block, 45% pre-guard, 55% aggression, 25% power, 10% mistake. T6.2 will add presets.
+- Both directions use the same rules: the opponent's attacks sweep the player's hurtboxes, are classified by `GuardResolver` (blade contact or the 35° cone), and run `DefenseResolver` for damage/stamina/guard breaks; the player's hits are classified against the opponent's guard the same way.
+- Incoming clean hits/staggers/death apply to the player; blocked hits add the smaller block shake from T5.4.
+- F1 shows both sides' guard state, clip, positions, and block/timed/break/hit counters.
+- Tests: guard after the reaction delay, punish recovery, no action while committed, approach/retreat/brace spacing, same seed ⇒ identical decision sequence.
 
 **Done when:** a 2-minute fight shows all of: clean hits, blocks, timed blocks, guard breaks, and staggers from both sides; AI never uses an illegal transition.
 
@@ -588,5 +591,7 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T5.3 — First/third person, zoom, bash key (and blade-side slash fix) | 2026-11-20 | `1808e37` | developer |
 | T5.4 — Camera shake, FOV punch, idle drift, F3 presets | 2026-11-20 | `c9091ea` | developer |
 | T5.5 — Debug overlay v2 (trail, contact, tuning, bash guard fixes) | 2026-11-20 | `fc45e65` | developer |
+| T6.1 — Reactive duelist AI (movement, two-way combat, bash) | 2026-11-20 | PENDING | developer |
+| T4.6 — Guard coverage cone | 2026-11-20 | PENDING | developer |
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |
 

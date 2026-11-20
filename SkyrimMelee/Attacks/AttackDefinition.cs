@@ -50,6 +50,7 @@ public sealed class AttackDefinition
 	public bool RequiresStamina => Tuning.RequiresStamina;
 	public bool AlwaysStagger => Tuning.AlwaysStagger;
 	public bool LocksMovement => Tuning.LocksMovement;
+	public float StaggerDuration => Tuning.StaggerDuration;
 
 	public bool IsActive(float timeSeconds) =>
 		timeSeconds >= WindupEnd && timeSeconds < ActiveEnd;

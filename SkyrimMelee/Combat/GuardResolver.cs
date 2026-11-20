@@ -66,9 +66,33 @@ public static class GuardResolver
 				bodyHit.Value.TimeOfImpact < guardHit.Value.TimeOfImpact - 1e-4f)
 			{
 				contact = bodyHit.Value;
+
+				// The blade may graze the guard after the body; the cone still
+				// decides when the body contact is inside the frontal block volume.
+				if (InCone(defenderForward, defenderPosition, attackerPosition,
+						CombatTuning.GuardBlockConeDegrees))
+				{
+					return guardAge < CombatTuning.GuardTimedBlockWindow
+						? HitOutcome.TimedBlock
+						: HitOutcome.Block;
+				}
+
 				return HitOutcome.Clean;
 			}
 
+			return guardAge < CombatTuning.GuardTimedBlockWindow
+				? HitOutcome.TimedBlock
+				: HitOutcome.Block;
+		}
+
+		// Skyrim blocks inside a frontal cone, not only where the weapon mesh is:
+		// a body contact inside the cone counts even if the blade capsule missed.
+		if (isGuarding &&
+			bodyHit is not null &&
+			InCone(defenderForward, defenderPosition, attackerPosition,
+				CombatTuning.GuardBlockConeDegrees))
+		{
+			contact = bodyHit.Value;
 			return guardAge < CombatTuning.GuardTimedBlockWindow
 				? HitOutcome.TimedBlock
 				: HitOutcome.Block;
@@ -80,6 +104,24 @@ public static class GuardResolver
 		}
 
 		return HitOutcome.Clean;
+	}
+
+	/// <summary>True when <paramref name="to"/> lies inside a horizontal cone around forward.</summary>
+	public static bool InCone(
+		Vector3 forward, Vector3 from, Vector3 to, float halfAngleDegrees)
+	{
+		var direction = to - from;
+		direction.Y = 0f;
+		forward.Y = 0f;
+		if (direction.LengthSquared() < 1e-8f || forward.LengthSquared() < 1e-8f)
+		{
+			return true;
+		}
+
+		direction.Normalize();
+		forward.Normalize();
+		return Vector3.Dot(forward, direction) >=
+			MathF.Cos(MathHelper.ToRadians(halfAngleDegrees));
 	}
 
 	/// <summary>True when the attacker lies inside the defender's front guard cone.</summary>

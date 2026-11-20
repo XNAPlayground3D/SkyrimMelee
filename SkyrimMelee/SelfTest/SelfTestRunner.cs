@@ -163,7 +163,8 @@ public static class SelfTestRunner
 		var passed = accepted &&
 					 fsm.State == CombatState.Windup &&
 					 MathF.Abs(stats.Stamina - 85f) < 1e-4f &&
-					 !stagger.Staggered;
+					 stagger.Staggered &&
+					 MathF.Abs(stagger.Duration - CombatTuning.StaggerSmallDuration) < 1e-4f;
 
 		return new SelfTestResult("bash", passed,
 			$"accepted={accepted} stamina={stats.Stamina:0.0} stagger={stagger.Staggered}");

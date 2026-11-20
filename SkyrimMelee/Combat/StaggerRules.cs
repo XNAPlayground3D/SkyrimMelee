@@ -20,7 +20,10 @@ public static class StaggerRules
 		if (attack.AlwaysStagger)
 		{
 			target.RestorePoise();
-			return new StaggerResult(true, CombatTuning.StaggerLargeDuration, target.Poise);
+			var duration = attack.StaggerDuration > 0f
+				? attack.StaggerDuration
+				: CombatTuning.StaggerLargeDuration;
+			return new StaggerResult(true, duration, target.Poise);
 		}
 
 		if (target.Poise <= 0f)

@@ -12,6 +12,7 @@ using SkyrimMelee.Graphics;
 using SkyrimMelee.Ui;
 using SkyrimMelee.Attacks;
 using SkyrimMelee.Physics;
+using SkyrimMelee.Ai;
 using SkyrimMelee.Animation;
 using SkyrimMelee.Tuning;
 
@@ -54,6 +55,7 @@ public sealed class SkyrimMeleeGame : Game
 	private CombatWorld? _combatWorld;
 	private BladeSweep? _bladeSweep;
 	private readonly SwingHitSet _swingHits = new();
+	private readonly SwingHitSet _opponentSwingHits = new();
 	private readonly InputRouter _input = new();
 	private readonly AttackCharge _attackCharge = new();
 	private int _hitCount;
@@ -65,9 +67,12 @@ public sealed class SkyrimMeleeGame : Game
 	private readonly FighterStats _playerStats = new();
 	private readonly FighterStats _opponentStats = new();
 	private BladeGeometry? _lastBlade;
+	private BladeGeometry? _opponentLastBlade;
+	private DuelistAi? _ai;
 	private readonly float[] _hitFlashes = new float[2 * 5];
 	private float _staminaCue;
 	private bool _guardHurtbox;
+	private bool _opponentGuardHurtbox;
 	private ScreenGradient? _backdrop;
 	private SpriteBatch? _spriteBatch;
 	private SwordMotion? _swordMotion;
@@ -118,6 +123,12 @@ public sealed class SkyrimMeleeGame : Game
 	private Vector3 _contactNormal = Vector3.UnitY;
 	private float _contactTimer;
 	private string _lastOutcome = "-";
+	private int _blocksTaken;
+	private int _timedBlocksTaken;
+	private int _guardBreaksTaken;
+	private int _hitsTaken;
+	private int _foeBlocks;
+	private int _foeGuardBreaks;
 	private bool _reactionAdvance;
 	private bool _rightMouseWasDown;
 
@@ -198,6 +209,7 @@ public sealed class SkyrimMeleeGame : Game
 		_opponentSwordMotion = new SwordMotion();
 		_opponentSwordMotion.ResetTo(_swordClips[0]);
 		_opponentBodyMotion = new BodyMotion();
+		_ai = new DuelistAi(AiProfile.Adept, seed: 20261120);
 
 		_combatWorld = new CombatWorld();
 		_combatWorld.AddFighter(FighterId.Player, _player.DrawTransform);
@@ -395,6 +407,7 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		var step = (float)_clock.DeltaTime * _swordClipSpeed;
+		FaceCameraYaw();
 		ApplyMovement(step);
 		var wasActive = _combat.State == CombatState.Active;
 
@@ -406,13 +419,18 @@ public sealed class SkyrimMeleeGame : Game
 
 		_combat.Update(step);
 		_opponentCombat.Update(step);
+		UpdateOpponentFacing();
+		UpdateOpponentAi(step);
 		if (_opponentCombat.State != CombatState.Idle)
 		{
 			_opponentSwordMotion?.Update(step);
 			_opponentBodyMotion?.Update(step);
 		}
 
+		AdvanceOpponentGuard();
+
 		var blade = CurrentPlayerBlade();
+		ResolveBashHit();
 		if ((wasActive || _combat.State == CombatState.Active) &&
 			_lastBlade is { } previous && blade is { } current)
 		{
@@ -420,6 +438,15 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_lastBlade = blade;
+
+		var opponentBlade = CurrentOpponentBlade();
+		if (_opponentCombat.State == CombatState.Active &&
+			_opponentLastBlade is { } opponentPrevious && opponentBlade is { } opponentCurrent)
+		{
+			ResolveOpponentHits(opponentPrevious, opponentCurrent, step);
+		}
+
+		_opponentLastBlade = opponentBlade;
 		if (blade.HasValue && _overlay?.Visible == true)
 		{
 			_bladeTrail[_trailIndex] = blade.Value;
@@ -433,7 +460,7 @@ public sealed class SkyrimMeleeGame : Game
 		var blocking = _combat.State is CombatState.GuardRaise or
 			CombatState.GuardHold or CombatState.GuardLower;
 		_playerStats.Update(step, blocking);
-		_opponentStats.Update(step, false);
+		_opponentStats.Update(step, _opponentCombat.Blocks);
 
 		if (_duel.Update(step))
 		{
@@ -483,6 +510,18 @@ public sealed class SkyrimMeleeGame : Game
 	}
 
 	private void CenterMouse() => Mouse.SetPosition(MouseCenter().X, MouseCenter().Y);
+
+	/// <summary>Turns the body with the camera whenever the fighter is not committed to a swing.</summary>
+	private void FaceCameraYaw()
+	{
+		if (_player is null || _combat.State is CombatState.Windup or CombatState.Active)
+		{
+			return;
+		}
+
+		var forward = new Vector3(MathF.Cos(_camera.Yaw), 0f, MathF.Sin(_camera.Yaw));
+		_player.FacingYaw = Locomotion.FacingFor(forward);
+	}
 
 	private void ApplyMovement(float step)
 	{
@@ -535,80 +574,466 @@ public sealed class SkyrimMeleeGame : Game
 		return BladeGeometry.FromWorld(swordWorld);
 	}
 
-	private void ResolveHits(BladeGeometry previous, BladeGeometry current, float step)
+	/// <summary>
+	/// Bash hit volume: Skyrim's shove is a short forward stagger, not a blade
+	/// sweep. A connected bash always staggers the target (guard shove or
+	/// interrupt), which is what makes it useful against a committed attack.
+	/// </summary>
+	private void ResolveBashHit()
 	{
-		if (_bladeSweep is null)
+		if (_player is null || _opponent is null || _opponentStats.IsDead ||
+			_combat.Attack?.Name != "Bash" || _combat.State != CombatState.Active)
 		{
 			return;
 		}
 
-		foreach (var hit in _bladeSweep.Sweep(previous, current, step))
+		var forward = new Vector3(
+			MathF.Cos(_player.FacingYaw), 0f, -MathF.Sin(_player.FacingYaw));
+		if (!BashRules.InRange(_player.Position, forward, _opponent.Position))
 		{
-			if (!_swingHits.TryRegister(hit, FighterId.Player, _combat.AttackTime,
-					out var hitEvent))
-			{
-				continue;
-			}
+			return;
+		}
 
-			if (hitEvent.Target != FighterId.Opponent ||
-				hitEvent.Hurtbox == HurtboxKind.GuardBlade ||
-				_opponentStats.IsDead)
-			{
-				continue;
-			}
+		var point = _opponent.Position + new Vector3(0f, 1.15f, 0f);
+		var hit = new BladeHit(
+			new Hurtbox(FighterId.Opponent, HurtboxKind.Torso), point, forward, 0f);
+		if (!_swingHits.TryRegister(
+				hit, FighterId.Player, _combat.AttackTime, out var hitEvent))
+		{
+			return;
+		}
 
-			// Feedback: the whole defender flashes coral, so a low or occluded
-			// hit part (hips/legs) cannot hide the hit. Damage is once per swing.
+		var guarding = _opponentCombat.Blocks;
+		var outcome = guarding ? HitOutcome.Block : HitOutcome.Clean;
+		var defense = DefenseResolver.Resolve(
+			hitEvent.Attack, _playerStats, _opponentStats, outcome);
+		_opponentStats.ApplyDamage(defense.Damage.Final);
+
+		_hitCount++;
+		_lastHit = $"Bash@{_combat.AttackTime:0.00}";
+		_lastOutcome = $"bash {(guarding ? "block" : "clean")} torso";
+		_contactPoint = point;
+		_contactNormal = forward;
+		_contactTimer = 1f;
+
+		if (!guarding)
+		{
 			for (var i = 0; i < 4; i++)
 			{
-				_hitFlashes[HitIndex(hitEvent.Target, (HurtboxKind)i)] =
+				_hitFlashes[HitIndex(FighterId.Opponent, (HurtboxKind)i)] =
 					_tuning.Value(TuningKey.HitFlash);
 			}
 
-			_opponent?.SetBodyColor(HitFlashColor);
-			_hitCount++;
-			_lastHit = $"{hitEvent.Hurtbox}@{_combat.AttackTime:0.00}";
-			_lastOutcome = $"clean {hitEvent.Hurtbox}";
-			_contactPoint = hitEvent.Point;
-			_contactNormal = hitEvent.Normal;
-			_contactTimer = 1f;
+			_opponent.SetBodyColor(HitFlashColor);
+		}
 
-			if (!_swingHits.TryMarkDamagingHit())
+		var large = defense.GuardBroken;
+		_opponentCombat.ApplyStagger(large
+			? _tuning.Value(TuningKey.StaggerLarge)
+			: _tuning.Value(TuningKey.StaggerSmall));
+		PlayOpponentClip(large ? "StaggerLarge" : "StaggerSmall");
+
+		if (_options.ScreenShake)
+		{
+			_camera.AddShake(guarding ? 0.012f : 0.030f, 0.09f);
+		}
+
+		if (_opponentStats.IsDead)
+		{
+			_opponentCombat.Kill();
+			PlayOpponentClip("Death");
+			_duel.ReportDeath(FighterId.Opponent);
+		}
+	}
+
+	private void ResolveHits(BladeGeometry previous, BladeGeometry current, float step)
+	{
+		if (_bladeSweep is null || _opponent is null || _player is null)
+		{
+			return;
+		}
+
+		var hits = _bladeSweep.Sweep(previous, current, step);
+		if (hits.Count == 0)
+		{
+			return;
+		}
+
+		var guarding = _opponentCombat.Blocks;
+		var guardAge = guarding ? _opponentCombat.StateTime : 0f;
+		var defenderForward = new Vector3(
+			MathF.Cos(_opponent.FacingYaw), 0f, -MathF.Sin(_opponent.FacingYaw));
+		var outcome = GuardResolver.Classify(
+			hits, FighterId.Opponent, guarding, guardAge, defenderForward,
+			_opponent.Position, _player.Position, out var contact);
+
+		if (!_swingHits.TryRegister(contact, FighterId.Player, _combat.AttackTime,
+				out var hitEvent))
+		{
+			return;
+		}
+
+		if (hitEvent.Target != FighterId.Opponent || _opponentStats.IsDead)
+		{
+			return;
+		}
+
+		_hitCount++;
+		_lastHit = $"{hitEvent.Hurtbox}@{_combat.AttackTime:0.00}";
+		_lastOutcome = $"{outcome} {hitEvent.Hurtbox}".ToLowerInvariant();
+		_contactPoint = hitEvent.Point;
+		_contactNormal = hitEvent.Normal;
+		_contactTimer = 1f;
+
+		if (outcome != HitOutcome.Clean)
+		{
+			var block = DefenseResolver.Resolve(
+				hitEvent.Attack, _playerStats, _opponentStats, outcome);
+
+			if (block.GuardBroken)
 			{
-				continue;
+				_foeGuardBreaks++;
+				_opponentCombat.ApplyStagger(block.DefenderStagger);
+				PlayOpponentClip("StaggerLarge");
+			}
+			else
+			{
+				_foeBlocks++;
 			}
 
-			var stagger = StaggerRules.Resolve(hitEvent.Attack, _opponentStats);
-			var staggerLarge = stagger.Staggered &&
-				stagger.Duration >= CombatTuning.StaggerLargeDuration - 0.001f;
-			if (stagger.Staggered)
+			if (block.AttackerStagger > 0f)
 			{
-				var duration = _tuning.Value(
-					staggerLarge ? TuningKey.StaggerLarge : TuningKey.StaggerSmall);
-				_opponentCombat.ApplyStagger(duration);
+				_combat.ApplyStagger(block.AttackerStagger);
+				PlayMicroStagger();
 			}
-
-			var defense = DefenseResolver.Resolve(
-				hitEvent.Attack, _playerStats, _opponentStats, HitOutcome.Clean);
-			_opponentStats.ApplyDamage(defense.Damage.Final);
 
 			if (_options.ScreenShake)
 			{
-				var severity = Math.Clamp(
-					defense.Damage.Final / _opponentStats.MaxHealth, 0f, 1f);
-				_camera.AddShake(0.012f + severity * 0.10f, 0.09f);
+				_camera.AddShake(0.010f, 0.09f);
 			}
 
-			if (_opponentStats.IsDead)
+			return;
+		}
+
+		// Feedback: the whole defender flashes coral, so a low or occluded
+		// hit part (hips/legs) cannot hide the hit. Damage is once per swing.
+		for (var i = 0; i < 4; i++)
+		{
+			_hitFlashes[HitIndex(hitEvent.Target, (HurtboxKind)i)] =
+				_tuning.Value(TuningKey.HitFlash);
+		}
+
+		_opponent.SetBodyColor(HitFlashColor);
+
+		if (!_swingHits.TryMarkDamagingHit())
+		{
+			return;
+		}
+
+		var stagger = StaggerRules.Resolve(hitEvent.Attack, _opponentStats);
+		var staggerLarge = stagger.Staggered &&
+			stagger.Duration >= CombatTuning.StaggerLargeDuration - 0.001f;
+		if (stagger.Staggered)
+		{
+			var duration = _tuning.Value(
+				staggerLarge ? TuningKey.StaggerLarge : TuningKey.StaggerSmall);
+			_opponentCombat.ApplyStagger(duration);
+		}
+
+		var defense = DefenseResolver.Resolve(
+			hitEvent.Attack, _playerStats, _opponentStats, HitOutcome.Clean);
+		_opponentStats.ApplyDamage(defense.Damage.Final);
+
+		if (_options.ScreenShake)
+		{
+			var severity = Math.Clamp(
+				defense.Damage.Final / _opponentStats.MaxHealth, 0f, 1f);
+			_camera.AddShake(0.012f + severity * 0.10f, 0.09f);
+		}
+
+		if (_opponentStats.IsDead)
+		{
+			_opponentCombat.Kill();
+			PlayOpponentClip("Death");
+			_duel.ReportDeath(FighterId.Opponent);
+		}
+		else if (stagger.Staggered)
+		{
+			PlayOpponentClip(staggerLarge ? "StaggerLarge" : "StaggerSmall");
+		}
+	}
+
+	private BladeGeometry? CurrentOpponentBlade()
+	{
+		if (_opponentSwordMotion is null || _opponent is null)
+		{
+			return null;
+		}
+
+		var swordWorld = _opponentSwordMotion.CurrentPose.ToMatrix() *
+							_opponent.GetRightHandTransform();
+		return BladeGeometry.FromWorld(swordWorld);
+	}
+
+	private void UpdateOpponentFacing()
+	{
+		if (_player is null || _opponent is null ||
+			_opponentCombat.State is CombatState.Windup or CombatState.Active)
+		{
+			return;
+		}
+
+		var direction = _player.Position - _opponent.Position;
+		if (direction.LengthSquared() > 1e-6f)
+		{
+			_opponent.FacingYaw = Locomotion.FacingFor(direction);
+		}
+	}
+
+	private void UpdateOpponentAi(float step)
+	{
+		if (_ai is null || _player is null || _opponent is null ||
+			_opponentStats.IsDead || _playerStats.IsDead)
+		{
+			return;
+		}
+
+		var context = new AiContext(
+			_combat.State,
+			_playerStats.Stamina,
+			_opponentCombat.State,
+			_opponentStats.Stamina,
+			Vector3.Distance(_player.Position, _opponent.Position));
+
+		_ai.Update(step, context);
+		MoveOpponent(step, _ai.Approach);
+		ApplyOpponentGuard(_ai.GuardHeld);
+
+		if (_ai.Intent is { } intent)
+		{
+			TryOpponentAttack(intent);
+		}
+	}
+
+	private void MoveOpponent(float step, float approach)
+	{
+		if (_player is null || _opponent is null || MathF.Abs(approach) < 0.01f)
+		{
+			return;
+		}
+
+		var multiplier = Locomotion.MovementMultiplier(_opponentCombat.State);
+		if (multiplier <= 0f)
+		{
+			return;
+		}
+
+		var direction = _player.Position - _opponent.Position;
+		direction.Y = 0f;
+		if (direction.LengthSquared() < 1e-6f)
+		{
+			return;
+		}
+
+		direction.Normalize();
+		var position = _opponent.Position +
+			direction * (approach * CombatTuning.PlayerWalkSpeed * multiplier * step);
+		_opponent.Position = Locomotion.Clamp(
+			position,
+			_player.Position,
+			CombatTuning.ArenaRadius,
+			CombatTuning.OpponentSeparation);
+	}
+
+	private void ApplyOpponentGuard(bool held)
+	{
+		if (held)
+		{
+			if (_opponentCombat.State == CombatState.Idle &&
+				_opponentCombat.TryStartGuard())
 			{
-				_opponentCombat.Kill();
-				PlayOpponentClip("Death");
-				_duel.ReportDeath(FighterId.Opponent);
+				PlayOpponentClip("GuardRaise");
 			}
-			else if (stagger.Staggered)
+
+			return;
+		}
+
+		if (_opponentCombat.State is CombatState.GuardRaise or CombatState.GuardHold &&
+			_opponentCombat.TryReleaseGuard())
+		{
+			PlayOpponentClip("GuardLower");
+		}
+	}
+
+	private void AdvanceOpponentGuard()
+	{
+		if (_opponentSwordMotion?.Clip is not { } clip || !_opponentSwordMotion.IsFinished)
+		{
+			return;
+		}
+
+		if (clip.Name == "GuardRaise")
+		{
+			PlayOpponentClip("GuardHold");
+		}
+		else if (clip.Name == "GuardLower")
+		{
+			ResetOpponentToIdle();
+		}
+	}
+
+	private void ResetOpponentToIdle()
+	{
+		if (_opponentSwordMotion is null)
+		{
+			return;
+		}
+
+		_opponentSwordMotion.ResetTo(_swordClips[0]);
+		_opponentBodyMotion?.Reset();
+		ApplySwordPose();
+	}
+
+	private void TryOpponentAttack(CombatIntent intent)
+	{
+		if (_opponentCombat.State != CombatState.Idle)
+		{
+			return;
+		}
+
+		var attack = intent switch
+		{
+			CombatIntent.SlashLeft => _slashAttack,
+			CombatIntent.SlashRight => _slashRightAttack,
+			CombatIntent.PowerSlash => _powerSlashAttack,
+			CombatIntent.Bash => _bashAttack,
+			_ => null
+		};
+
+		if (attack is null || !_opponentStats.CanAfford(attack) ||
+			!_opponentCombat.TryStartAttack(attack))
+		{
+			return;
+		}
+
+		if (_player is not null && _opponent is not null)
+		{
+			var direction = _player.Position - _opponent.Position;
+			if (direction.LengthSquared() > 1e-6f)
 			{
-				PlayOpponentClip(staggerLarge ? "StaggerLarge" : "StaggerSmall");
+				_opponent.FacingYaw = Locomotion.FacingFor(direction);
 			}
+		}
+
+		_opponentStats.Spend(attack);
+		_opponentSwingHits.Begin(attack);
+		PlayOpponentClip(attack.Name);
+	}
+
+	private void ResolveOpponentHits(BladeGeometry previous, BladeGeometry current, float step)
+	{
+		if (_bladeSweep is null || _player is null || _opponent is null)
+		{
+			return;
+		}
+
+		var hits = _bladeSweep.Sweep(previous, current, step);
+		if (hits.Count == 0)
+		{
+			return;
+		}
+
+		var guarding = _combat.Blocks;
+		var guardAge = guarding ? _combat.StateTime : 0f;
+		var defenderForward = new Vector3(
+			MathF.Cos(_player.FacingYaw), 0f, -MathF.Sin(_player.FacingYaw));
+		var outcome = GuardResolver.Classify(
+			hits, FighterId.Player, guarding, guardAge, defenderForward,
+			_player.Position, _opponent.Position, out var contact);
+
+		if (!_opponentSwingHits.TryRegister(contact, FighterId.Opponent,
+				_opponentCombat.AttackTime, out var hitEvent))
+		{
+			return;
+		}
+
+		if (hitEvent.Target != FighterId.Player)
+		{
+			return;
+		}
+
+		_lastOutcome = $"taken {outcome} {contact.Hurtbox.Kind}".ToLowerInvariant();
+		_contactPoint = hitEvent.Point;
+		_contactNormal = hitEvent.Normal;
+		_contactTimer = 1f;
+
+		var defense = DefenseResolver.Resolve(
+			hitEvent.Attack, _opponentStats, _playerStats, outcome);
+		_playerStats.ApplyDamage(defense.Damage.Final);
+
+		if (outcome == HitOutcome.Clean)
+		{
+			_hitsTaken++;
+		}
+		else if (defense.GuardBroken)
+		{
+			_guardBreaksTaken++;
+		}
+		else if (outcome == HitOutcome.TimedBlock)
+		{
+			_timedBlocksTaken++;
+		}
+		else
+		{
+			_blocksTaken++;
+		}
+
+		if (outcome == HitOutcome.Clean)
+		{
+			for (var i = 0; i < 4; i++)
+			{
+				_hitFlashes[HitIndex(FighterId.Player, (HurtboxKind)i)] =
+					_tuning.Value(TuningKey.HitFlash);
+			}
+
+			_player.SetBodyColor(HitFlashColor);
+
+			var stagger = StaggerRules.Resolve(hitEvent.Attack, _playerStats);
+			if (stagger.Staggered)
+			{
+				var large = stagger.Duration >=
+					CombatTuning.StaggerLargeDuration - 0.001f;
+				_combat.ApplyStagger(_tuning.Value(
+					large ? TuningKey.StaggerLarge : TuningKey.StaggerSmall));
+				PlayClip(large ? "StaggerLarge" : "StaggerSmall");
+			}
+		}
+		else if (defense.GuardBroken)
+		{
+			_combat.TryReleaseGuard();
+			_combat.ApplyStagger(defense.DefenderStagger);
+			PlayClip("StaggerLarge");
+		}
+		else if (defense.AttackerStagger > 0f)
+		{
+			_opponentCombat.ApplyStagger(defense.AttackerStagger);
+			PlayOpponentClip("StaggerMicro");
+		}
+
+		if (_options.ScreenShake)
+		{
+			var severity = Math.Clamp(
+				defense.Damage.Final / _playerStats.MaxHealth, 0f, 1f);
+			_camera.AddShake(
+				outcome == HitOutcome.Clean ? 0.012f + severity * 0.10f : 0.010f,
+				0.09f);
+		}
+
+		if (_playerStats.IsDead)
+		{
+			_combat.Kill();
+			PlayDeath();
+			_duel.ReportDeath(FighterId.Player);
 		}
 	}
 
@@ -1122,9 +1547,14 @@ public sealed class SkyrimMeleeGame : Game
 		_reactionAdvance = false;
 		_bodyMotion?.Reset();
 		_combatWorld?.UnregisterGuardBlade(FighterId.Player);
+		_combatWorld?.UnregisterGuardBlade(FighterId.Opponent);
 		_guardHurtbox = false;
+		_opponentGuardHurtbox = false;
 		_lastBlade = null;
+		_opponentLastBlade = null;
 		_swingHits.Reset();
+		_opponentSwingHits.Reset();
+		_ai?.Reset();
 		ClearHitFlashes();
 		_playerStats.Reset();
 		_opponentStats.Reset();
@@ -1133,6 +1563,12 @@ public sealed class SkyrimMeleeGame : Game
 		_hitCount = 0;
 		_lastHit = "-";
 		_lastOutcome = "-";
+		_blocksTaken = 0;
+		_timedBlocksTaken = 0;
+		_guardBreaksTaken = 0;
+		_hitsTaken = 0;
+		_foeBlocks = 0;
+		_foeGuardBreaks = 0;
 		_trailCount = 0;
 		_trailIndex = 0;
 		_contactTimer = 0f;
@@ -1208,6 +1644,28 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			_combatWorld.UnregisterGuardBlade(FighterId.Player);
 			_guardHurtbox = false;
+		}
+
+		var opponentGuarding = _opponentCombat.State == CombatState.GuardHold;
+		if (opponentGuarding && _opponentSword is not null && _opponent is not null)
+		{
+			var swordWorld = _opponentSword.GetWorld(_opponent.GetRightHandTransform());
+			var blade = BladeGeometry.FromWorld(swordWorld);
+
+			if (!_opponentGuardHurtbox)
+			{
+				_combatWorld.RegisterGuardBlade(FighterId.Opponent, blade);
+				_opponentGuardHurtbox = true;
+			}
+			else
+			{
+				_combatWorld.SetGuardBladePose(FighterId.Opponent, blade);
+			}
+		}
+		else if (!opponentGuarding && _opponentGuardHurtbox)
+		{
+			_combatWorld.UnregisterGuardBlade(FighterId.Opponent);
+			_opponentGuardHurtbox = false;
 		}
 	}
 
@@ -1516,11 +1974,14 @@ public sealed class SkyrimMeleeGame : Game
 		var buffered = _input.IsPending ? $"buffered {_input.Pending}" : "idle";
 		var rejection = _lastRejection == "-" ? string.Empty : $"  reject {_lastRejection}";
 		var motion = FormattableString.Invariant(
-			$"move {_moveInput.X:0},{_moveInput.Y:0}  pos {_player?.Position.X ?? 0f:0.00},{_player?.Position.Z ?? 0f:0.00}  yaw {_camera.Yaw:0.00}  face {_player?.FacingYaw ?? 0f:0.00}  hits {_hitCount} {_lastHit}  foe {_opponentStats.Health:0}/{_opponentStats.MaxHealth:0}");
+			$"move {_moveInput.X:0},{_moveInput.Y:0}  pos {_player?.Position.X ?? 0f:0.00},{_player?.Position.Z ?? 0f:0.00}  yaw {_camera.Yaw:0.00}  face {_player?.FacingYaw ?? 0f:0.00}  hits {_hitCount} {_lastHit}  foe {_opponentStats.Health:0}/{_opponentStats.MaxHealth:0} @ {_opponent?.Position.X ?? 0f:0.00},{_opponent?.Position.Z ?? 0f:0.00}");
 		var vitals = FormattableString.Invariant(
 			$"vitals hp {_playerStats.Health:0}/{_playerStats.MaxHealth:0} st {_playerStats.Stamina:0} poise {_playerStats.Poise:0}/{_playerStats.MaxPoise:0}");
 		var guard = $"guard blade={(_guardHurtbox ? "yes" : "no")} " +
-					$"block={(_combat.Blocks ? "yes" : "no")} last={_lastOutcome}";
+					$"block={(_combat.Blocks ? "yes" : "no")} last={_lastOutcome} " +
+					$"blk {_blocksTaken}/{_timedBlocksTaken} brk {_guardBreaksTaken} hit {_hitsTaken} " +
+					$"| foe {_opponentCombat.State}/{_opponentSwordMotion?.Clip?.Name ?? "-"} " +
+					$"blk {_foeBlocks} brk {_foeGuardBreaks}";
 		var tune = FormattableString.Invariant(
 			$"tune {TuningSession.Name(_tuning.Selected)} {_tuning.SelectedValue * 1000:0} ms  [ ] nudge  ; select  -> {_tuning.LastChange}");
 		_overlay?.Update(_clock, _combat, _swordMotion?.Clip?.Name ?? "-",

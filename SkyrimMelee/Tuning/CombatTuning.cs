@@ -10,7 +10,8 @@ public readonly record struct AttackTuning(
 	float StaggerPower,
 	bool RequiresStamina = false,
 	bool AlwaysStagger = false,
-	bool LocksMovement = false)
+	bool LocksMovement = false,
+	float StaggerDuration = 0f)
 {
 	public float Total => Windup + Active + Recovery;
 }
@@ -39,6 +40,15 @@ public static class CombatTuning
 
 	/// <summary>Half-angle of the defender's front cone that can block.</summary>
 	public const float GuardConeDegrees = 60f;
+
+	/// <summary>Half-angle of the frontal cone that blocks an incoming hit even when the guard blade capsule misses.</summary>
+	public const float GuardBlockConeDegrees = 35f;
+
+	/// <summary>Forward reach of the guard bash; Skyrim's shove uses the weapon's melee reach, so you must be in range.</summary>
+	public const float BashReach = 1.7f;
+
+	/// <summary>Half-angle of the bash hit cone.</summary>
+	public const float BashConeDegrees = 60f;
 
 	/// <summary>A guard younger than this is a timed block; older is a normal block.</summary>
 	public const float GuardTimedBlockWindow = 0.25f;
@@ -71,8 +81,8 @@ public static class CombatTuning
 	public const float BlockReductionPerSkill = 0.45f;
 	public const float TimedBlockBonus = 0.15f;
 	public const float TimedBlockCap = 0.85f;
-	public const float BlockStaminaMultiplier = 0.6f;
-	public const float TimedBlockStaminaMultiplier = 0.3f;
+	public const float BlockStaminaMultiplier = 0.35f;
+	public const float TimedBlockStaminaMultiplier = 0.15f;
 	public const float MinimumDamage = 1f;
 
 	public static readonly AttackTuning Slash =
@@ -85,5 +95,6 @@ public static class CombatTuning
 	/// <summary>A quick guard shove; only available while guarding and rooted in place.</summary>
 	public static readonly AttackTuning Bash =
 		new(0.16f, 0.08f, 0.30f, 15f, 0.5f, 40f,
-			RequiresStamina: true, LocksMovement: true);
+			RequiresStamina: true, AlwaysStagger: true, LocksMovement: true,
+			StaggerDuration: StaggerSmallDuration);
 }

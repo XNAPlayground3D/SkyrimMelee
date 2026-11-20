@@ -9,14 +9,14 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 
 ## Project state
 
-**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM (top-level Tuning, Animation, Physics, Attacks, Combat, SelfTest), four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash, headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, input buffer, WASD movement and follow camera, move-while-attacking/guarding (bash roots the fighter), alternating slash combo, Skyrim stamina gate, player-only sword motion, opponent hit/death reactions, whole-body hit flash, first/third person with wheel zoom, damage-scaled camera shake, F3 presets, debug overlay v2 (blade trail, contact marker, live tuning), pause status · **Next:** `T6.1`
+**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM (top-level Tuning, Animation, Physics, Attacks, Combat, SelfTest), four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash, headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, input buffer, WASD movement and follow camera, move-while-attacking/guarding (bash roots the fighter), alternating slash combo, Skyrim stamina gate, player-only sword motion, opponent hit/death reactions, whole-body hit flash, first/third person with wheel zoom, damage-scaled camera shake, F3 presets, debug overlay v2 (blade trail, contact marker, live tuning), reactive opponent AI (chase, guard, attack, punish), incoming attacks, 35° guard cone, pause status · **Next:** `T6.2`
 
 | Area | State |
 | --- | --- |
 | Docs | ✅ README, `Design/`, TASKS, AGENTS |
 | Toolchain | ✅ `T0.1` |
 | Solution & skeleton | ✅ `T0.2` |
-| Tests | ✅ xUnit project, 205 passing |
+| Tests | ✅ xUnit project, 242 passing |
 | UI host & debug label | ✅ `T0.3` |
 | Loop, clock & flags | ✅ `T0.4` |
 | Primitive library & showcase | ✅ `T1.1` |
@@ -48,6 +48,8 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 | First/third person & zoom | ✅ `T5.3` |
 | Camera feel (shake, presets) | ✅ `T5.4` |
 | Debug overlay v2 (trail, tuning) | ✅ `T5.5` |
+| Opponent AI | ✅ `T6.1` |
+| Guard coverage cone | ✅ `T4.6` |
 | Code layout (top-level folders) | ✅ `T5.7` |
 | HUD & menus | ⬜ `T7.1` |
 
