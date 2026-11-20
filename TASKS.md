@@ -769,6 +769,6 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T7.4 — UI/gameplay input ownership | 2026-11-20 | `1f7df98` | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
 | T9.1 — Technical asset specification | 2026-11-20 | `1f7fc48` | developer |
-| T9.2 — DrModel validation harness | 2026-11-20 | PENDING | developer |
+| T9.2 — DrModel validation harness | 2026-11-20 | `7c2b972` | developer |
 
 
