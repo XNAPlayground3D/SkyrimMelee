@@ -126,9 +126,9 @@ public sealed class SkyrimMeleeGame : Game
 	private int _blocksTaken;
 	private int _timedBlocksTaken;
 	private int _guardBreaksTaken;
-	private int _hitsTaken;
-	private int _foeBlocks;
-	private int _foeGuardBreaks;
+	private readonly AiFightStats _aiFight = new();
+	private readonly List<string> _aiLog = new();
+	private long _aiDecisionSeen;
 	private bool _reactionAdvance;
 	private bool _rightMouseWasDown;
 
@@ -619,6 +619,7 @@ public sealed class SkyrimMeleeGame : Game
 
 		if (!guarding)
 		{
+			_aiFight.RecordIncomingHit();
 			for (var i = 0; i < 4; i++)
 			{
 				_hitFlashes[HitIndex(FighterId.Opponent, (HurtboxKind)i)] =
@@ -626,6 +627,14 @@ public sealed class SkyrimMeleeGame : Game
 			}
 
 			_opponent.SetBodyColor(HitFlashColor);
+		}
+		else if (defense.GuardBroken)
+		{
+			_aiFight.RecordGuardBreak();
+		}
+		else
+		{
+			_aiFight.RecordBlock();
 		}
 
 		var large = defense.GuardBroken;
@@ -703,13 +712,13 @@ public sealed class SkyrimMeleeGame : Game
 
 			if (block.GuardBroken)
 			{
-				_foeGuardBreaks++;
+				_aiFight.RecordGuardBreak();
 				_opponentCombat.ApplyStagger(block.DefenderStagger);
 				PlayOpponentClip("StaggerLarge");
 			}
 			else
 			{
-				_foeBlocks++;
+				_aiFight.RecordBlock();
 			}
 
 			if (block.AttackerStagger > 0f)
@@ -725,6 +734,8 @@ public sealed class SkyrimMeleeGame : Game
 
 			return;
 		}
+
+		_aiFight.RecordIncomingHit();
 
 		// Feedback: the whole defender flashes coral, so a low or occluded
 		// hit part (hips/legs) cannot hide the hit. Damage is once per swing.
@@ -818,11 +829,40 @@ public sealed class SkyrimMeleeGame : Game
 
 		_ai.Update(step, context);
 		MoveOpponent(step, _ai.Approach);
-		ApplyOpponentGuard(_ai.GuardHeld);
 
+		// Start the attack before lowering the guard: GuardLower cannot
+		// transition to Windup, so the intent would be dropped for the tick.
 		if (_ai.Intent is { } intent)
 		{
 			TryOpponentAttack(intent);
+		}
+
+		ApplyOpponentGuard(_ai.GuardHeld);
+		LogAiDecision();
+	}
+
+	private void LogAiDecision()
+	{
+		if (_ai?.LastDecision is not { } decision ||
+			_ai.DecisionId == _aiDecisionSeen)
+		{
+			return;
+		}
+
+		_aiDecisionSeen = _ai.DecisionId;
+
+		var state = _opponentCombat.State == CombatState.Windup &&
+					_opponentCombat.Attack is { } attack
+			? $"Windup {attack.Name}"
+			: _opponentCombat.State.ToString();
+
+		var line = FormattableString.Invariant(
+			$"{_clock.SimTime:0.00} {decision.Action} ({decision.Reason}) -> {state}");
+
+		_aiLog.Add(line);
+		if (_aiLog.Count > 2)
+		{
+			_aiLog.RemoveAt(0);
 		}
 	}
 
@@ -905,13 +945,8 @@ public sealed class SkyrimMeleeGame : Game
 		ApplySwordPose();
 	}
 
-	private void TryOpponentAttack(CombatIntent intent)
+	private bool TryOpponentAttack(CombatIntent intent)
 	{
-		if (_opponentCombat.State != CombatState.Idle)
-		{
-			return;
-		}
-
 		var attack = intent switch
 		{
 			CombatIntent.SlashLeft => _slashAttack,
@@ -924,7 +959,7 @@ public sealed class SkyrimMeleeGame : Game
 		if (attack is null || !_opponentStats.CanAfford(attack) ||
 			!_opponentCombat.TryStartAttack(attack))
 		{
-			return;
+			return false;
 		}
 
 		if (_player is not null && _opponent is not null)
@@ -937,8 +972,10 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_opponentStats.Spend(attack);
+		_aiFight.RecordAttack();
 		_opponentSwingHits.Begin(attack);
 		PlayOpponentClip(attack.Name);
+		return true;
 	}
 
 	private void ResolveOpponentHits(BladeGeometry previous, BladeGeometry current, float step)
@@ -984,7 +1021,7 @@ public sealed class SkyrimMeleeGame : Game
 
 		if (outcome == HitOutcome.Clean)
 		{
-			_hitsTaken++;
+			_aiFight.RecordHit();
 		}
 		else if (defense.GuardBroken)
 		{
@@ -1577,9 +1614,9 @@ public sealed class SkyrimMeleeGame : Game
 		_blocksTaken = 0;
 		_timedBlocksTaken = 0;
 		_guardBreaksTaken = 0;
-		_hitsTaken = 0;
-		_foeBlocks = 0;
-		_foeGuardBreaks = 0;
+		_aiFight.Reset();
+		_aiLog.Clear();
+		_aiDecisionSeen = 0;
 		_trailCount = 0;
 		_trailIndex = 0;
 		_contactTimer = 0f;
@@ -1990,14 +2027,35 @@ public sealed class SkyrimMeleeGame : Game
 			$"vitals hp {_playerStats.Health:0}/{_playerStats.MaxHealth:0} st {_playerStats.Stamina:0} poise {_playerStats.Poise:0}/{_playerStats.MaxPoise:0}");
 		var guard = $"guard blade={(_guardHurtbox ? "yes" : "no")} " +
 					$"block={(_combat.Blocks ? "yes" : "no")} last={_lastOutcome} " +
-					$"blk {_blocksTaken}/{_timedBlocksTaken} brk {_guardBreaksTaken} hit {_hitsTaken} " +
+					$"blk {_blocksTaken}/{_timedBlocksTaken} brk {_guardBreaksTaken} hit {_aiFight.HitsLanded} " +
 					$"| foe {_opponentCombat.State}/{_opponentSwordMotion?.Clip?.Name ?? "-"} " +
-					$"blk {_foeBlocks} brk {_foeGuardBreaks}";
+					$"blk {_aiFight.Blocks} brk {_aiFight.GuardBreaks}";
+
+		var ai = "ai -";
+		var aiWhy = "ai why -";
+		var aiStats = "ai fight -";
+		if (_ai is { } aiBrain)
+		{
+			var reaction = aiBrain.ReactionRemaining >= 0f
+				? $"{aiBrain.ReactionRemaining:0.00}s"
+				: "-";
+			var guardTime = aiBrain.GuardRemaining > 0f
+				? $"{aiBrain.GuardRemaining:0.0}s"
+				: "-";
+			ai = FormattableString.Invariant(
+				$"ai {aiBrain.Profile.Name}  intent {aiBrain.Intent?.ToString() ?? "-"}  react {reaction}  guard {(aiBrain.GuardHeld ? "on" : "off")} {guardTime}  move {aiBrain.Approach:0.0}");
+			aiWhy = aiBrain.LastDecision is { } decision
+				? $"ai why {decision.Action} ({decision.Reason})"
+				: "ai why -";
+			aiStats = FormattableString.Invariant(
+				$"ai fight atk {_aiFight.AttacksThrown}  hit {_aiFight.HitsLanded} ({_aiFight.HitRate:P0})  blk {_aiFight.Blocks}/{_aiFight.Incoming} ({_aiFight.BlockRate:P0})  brk {_aiFight.GuardBreaks}");
+		}
+
 		var tune = FormattableString.Invariant(
 			$"tune {TuningSession.Name(_tuning.Selected)} {_tuning.SelectedValue * 1000:0} ms  [ ] nudge  ; select  -> {_tuning.LastChange}");
 		_overlay?.Update(_clock, _combat, _swordMotion?.Clip?.Name ?? "-",
 			_swordMotion?.NormalizedTime ?? 0f, vitals, guard, tune,
-			$"intent {buffered}{rejection}", motion);
+			$"intent {buffered}{rejection}", motion, ai, aiWhy, aiStats, _aiLog);
 	}
 
 	protected override void Draw(GameTime gameTime)

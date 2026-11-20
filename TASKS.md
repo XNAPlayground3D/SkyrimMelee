@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T6.3`
+> **Next up:** `T7.1`
 
 ---
 
@@ -448,10 +448,15 @@
 
 **Done when:** Master beats Novice in ≥8 of 10 headless AI-vs-AI duels; Novice still lands occasional hits.
 
-### [ ] T6.3 — AI visualization
+### [x] T6.3 — AI visualization
 **Goal:** understand (and debug) the opponent's decisions.
-- Overlay of current AI intent, reaction timer, and chosen response with its reason.
-- Per-fight stats: attacks thrown, hit rate, block rate, guard breaks suffered.
+- `DuelistAi` publishes `LastDecision` (action + reason), a monotonically increasing `DecisionId`, `ReactionRemaining`, `GuardRemaining`, `Intent`, `Approach`, and `Profile`.
+- The game logs each new decision once with sim time and the FSM state it produced: `16.20 SlashRight (idle pressure) -> Windup SlashRight`; last two shown in the overlay.
+- F1 overlay adds an AI block: profile, intent, reaction countdown, guard timer, approach, last decision/reason, and per-round `AiFightStats` (attacks, hit rate, block rate, guard breaks).
+- AI telemetry updated for every choice: block read / timed block / failed roll / pre-guard / punish recovery / greedy trade / guard pressure / idle pressure.
+- Fix found while wiring the log: the opponent attack path required `Idle` and ran after the guard was lowered, so punish intents issued from a held guard were dropped. It now starts the wind-up before the guard releases, using the same `TryStartAttack` transitions as the player.
+- Overlay layout: merged the frame/sim/dt, scale/acc/dropped, clip/time, and fsm/flags rows so the panel sits below the render HUD without clipping.
+- Tests: decision action/reason for guard success, failed roll, punish, and reset; `AiFightStats` rates and reset; F1 checked visually in a live run.
 
 **Done when:** every AI decision shown in the overlay corresponds to a state-machine event in the log.
 
@@ -610,5 +615,6 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |
 | T6.2 — Difficulty profiles | 2026-11-20 | `55dcf9c` | developer |
 | T4.7 — Bash interrupts, it does not stun | 2026-11-20 | `bf5742b` | developer |
+| T6.3 — AI visualization | 2026-11-20 | PENDING | developer |
 
 

@@ -31,9 +31,26 @@ public class DuelistAiTests
 
 		ai.Update(0.1f, windup);
 		Assert.False(ai.GuardHeld);
+		Assert.True(ai.ReactionRemaining > 0f);
 
 		ai.Update(0.25f, windup);
 		Assert.True(ai.GuardHeld);
+		Assert.Equal("wind-up read", ai.LastDecision?.Reason);
+		Assert.Equal("guard", ai.LastDecision?.Action);
+	}
+
+	[Fact]
+	public void FailedBlockReadIsVisible()
+	{
+		var ai = new DuelistAi(Profile(reaction: 0.2f, block: 0f), seed: 7);
+		var windup = Context(player: CombatState.Windup);
+
+		ai.Update(0.016f, windup);
+		ai.Update(0.3f, windup);
+
+		Assert.False(ai.GuardHeld);
+		Assert.Equal("hold", ai.LastDecision?.Action);
+		Assert.Equal("block roll failed", ai.LastDecision?.Reason);
 	}
 
 	[Fact]
@@ -44,6 +61,22 @@ public class DuelistAiTests
 		ai.Update(0.016f, Context(player: CombatState.Recovery));
 
 		Assert.NotNull(ai.Intent);
+		Assert.Equal(ai.Intent.ToString(), ai.LastDecision?.Action);
+		Assert.Equal("punish recovery", ai.LastDecision?.Reason);
+	}
+
+	[Fact]
+	public void ResetClearsTelemetry()
+	{
+		var ai = new DuelistAi(Profile(aggression: 1f), seed: 7);
+		ai.Update(0.016f, Context(player: CombatState.Recovery));
+		Assert.True(ai.DecisionId > 0);
+
+		ai.Reset();
+
+		Assert.Equal(0, ai.DecisionId);
+		Assert.Null(ai.LastDecision);
+		Assert.Equal(-1f, ai.ReactionRemaining);
 	}
 
 	[Fact]

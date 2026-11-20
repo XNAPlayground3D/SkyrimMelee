@@ -1,23 +1,19 @@
 <Project>
   <Project.ExportOptions Namespace="SkyrimMelee.Ui" Class="DebugOverlay" />
-  <VerticalStackPanel Left="24" Top="180" HorizontalAlignment="Left" VerticalAlignment="Top"
-                      Spacing="2" Padding="10" Background="#00000066" Visible="False">
+  <VerticalStackPanel Left="24" Top="255" HorizontalAlignment="Left" VerticalAlignment="Top"
+                      Spacing="1" Padding="6" Background="#00000066" Visible="False">
     <Label Text="DEBUG" TextColor="#8FA6C0" />
-    <Label Id="_frame" Text="frame 0" TextColor="#9FD8FF" />
-    <Label Id="_sim" Text="sim 0.000 s" TextColor="#9FD8FF" />
-    <Label Id="_dt" Text="dt 16.67 ms" TextColor="#9FD8FF" />
-    <Label Id="_scale" Text="scale 1.00x" TextColor="#9FD8FF" />
-    <Label Id="_acc" Text="acc 0.0 ms" TextColor="#9FD8FF" />
-    <Label Id="_dropped" Text="dropped 0" TextColor="#9FD8FF" />
-    <Label Id="_mode" Text="mode" TextColor="#9FD8FF" />
-    <Label Id="_clip" Text="clip -" TextColor="#9FD8FF" />
-    <Label Id="_clipTime" Text="clip t 0.00" TextColor="#9FD8FF" />
-    <Label Id="_fsm" Text="fsm Idle 0.00s" TextColor="#9FD8FF" />
-    <Label Id="_fsmFlags" Text="active=no block=no lock=no" TextColor="#9FD8FF" />
+    <Label Id="_frame" Text="frame 0  sim 0.000 s  dt 16.67 ms" TextColor="#9FD8FF" />
+    <Label Id="_scale" Text="scale 1.00x  acc 0.0 ms  dropped 0" TextColor="#9FD8FF" />
+    <Label Id="_clip" Text="clip -  t 0.00" TextColor="#9FD8FF" />
+    <Label Id="_fsm" Text="fsm Idle 0.00s  active=no block=no lock=no" TextColor="#9FD8FF" />
     <Label Id="_vitals" Text="vitals" TextColor="#9FD8FF" />
     <Label Id="_guard" Text="guard" TextColor="#9FD8FF" />
     <Label Id="_tune" Text="tune" TextColor="#9FD8FF" />
-    <Label Id="_intent" Text="intent idle" TextColor="#9FD8FF" />
-    <Label Id="_motion" Text="move 0,0  pos 0,0  yaw 0.00" TextColor="#9FD8FF" />
+    <Label Id="_motion" Text="intent idle  |  move 0,0  pos 0,0  yaw 0.00" TextColor="#9FD8FF" />
+    <Label Id="_ai" Text="ai -" TextColor="#FFD9A8" />
+    <Label Id="_aiWhy" Text="ai why -" TextColor="#FFD9A8" />
+    <Label Id="_aiLog0" Text="" TextColor="#C8A878" />
+    <Label Id="_aiLog1" Text="" TextColor="#C8A878" />
   </VerticalStackPanel>
 </Project>

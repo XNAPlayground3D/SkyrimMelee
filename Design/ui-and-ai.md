@@ -36,27 +36,28 @@ The current dev HUD already has a separate **VITALS** block at the bottom-left (
 
 ## AI
 
-The AI plays by the same rules: it emits `CombatIntent`s and cannot shorten a wind-up, skip recovery, or see the player's buffered input. It perceives a state change after a reaction delay (jittered ±15 % with a seeded RNG), which is why a delayed read is a late block.
+The AI plays by the same rules: it emits `CombatIntent`s and cannot shorten a wind-up, skip recovery, or see the player's buffered input. It perceives a state change after a reaction delay (jittered ±15 % with a seeded RNG), which is why a delayed read is a late block. It never presses a button the player could not: guard, attack, power attack, bash, and spacing all pass through the same state machine, stamina, `GuardResolver`, and `DefenseResolver`.
 
 | Situation | Response |
 | --- | --- |
-| Opponent winding up, time-to-active > reaction + 100 ms | Guard (timed-block chance per profile) |
-| Opponent winding up, too close to react | Guard anyway; trade if the opponent is low |
-| Opponent in recovery (≥ 300 ms left) | Punish with light, or power if affordable |
-| Opponent guarding, stamina below a power block cost | Power slash for the guard break |
-| Opponent guarding, healthy stamina | Chip with lights to drain block stamina |
-| Opponent staggered | Power slash if it lands in time, else light |
-| Own stamina < 25 or poise < 40 | Stop attacking, recover, block only when needed |
+| Player winding up | Start the guard after `reaction − GuardRaiseDuration`; a timed-block roll raises 40 ms later; roll `BlockChance` when the delay expires |
+| Player in recovery, ≤ 2.2 m, no cooldown | Aggression roll → punish with a light; power only on recovery or player stamina < 20 |
+| Player guarding, ≤ 2.2 m | `Aggression × 0.6` roll → `PowerSlash` with `0.5 + PowerChance` if stamina ≥ 30, otherwise a light |
+| Player idle, ≤ 2.2 m | `Aggression × 0.5` roll → pressure with a light |
+| Player winding up + mistake roll | Greedy swing into the committed attack instead of guarding |
+| Nothing happening, self idle | Turtle roll → pre-guard; spacing closes past 2.3 m, backs off inside 1.35 m, braces while the player is committed |
+| Self not idle | Keep the guard; no new intent until idle |
 
 | Parameter | Novice | Adept | Master |
 | --- | --- | --- | --- |
-| Reaction | 450 ms | 300 ms | 180 ms |
-| Decision interval | 150 ms | 100 ms | 75 ms |
-| Block chance | 0.40 | 0.70 | 0.90 |
-| Timed-block chance | 0.05 | 0.25 | 0.50 |
-| Aggression | 0.30 | 0.60 | 0.85 |
-| Mistake chance | 0.25 | 0.10 | 0.03 |
+| Reaction | 220 ms | 100 ms | 60 ms |
+| Block chance | 0.40 | 0.75 | 0.92 |
+| Timed-block chance | 0.10 | 0.25 | 0.50 |
+| Pre-guard chance | 0.10 | 0.45 | 0.70 |
+| Aggression | 0.55 | 0.55 | 0.30 |
+| Power chance | 0.10 | 0.25 | 0.20 |
+| Mistake chance | 0.35 | 0.10 | 0.02 |
 
-Profiles are data; adding a difficulty needs no new decision code. A hidden practice profile never attacks and guards on a fixed cycle.
+Profiles are data (`AiProfile`); adding a difficulty needs no new decision code. `--profile=<name>` selects one at launch; the main-menu selector arrives with T7.1.
 
-The AI tracks decisions, hit/block rates, guard breaks, and staggers for the results screen, the overlay (`"punish recovery (410 ms left)"`), and the balance pass. Seeded per duel, drawn only on decision ticks, reset each round.
+**Telemetry.** `DuelistAi` publishes `LastDecision` (`action`, `reason`) plus a monotonically increasing `DecisionId`, the pending `ReactionRemaining`, `GuardRemaining`, and the current `Intent`/`Approach`. The game logs each new decision once with the simulation time and the FSM state it produced (`SlashRight (idle pressure) -> Windup SlashRight`). The F1 overlay shows the profile, intent, reaction countdown, guard timer, approach, the last decision and reason, per-round `AiFightStats` (attacks, hit rate, block rate, guard breaks), and the last two decision/state lines.

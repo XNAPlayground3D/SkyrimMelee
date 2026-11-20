@@ -23,6 +23,7 @@ public sealed class DuelistAi
 	private readonly Random _random;
 
 	private bool _sawWindup;
+	private bool _timedRead;
 	private float _guardDelay = -1f;
 	private float _guardHold;
 	private float _turtleTimer;
@@ -41,15 +42,31 @@ public sealed class DuelistAi
 	/// <summary>Desired spacing: positive walks toward the player, negative backs off.</summary>
 	public float Approach { get; private set; }
 
+	public AiProfile Profile => _profile;
+
+	/// <summary>The last choice the AI committed to, or null before the first one.</summary>
+	public AiDecision? LastDecision { get; private set; }
+
+	/// <summary>Increments once per committed choice; the game uses it to log each event once.</summary>
+	public long DecisionId { get; private set; }
+
+	/// <summary>Seconds left on the pending guard read; negative when no read is pending.</summary>
+	public float ReactionRemaining => _guardDelay;
+
+	public float GuardRemaining => _guardHold;
+
 	public void Reset()
 	{
 		_sawWindup = false;
+		_timedRead = false;
 		_guardDelay = -1f;
 		_guardHold = 0f;
 		_turtleTimer = 0f;
 		_attackCooldown = 0f;
 		Intent = null;
 		Approach = 0f;
+		LastDecision = null;
+		DecisionId = 0;
 	}
 
 	public void Update(float step, in AiContext ctx)
@@ -93,7 +110,8 @@ public sealed class DuelistAi
 
 			// A timed-block read: start the raise slightly later so the guard is
 			// fresh when the hit lands, without finishing after the active window.
-			if (Roll(_profile.TimedBlockChance))
+			_timedRead = Roll(_profile.TimedBlockChance);
+			if (_timedRead)
 			{
 				_guardDelay = MathF.Max(_guardDelay, 0.04f);
 			}
@@ -112,6 +130,11 @@ public sealed class DuelistAi
 				if (Roll(_profile.BlockChance))
 				{
 					_guardHold = 1.2f;
+					Decide("guard", _timedRead ? "timed block" : "wind-up read");
+				}
+				else
+				{
+					Decide("hold", "block roll failed");
 				}
 			}
 		}
@@ -126,6 +149,7 @@ public sealed class DuelistAi
 			if (Roll(_profile.TurtleChance))
 			{
 				_guardHold = 1.0f;
+				Decide("guard", "pre-guard");
 			}
 		}
 
@@ -141,7 +165,9 @@ public sealed class DuelistAi
 			Roll(_profile.Aggression))
 		{
 			_guardHold = 0f;
-			Intent = ChooseAttack(ctx);
+			var attack = ChooseAttack(ctx);
+			Intent = attack;
+			Decide(attack.ToString(), "punish recovery");
 			_attackCooldown = 1.3f;
 			return;
 		}
@@ -157,7 +183,9 @@ public sealed class DuelistAi
 			Roll(_profile.MistakeChance))
 		{
 			_guardHold = 0f;
-			Intent = ChooseAttack(ctx);
+			var attack = ChooseAttack(ctx);
+			Intent = attack;
+			Decide(attack.ToString(), "greedy trade");
 			_attackCooldown = 1.4f;
 			return;
 		}
@@ -169,12 +197,14 @@ public sealed class DuelistAi
 			Roll(_profile.Aggression * 0.6f))
 		{
 			_guardHold = 0f;
-			Intent = ctx.SelfStamina >= 30f &&
-					 Roll(0.5f + _profile.PowerChance)
+			var attack = ctx.SelfStamina >= 30f &&
+						 Roll(0.5f + _profile.PowerChance)
 				? CombatIntent.PowerSlash
 				: _random.Next(2) == 0
 					? CombatIntent.SlashLeft
 					: CombatIntent.SlashRight;
+			Intent = attack;
+			Decide(attack.ToString(), "guard pressure");
 			_attackCooldown = 1.3f;
 			return;
 		}
@@ -186,7 +216,9 @@ public sealed class DuelistAi
 			Roll(_profile.Aggression * 0.5f))
 		{
 			_guardHold = 0f;
-			Intent = ChooseAttack(ctx);
+			var attack = ChooseAttack(ctx);
+			Intent = attack;
+			Decide(attack.ToString(), "idle pressure");
 			_attackCooldown = 1.6f;
 		}
 	}
@@ -208,4 +240,10 @@ public sealed class DuelistAi
 	}
 
 	private bool Roll(float chance) => _random.NextDouble() < chance;
+
+	private void Decide(string action, string reason)
+	{
+		LastDecision = new AiDecision(action, reason);
+		DecisionId++;
+	}
 }

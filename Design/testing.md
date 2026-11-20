@@ -46,6 +46,7 @@ Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash
 | `ST-14/15` | Poise empties after ten light hits; 120 ms buffer fires on the first legal tick |
 | `ST-16/17` | Guard released during raise does not block; `--god` clamps at 1 health |
 | `AI-01` | Master beats Novice in ≥ 8/10 fixed-seed duels; every pairing shows blocks, timed blocks, guard breaks |
+| `AI-02` | Decision telemetry carries action/reason and a stable id; the reaction countdown is exposed; `AiFightStats` hit/block rates and reset are correct |
 
 ## Manual checklist
 
