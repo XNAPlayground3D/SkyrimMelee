@@ -30,6 +30,8 @@ public static class CombatTuning
 	public const float DefaultBlockSkill = 50f;
 
 	public const float CrossfadeDuration = 0.1f;
+	/// <summary>How far into a slash's recovery the next swing may start (combo cancel).</summary>
+	public const float ComboCancelTime = 0.08f;
 	public const float IdleDuration = 2.5f;
 	public const float GuardRaiseDuration = 0.20f;
 	public const float GuardHoldDuration = 2.0f;

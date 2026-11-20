@@ -58,15 +58,19 @@ public class InputRouterTests
 	[Fact]
 	public void BufferedAttackFiresOnTheFirstLegalFrame()
 	{
-		var fsm = InRecovery();
+		var fsm = new CombatStateMachine();
 		var router = new InputRouter();
-		router.Push(CombatIntent.SlashLeft);
+		Assert.True(fsm.TryStartAttack(Attack("SlashLeft")));
+
+		fsm.Update(0.3f); // Active: committed
 		router.Push(CombatIntent.PowerSlash);
-
 		Assert.False(fsm.TryStartAttack(Attack("PowerSlash")));
-		fsm.Update(0.4f);
-		Assert.Equal(CombatState.Idle, fsm.State);
 
+		fsm.Update(0.2f); // early Recovery: before the combo window
+		Assert.Equal(CombatState.Recovery, fsm.State);
+		Assert.False(fsm.TryStartAttack(Attack("PowerSlash")));
+
+		fsm.Update(CombatTuning.ComboCancelTime); // window opens
 		Assert.True(router.TryPeek(out var intent));
 		Assert.Equal(CombatIntent.PowerSlash, intent);
 		Assert.True(fsm.TryStartAttack(Attack("PowerSlash")));

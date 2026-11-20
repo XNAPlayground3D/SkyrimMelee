@@ -270,26 +270,27 @@ public static class SelfTestRunner
 
 		var fsm = new CombatStateMachine();
 		fsm.TryStartAttack(slash);
-		fsm.Update(0.6f);
+		fsm.Update(0.5f); // recovery 0.03 s: before the combo window
 
 		var router = new InputRouter();
-		router.Push(CombatIntent.SlashLeft);
 		router.Push(CombatIntent.PowerSlash);
 
 		var blocked = !fsm.TryStartAttack(power);
-		fsm.Update(0.4f);
-		var ready = fsm.State == CombatState.Idle &&
-					router.TryPeek(out var intent) &&
-					intent == CombatIntent.PowerSlash;
-		var fired = ready && fsm.TryStartAttack(power);
+		fsm.Update(CombatTuning.ComboCancelTime); // window opens in recovery
+
+		var queued = fsm.State == CombatState.Recovery &&
+					 router.TryPeek(out var intent) &&
+					 intent == CombatIntent.PowerSlash;
+		var fired = queued && fsm.TryStartAttack(power) &&
+					fsm.State == CombatState.Windup;
 		if (fired)
 		{
 			router.Clear();
 		}
 
-		var passed = blocked && ready && fired && !router.IsPending;
+		var passed = blocked && queued && fired && !router.IsPending;
 		return new SelfTestResult("input buffer", passed,
-			$"blocked={blocked} ready={ready} fired={fired}");
+			$"blocked={blocked} queued={queued} fired={fired}");
 	}
 
 	private static SelfTestResult GuardBreak()

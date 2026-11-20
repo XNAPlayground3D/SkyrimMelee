@@ -28,7 +28,7 @@ public sealed class CombatStateMachine
 		},
 		[CombatState.Recovery] = new[]
 		{
-			CombatState.Idle, CombatState.Stagger, CombatState.Dead
+			CombatState.Idle, CombatState.Windup, CombatState.Stagger, CombatState.Dead
 		},
 		[CombatState.GuardRaise] = new[]
 		{
@@ -109,6 +109,13 @@ public sealed class CombatStateMachine
 		}
 
 		if (!CanTransition(State, CombatState.Windup))
+		{
+			return false;
+		}
+
+		// Skyrim chains the next swing out of recovery; it does not wait for the
+		// blade to settle back into the idle pose.
+		if (State == CombatState.Recovery && _stateTime < CombatTuning.ComboCancelTime)
 		{
 			return false;
 		}

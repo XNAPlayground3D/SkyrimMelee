@@ -177,6 +177,35 @@ public class CombatStateMachineTests
 	}
 
 	[Fact]
+	public void ComboWindowStartsTheNextSwingDuringRecovery()
+	{
+		var fsm = new CombatStateMachine();
+		Assert.True(fsm.TryStartAttack(Slash()));
+
+		fsm.Update(0.5f); // recovery + 0.03 s: still before the cancel time
+		Assert.Equal(CombatState.Recovery, fsm.State);
+		Assert.False(fsm.TryStartAttack(Slash()));
+
+		fsm.Update(CombatTuning.ComboCancelTime);
+		Assert.True(fsm.TryStartAttack(Slash()));
+		Assert.Equal(CombatState.Windup, fsm.State);
+	}
+
+	[Fact]
+	public void GuardStillWaitsForIdleAfterAnAttack()
+	{
+		var fsm = new CombatStateMachine();
+		Assert.True(fsm.TryStartAttack(Slash()));
+
+		fsm.Update(0.5f);
+		Assert.False(fsm.TryStartGuard());
+
+		fsm.Update(0.35f);
+		Assert.Equal(CombatState.Idle, fsm.State);
+		Assert.True(fsm.TryStartGuard());
+	}
+
+	[Fact]
 	public void LargeDeltaConsumesEveryPhaseAndEndsIdle()
 	{
 		var fsm = new CombatStateMachine();

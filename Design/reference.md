@@ -64,6 +64,9 @@ Notes:
   tap always starts the same cut; pressing again while that cut is still playing
   answers from the other side (the blade finished there). It is **not** a fixed
   every-second-press alternation — pause and the next swing starts from rest.
+- Combo hits do not wait for the weapon to return to idle: the next swing starts
+  out of the current attack's recovery, from the follow-through. Only a pause
+  lets the blade settle back to the rest stance.
 - Holding the button does **not** repeat attacks — it charges a power attack.
 
 ## 3. Power attacks
