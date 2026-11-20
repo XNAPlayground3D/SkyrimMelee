@@ -544,6 +544,8 @@
 ## M9 — Authored models and skeletal animation
 
 > **Scope change:** this milestone replaces the primitive fighter/sword with authored glTF assets and retires hard rules H1 (no 3D model files) and H2 (no skeletal animation). The primitive build remains the shipping path until T9.8 flips the default. T9.1 updates the constraints in README, AGENTS, and `Design/` before any asset is integrated. All model work stays behind a feature flag until parity is proven.
+>
+> **Existing support:** `DigitalRiseModel.MonoGame` already imports glTF/GLB (`DigitalRiseModelAssetsExt.LoadModel`) and exposes `DrSkin`, `DrSkinJoint`, `DrModelInstance.GetBoneGlobalTransform`/`GetSkinTransforms`, `DrModel.Animations`, and `AnimationController`. No new model-loader package is needed; the work is a skinned draw path, FSM/pose integration, and validation.
 
 ### [ ] T9.1 — Technical asset specification (fighter, sword, animations)
 **Goal:** a written, testable contract for the modeler; technical only, no visual direction.
@@ -576,7 +578,7 @@
 
 ### [ ] T9.2 — GLB validation harness
 **Goal:** reject broken assets before they reach the game.
-- Proposed loader: `SharpGLTF.Core` (approval required before adding the dependency); CPU-only parsing in the test project.
+- No new loader package: load the GLB through DigitalRiseModel in a graphics-backed `--validate-models` pass, and read the GLB JSON chunk with `System.Text.Json` for skeleton/extras metadata. Unit tests cover the JSON/structural rules; the loader pass runs with the game.
 - `--validate-models` CLI checks `Content/Models/fighter.glb` and `sword.glb` against T9.1: joint table, influences, weights, budgets, clip names/`extras`, no root motion, socket, bounds, floor origin, texture sizes.
 - Actionable errors name the file, node/clip, and expected vs actual; exit non-zero.
 - Tests use a valid fixture and deliberately broken copies (missing joint, 5 influences, bad clip time, root motion, missing socket).
@@ -594,7 +596,7 @@
 
 ### [ ] T9.4 — Skinned renderer with `SkinEffect`
 **Goal:** draw the authored fighter on the GPU.
-- Add `Graphics/SkinnedModel`/`SkinnedMesh`: glTF positions/normals/tangents/UV0/joints/weights → GPU buffers; bind-pose inverse matrices; bone palette (max 32/64 joints).
+- Load with `DigitalRiseModelAssetsExt.LoadModel`+`AssetManager`; consume the existing `DrMeshPart.Skin`/`DrSkin` and the `BlendIndices`/`BlendWeights` vertex elements; build a bone palette from `DrModelInstance.GetSkinTransforms(skinIndex)`. The current `ForwardRenderer` only draws unskinned `DrMeshPart`s, so add a separate skinned draw pass.
 - Add `SkinEffect.fx` (HLSL): world/view/projection, bone palette, 4-weight skinning, normal skinning, albedo/roughness/metalness; compile with the existing `mgfxc` tool or a checked-in `.mgfx`; no Content Pipeline dependency.
 - `--models` feature flag selects the authored fighter; primitives remain the fallback. Render the sword as a static mesh attached to a test bone.
 - Tests: vertex/index counts, bone palette size, missing-joint errors; visual check with the skinning debug palette.
@@ -603,7 +605,7 @@
 
 ### [ ] T9.5 — Skeletal animation player and clip contract
 **Goal:** authored clips drive the fighter instead of SwordMotion/BodyMotion.
-- `Animation/SkeletalAnimator`: sample glTF keyframes at the fixed 60 Hz step, loop Idle/GuardHold, clamp Death/Victory, 0.1 s crossfade, no root motion, pause/freeze with the clock.
+- Drive DigitalRiseModel `AnimationController` from the fixed 60 Hz step: `StartClip`/`CrossfadeToClip`, `AnimationFlags.Looped` for Idle/GuardHold, one-shot for the rest, `Pause()`/`Play()` with the game clock. Do not write a second keyframe sampler.
 - Clip registry maps `CombatState`/attack name to clips; `extras` supply wind-up/active/recovery windows for FSM-facing validation only.
 - Debug overlay shows clip, normalized time, active window, bone count.
 - Tests: exact endpoints, loop seam, crossfade, pause/resume, deterministic sampling, `extras` vs `CombatTuning`, 60 Hz and simulated 10 FPS parity.
@@ -612,7 +614,7 @@
 
 ### [ ] T9.6 — Sword attachment and blade geometry from the hand
 **Goal:** the sword is a hand attachment, not a separately animated rig.
-- Attach `sword.glb` to `weapon_r` (child of `hand_r`); remove the sword's independent clip animation.
+- Attach `sword.glb` to `weapon_r` (child of `hand_r`); remove the sword's independent clip animation. The bone pose comes from `DrModelInstance.GetBoneGlobalTransform(weapon_r)`.
 - Compute `BladeGeometry` (grip, base, tip, radii) from the weapon bone world transform and the fixed sword-local blade points.
 - Guard blade hurtbox and blade trail follow the same bone; no visual sword rig separate from the hand.
 - Tests: base/tip at known poses, reach 1.47 m, one-hit-per-swing unchanged, guard cone unchanged.
@@ -621,7 +623,7 @@
 
 ### [ ] T9.7 — Bone-driven hurtboxes and physics
 **Goal:** colliders follow the skeleton, not a rigid capsule assembly.
-- Build capsule/sphere colliders from named bones at load; rewrite Bepu static poses each fixed step from bone world transforms.
+- Build capsule/sphere colliders from named bones at load; rewrite Bepu static poses each fixed step from `DrModelInstance.GetBoneGlobalTransform`/`GetSkinTransforms`.
 - Keep the 4 body hurtboxes + guard blade; map `HurtboxKind` to bones. Death/stagger comes from the skeleton, not `BodyClip`.
 - `F2` draws colliders against the skinned mesh; verify every shape.
 - Tests: bone→collider mapping, topple/death bounds, hit parity against the primitive build over a scripted trade.
