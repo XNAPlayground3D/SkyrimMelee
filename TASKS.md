@@ -545,12 +545,12 @@
 
 > **Scope change:** this milestone replaces the primitive fighter/sword with authored glTF assets and retires hard rules H1 (no 3D model files) and H2 (no skeletal animation). The primitive build remains the shipping path until T9.8 flips the default. T9.1 updates the constraints in README, AGENTS, and `Design/` before any asset is integrated. All model work stays behind a feature flag until parity is proven.
 >
-> **Existing support:** `DigitalRiseModel.MonoGame` already imports glTF/GLB (`DigitalRiseModelAssetsExt.LoadModel`) and exposes `DrSkin`, `DrSkinJoint`, `DrModelInstance.GetBoneGlobalTransform`/`GetSkinTransforms`, `DrModel.Animations`, and `AnimationController`. No new model-loader package is needed; the work is a skinned draw path, FSM/pose integration, and validation.
+> **Existing support:** `DigitalRiseModel.MonoGame` already imports glTF/GLB (`DigitalRiseModelAssetsExt.LoadModel`) and exposes `DrSkin`, `DrSkinJoint`, `DrModelInstance.GetBoneGlobalTransform`/`GetSkinTransforms`, `DrModel.Animations`, and `AnimationController`. No new model-loader package is needed; the work is a skinned draw path using MonoGame's stock `SkinnedEffect`, FSM/pose integration, and validation.
 
 ### [ ] T9.1 — Technical asset specification (fighter, sword, animations)
 **Goal:** a written, testable contract for the modeler; technical only, no visual direction.
 - Add `Design/models.md`: glTF 2.0 binary (`.glb`), metres, Y-up, floor origin between the feet, exact forward axis, identity object transforms, no root motion, no constraints/IK, no morph targets, no LOD.
-- Fighter: 1.80 m tall (±0.02), eye line at 1.60 m; maximum 20 k triangles, one UV set, position/normal/tangent/UV0, up to 4 skin influences, weights normalised, max 3 PBR metallic-roughness materials, embedded 1024/2048 PNG textures, no custom shaders.
+- Fighter: 1.80 m tall (±0.02), eye line at 1.60 m; maximum 20 k triangles, one UV set, position/normal/UV0 plus `JOINTS_0`/`WEIGHTS_0`, up to 4 influences, weights normalised, maximum 72 joints (stock `SkinnedEffect` limit), embedded 1024/2048 base-colour PNG textures, up to 3 materials. Tangents are optional; glTF PBR roughness/metalness/normal maps may be authored but v1 renders base colour and optional emissive only.
 - Skeleton table with exact names, parents, rest positions, and lengths: `root`, `pelvis`, `spine_01`, `spine_02`, `neck`, `head`, `clavicle_l/r`, `upperarm_l/r`, `forearm_l/r`, `hand_l/r`, `thigh_l/r`, `calf_l/r`, `foot_l/r`, `weapon_r` (21 joints). `weapon_r` is a child of `hand_r`; bind pose is the T-pose.
 - Sword: separate `sword.glb`, static, no skeleton/animation; origin at the grip centre, blade along +Y, blade base 0.18 m and tip 1.47 m from the grip, base/tip radii 0.0425/0.018 m; two-handed grip geometry may be part of the sword. The runtime attaches it to `weapon_r`.
 - Clip contract at 60 Hz. Every clip is one-shot unless marked loop, has no root motion, and carries glTF `extras`: `windup`, `active`, `recovery` in seconds, `loop` bool.
@@ -579,7 +579,7 @@
 ### [ ] T9.2 — GLB validation harness
 **Goal:** reject broken assets before they reach the game.
 - No new loader package: load the GLB through DigitalRiseModel in a graphics-backed `--validate-models` pass, and read the GLB JSON chunk with `System.Text.Json` for skeleton/extras metadata. Unit tests cover the JSON/structural rules; the loader pass runs with the game.
-- `--validate-models` CLI checks `Content/Models/fighter.glb` and `sword.glb` against T9.1: joint table, influences, weights, budgets, clip names/`extras`, no root motion, socket, bounds, floor origin, texture sizes.
+- `--validate-models` CLI checks `Content/Models/fighter.glb` and `sword.glb` against T9.1: joint table (≤72), influences (≤4), weights, budgets, clip names/`extras`, no root motion, socket, bounds, floor origin, texture sizes.
 - Actionable errors name the file, node/clip, and expected vs actual; exit non-zero.
 - Tests use a valid fixture and deliberately broken copies (missing joint, 5 influences, bad clip time, root motion, missing socket).
 
@@ -594,12 +594,12 @@
 
 **Done when:** `--validate-models` passes; a viewer shows the full skeleton, weights, and clip boundaries.
 
-### [ ] T9.4 — Skinned renderer with `SkinEffect`
+### [ ] T9.4 — Skinned renderer with stock `SkinnedEffect`
 **Goal:** draw the authored fighter on the GPU.
-- Load with `DigitalRiseModelAssetsExt.LoadModel`+`AssetManager`; consume the existing `DrMeshPart.Skin`/`DrSkin` and the `BlendIndices`/`BlendWeights` vertex elements; build a bone palette from `DrModelInstance.GetSkinTransforms(skinIndex)`. The current `ForwardRenderer` only draws unskinned `DrMeshPart`s, so add a separate skinned draw pass.
-- Add `SkinEffect.fx` (HLSL): world/view/projection, bone palette, 4-weight skinning, normal skinning, albedo/roughness/metalness; compile with the existing `mgfxc` tool or a checked-in `.mgfx`; no Content Pipeline dependency.
+- Load with `DigitalRiseModelAssetsExt.LoadModel`+`AssetManager`; consume the existing `DrMeshPart.Skin`/`DrSkin` and the `BlendIndices`/`BlendWeights` vertex elements. The current `ForwardRenderer` only draws unskinned `DrMeshPart`s, so add a separate skinned draw pass.
+- Use MonoGame `Microsoft.Xna.Framework.Graphics.SkinnedEffect`: `WeightsPerVertex = 4`, bone palette from `DrModelInstance.GetSkinTransforms(skinIndex)` uploaded with `SetBoneTransforms` (≤72 bones), `World`/`View`/`Projection`, `Texture`, `DiffuseColor`, `EmissiveColor`, `EnableDefaultLighting`. No custom `.fx`, `mgfxc`, or Content Pipeline step.
 - `--models` feature flag selects the authored fighter; primitives remain the fallback. Render the sword as a static mesh attached to a test bone.
-- Tests: vertex/index counts, bone palette size, missing-joint errors; visual check with the skinning debug palette.
+- Tests: vertex/index counts, bone palette size (≤72), 4-weight declarations, missing-joint errors; visual check with `SkinnedEffect` and the stock lighting.
 
 **Done when:** the T-pose and Idle clip render without skinning artifacts at 1600×900 and the primitive path still works.
 
@@ -640,7 +640,7 @@
 
 ### [ ] T9.9 — Skinning performance and polish
 **Goal:** hold 60 FPS with authored characters.
-- Profile `SkinEffect` draw cost, bone palette uploads, and memory; target ≤ 2 ms simulation and ≤ 6 ms draw as before.
+- Profile `SkinnedEffect` draw cost, bone palette uploads, and memory; target ≤ 2 ms simulation and ≤ 6 ms draw as before.
 - No per-frame allocations in the animation/skinning path; pool bone palettes and instance data.
 - Fix visible skinning issues at extreme staggers/death; verify first/third person, F3 presets, resize, and slow motion.
 - Record final bone/triangle budgets in `Design/models.md`.
