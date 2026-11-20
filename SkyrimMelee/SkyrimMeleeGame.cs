@@ -1,6 +1,7 @@
 using DigitalRiseModel;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Myra;
@@ -135,6 +136,17 @@ public sealed class SkyrimMeleeGame : Game
 	private bool _rightMouseWasDown;
 	private bool _screenShake;
 	private bool _suppressAttackUntilMouseUp;
+	private readonly GameSettings _settings = new();
+	private PauseMenu? _pauseMenu;
+	private bool _resultsOpen;
+	private readonly List<string> _roundResults = new();
+	private int _matchPlayerHits;
+	private int _matchOpponentHits;
+	private float _matchPlayerDamage;
+	private float _matchOpponentDamage;
+	private int _matchPlayerBlocks;
+	private int _matchPlayerTimed;
+	private int _matchPlayerBreaks;
 
 	private enum Screen
 	{
@@ -192,25 +204,28 @@ public sealed class SkyrimMeleeGame : Game
 			_ui = new MyraHost(this);
 			UiSkin.Initialize();
 
+			_settings.ScreenShake = _options.ScreenShake;
+			_settings.DebugOverlay = _options.Debug;
+			_settings.Difficulty =
+				AiProfile.ByName(_options.AiProfile) ?? AiProfile.Default;
+			_screenShake = _settings.ScreenShake;
+
 			_hud = new HudPanel();
 			_overlay = new DebugOverlay(_options);
-			_overlay.Visible = _options.Debug;
+			_overlay.Visible = _settings.DebugOverlay;
 			_hud.Widgets.Add(_overlay);
 
-			_screenShake = _options.ScreenShake;
-			_menu = new MainMenu();
-			_menu.SetSettings(_screenShake, _options.Debug);
+			_menu = new MainMenu(_settings);
+			_pauseMenu = new PauseMenu(_settings);
+			_pauseMenu.ResumeRequested += ResumeGame;
+			_pauseMenu.QuitToMenuRequested += PauseQuitToMenu;
+			_pauseMenu.RematchRequested += Rematch;
+			_pauseMenu.MenuRequested += PauseQuitToMenu;
+			_hud.Widgets.Add(_pauseMenu);
+
 			_menu.DuelSelected += () => StartFight(practice: false);
 			_menu.PracticeSelected += () => StartFight(practice: true);
 			_menu.QuitSelected += () => BeginFade(Exit);
-			_menu.ScreenShakeChanged += enabled => _screenShake = enabled;
-			_menu.DebugOverlayChanged += enabled =>
-			{
-				if (_overlay is not null)
-				{
-					_overlay.Visible = enabled;
-				}
-			};
 
 			if (_options.Play)
 			{
@@ -354,6 +369,14 @@ public sealed class SkyrimMeleeGame : Game
 		var elapsed = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 		UpdateFade(elapsed);
+		ApplySettings();
+
+		if (_pauseMenu?.IsOpen == true)
+		{
+			UpdatePauseInput(keyboard);
+			base.Update(gameTime);
+			return;
+		}
 
 		if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
 		{
@@ -373,7 +396,7 @@ public sealed class SkyrimMeleeGame : Game
 			_lastKeys = keyboard;
 			if (_ui is not null)
 			{
-				GoToMenu();
+				OpenPause();
 			}
 			else
 			{
@@ -390,6 +413,10 @@ public sealed class SkyrimMeleeGame : Game
 		if (f1Down && !_f1WasDown)
 		{
 			_overlay?.Toggle();
+			if (_overlay is not null)
+			{
+				_settings.DebugOverlay = _overlay.Visible;
+			}
 		}
 
 		_f1WasDown = f1Down;
@@ -563,6 +590,128 @@ public sealed class SkyrimMeleeGame : Game
 		_lastKeys = keyboard;
 	}
 
+	private void UpdatePauseInput(KeyboardState keyboard)
+	{
+		if (_pauseMenu is null || _fadeActive)
+		{
+			_lastKeys = keyboard;
+			return;
+		}
+
+		if (Pressed(keyboard, Keys.Up))
+		{
+			_pauseMenu.MoveFocus(-1);
+		}
+
+		if (Pressed(keyboard, Keys.Down))
+		{
+			_pauseMenu.MoveFocus(1);
+		}
+
+		if (Pressed(keyboard, Keys.Enter) || Pressed(keyboard, Keys.Space))
+		{
+			_pauseMenu.ActivateFocused();
+		}
+
+		if (Pressed(keyboard, Keys.Escape))
+		{
+			_pauseMenu.Back();
+		}
+
+		_lastKeys = keyboard;
+	}
+
+	private void OpenPause()
+	{
+		if (_pauseMenu is null || _ui is null || _fadeActive || _resultsOpen)
+		{
+			return;
+		}
+
+		_paused = true;
+		_pauseMenu.Attach(_ui.Desktop);
+		_pauseMenu.OpenPause();
+		IsMouseVisible = true;
+		_attackCharge.Reset();
+		_input.Clear();
+		_moveInput = Vector2.Zero;
+		_lastKeys = Keyboard.GetState();
+	}
+
+	private void ResumeGame()
+	{
+		_pauseMenu?.Hide();
+		_paused = false;
+		_resultsOpen = false;
+
+		if (_ui is not null)
+		{
+			_ui.Desktop.FocusedKeyboardWidget = null;
+			_ui.Desktop.KeyDownHandler = _ui.Desktop.OnKeyDown;
+		}
+
+		IsMouseVisible = false;
+		CenterMouse();
+		_skipLook = true;
+		_suppressAttackUntilMouseUp = true;
+		_lastKeys = Keyboard.GetState();
+	}
+
+	private void PauseQuitToMenu()
+	{
+		_pauseMenu?.Hide();
+		_paused = false;
+		_resultsOpen = false;
+		GoToMenu();
+	}
+
+	private void Rematch()
+	{
+		_pauseMenu?.Hide();
+		_paused = false;
+		_resultsOpen = false;
+		StartFight(practice: false);
+	}
+
+	private void ApplySettings()
+	{
+		_screenShake = _settings.ScreenShake;
+		SoundEffect.MasterVolume = _settings.MasterVolume;
+		if (_overlay is not null && _overlay.Visible != _settings.DebugOverlay)
+		{
+			_overlay.Visible = _settings.DebugOverlay;
+		}
+	}
+
+	private void OpenResults()
+	{
+		if (_pauseMenu is null || _ui is null || _resultsOpen)
+		{
+			return;
+		}
+
+		_resultsOpen = true;
+		_paused = true;
+		_pauseMenu.Attach(_ui.Desktop);
+
+		var won = _duel.MatchWinner == FighterId.Player;
+		var rounds = _roundResults.Count == 0
+			? "-"
+			: string.Join(" · ", _roundResults);
+		var hits = FormattableString.Invariant(
+			$"Hits {_matchPlayerHits} - {_matchOpponentHits}    Damage {_matchPlayerDamage:0} - {_matchOpponentDamage:0}");
+		var defense = FormattableString.Invariant(
+			$"Blocks {_matchPlayerBlocks} (timed {_matchPlayerTimed}) · Breaks {_matchPlayerBreaks}");
+
+		_pauseMenu.ShowResults(
+			won, $"{_duel.PlayerScore} - {_duel.OpponentScore}",
+			rounds, hits, defense);
+		IsMouseVisible = true;
+		_attackCharge.Reset();
+		_input.Clear();
+		_lastKeys = Keyboard.GetState();
+	}
+
 	private void StartFight(bool practice)
 	{
 		if (_fadeActive)
@@ -579,8 +728,17 @@ public sealed class SkyrimMeleeGame : Game
 		_practiceReset = 0f;
 		_duel.Reset();
 		_lastDuelPhase = DuelPhase.Fighting;
-		_ai = new DuelistAi(
-			_menu?.Profile ?? AiProfile.Default, seed: 20261120);
+		_resultsOpen = false;
+		_pauseMenu?.Hide();
+		_roundResults.Clear();
+		_matchPlayerHits = 0;
+		_matchOpponentHits = 0;
+		_matchPlayerDamage = 0f;
+		_matchOpponentDamage = 0f;
+		_matchPlayerBlocks = 0;
+		_matchPlayerTimed = 0;
+		_matchPlayerBreaks = 0;
+		_ai = new DuelistAi(_settings.Difficulty, seed: 20261120);
 		ResetRound();
 		_screen = Screen.Playing;
 		_suppressAttackUntilMouseUp = true;
@@ -601,6 +759,9 @@ public sealed class SkyrimMeleeGame : Game
 
 	private void GoToMenu()
 	{
+		_pauseMenu?.Hide();
+		_resultsOpen = false;
+
 		if (_fadeActive)
 		{
 			return;
@@ -833,6 +994,7 @@ public sealed class SkyrimMeleeGame : Game
 				_hud?.ShowBanner(
 					won ? "VICTORY" : "DEFEAT", 2.6f,
 					won ? UiSkin.Accent : UiSkin.Danger);
+				OpenResults();
 			}
 
 			_lastDuelPhase = _duel.Phase;
@@ -979,6 +1141,7 @@ public sealed class SkyrimMeleeGame : Game
 		var defense = DefenseResolver.Resolve(
 			hitEvent.Attack, _playerStats, _opponentStats, outcome);
 		_opponentStats.ApplyDamage(defense.Damage.Final);
+		_matchPlayerDamage += defense.Damage.Final;
 
 		_hitCount++;
 		_lastHit = $"Bash@{_combat.AttackTime:0.00}";
@@ -990,6 +1153,7 @@ public sealed class SkyrimMeleeGame : Game
 		if (!guarding)
 		{
 			_aiFight.RecordIncomingHit();
+			_matchPlayerHits++;
 			for (var i = 0; i < 4; i++)
 			{
 				_hitFlashes[HitIndex(FighterId.Opponent, (HurtboxKind)i)] =
@@ -1038,6 +1202,7 @@ public sealed class SkyrimMeleeGame : Game
 			}
 			else if (_duel.ReportDeath(FighterId.Opponent))
 			{
+				_roundResults.Add($"R{_duel.Round} WIN");
 				_hud?.ShowBanner("K.O.", 1.2f, UiSkin.Accent);
 			}
 		}
@@ -1086,6 +1251,7 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			var block = DefenseResolver.Resolve(
 				hitEvent.Attack, _playerStats, _opponentStats, outcome);
+			_matchPlayerDamage += block.Damage.Final;
 
 			if (block.GuardBroken)
 			{
@@ -1113,6 +1279,7 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_aiFight.RecordIncomingHit();
+		_matchPlayerHits++;
 
 		// Feedback: the whole defender flashes coral, so a low or occluded
 		// hit part (hips/legs) cannot hide the hit. Damage is once per swing.
@@ -1142,6 +1309,7 @@ public sealed class SkyrimMeleeGame : Game
 		var defense = DefenseResolver.Resolve(
 			hitEvent.Attack, _playerStats, _opponentStats, HitOutcome.Clean);
 		_opponentStats.ApplyDamage(defense.Damage.Final);
+		_matchPlayerDamage += defense.Damage.Final;
 
 		if (_screenShake)
 		{
@@ -1160,6 +1328,7 @@ public sealed class SkyrimMeleeGame : Game
 			}
 			else if (_duel.ReportDeath(FighterId.Opponent))
 			{
+				_roundResults.Add($"R{_duel.Round} WIN");
 				_hud?.ShowBanner("K.O.", 1.2f, UiSkin.Accent);
 			}
 		}
@@ -1409,22 +1578,27 @@ public sealed class SkyrimMeleeGame : Game
 		var defense = DefenseResolver.Resolve(
 			hitEvent.Attack, _opponentStats, _playerStats, outcome);
 		_playerStats.ApplyDamage(defense.Damage.Final);
+		_matchOpponentDamage += defense.Damage.Final;
 
 		if (outcome == HitOutcome.Clean)
 		{
 			_aiFight.RecordHit();
+			_matchOpponentHits++;
 		}
 		else if (defense.GuardBroken)
 		{
 			_guardBreaksTaken++;
+			_matchPlayerBreaks++;
 		}
 		else if (outcome == HitOutcome.TimedBlock)
 		{
 			_timedBlocksTaken++;
+			_matchPlayerTimed++;
 		}
 		else
 		{
 			_blocksTaken++;
+			_matchPlayerBlocks++;
 		}
 
 		if (outcome == HitOutcome.Clean)
@@ -1478,6 +1652,7 @@ public sealed class SkyrimMeleeGame : Game
 			}
 			else if (_duel.ReportDeath(FighterId.Player))
 			{
+				_roundResults.Add($"R{_duel.Round} LOSS");
 				_hud?.ShowBanner("K.O.", 1.2f, UiSkin.Accent);
 			}
 		}

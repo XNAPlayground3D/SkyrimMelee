@@ -1,0 +1,75 @@
+<Project>
+  <Project.ExportOptions Namespace="SkyrimMelee.Ui" Class="PauseMenu" />
+  <Panel Visible="False">
+    <Panel Background="#05070AD9" />
+    <Panel Id="_pauseContent" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <VerticalStackPanel Spacing="2">
+        <Label Id="_pauseTitle" Text="PAUSED" HorizontalAlignment="Center" />
+        <VerticalStackPanel Spacing="2" Margin="0,24,0,0">
+          <Button Id="_resume" HorizontalAlignment="Center">
+            <Label Id="_resumeText" Text="Resume" HorizontalAlignment="Center" />
+          </Button>
+          <Button Id="_pauseOptions" HorizontalAlignment="Center">
+            <Label Id="_pauseOptionsText" Text="Options" HorizontalAlignment="Center" />
+          </Button>
+          <Button Id="_pauseQuit" HorizontalAlignment="Center">
+            <Label Id="_pauseQuitText" Text="Quit to menu" HorizontalAlignment="Center" />
+          </Button>
+        </VerticalStackPanel>
+        <Label Id="_pauseHint" Text="up / down select    enter confirm    esc resume"
+               HorizontalAlignment="Center" Margin="0,24,0,0" />
+      </VerticalStackPanel>
+    </Panel>
+    <Panel Id="_optionsContent" Visible="False" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <VerticalStackPanel Spacing="2">
+        <Label Id="_optionsTitle" Text="OPTIONS" HorizontalAlignment="Center" />
+        <VerticalStackPanel Spacing="2" Margin="0,22,0,0">
+          <HorizontalStackPanel Spacing="8" HorizontalAlignment="Center">
+            <Button Id="_volumeDown"><Label Text="&lt;" HorizontalAlignment="Center" /></Button>
+            <Label Id="_volumeText" Text="Volume 100%" MinWidth="190" TextAlign="Center"
+                   VerticalAlignment="Center" />
+            <Button Id="_volumeUp"><Label Text="&gt;" HorizontalAlignment="Center" /></Button>
+          </HorizontalStackPanel>
+          <Button Id="_shake" HorizontalAlignment="Center">
+            <Label Id="_shakeText" Text="Screen shake: On" HorizontalAlignment="Center" />
+          </Button>
+          <Button Id="_debug" HorizontalAlignment="Center">
+            <Label Id="_debugText" Text="Debug overlay: Off" HorizontalAlignment="Center" />
+          </Button>
+          <HorizontalStackPanel Spacing="8" HorizontalAlignment="Center">
+            <Button Id="_difficultyDown"><Label Text="&lt;" HorizontalAlignment="Center" /></Button>
+            <Label Id="_difficultyText" Text="Difficulty: Novice" MinWidth="230"
+                   TextAlign="Center" VerticalAlignment="Center" />
+            <Button Id="_difficultyUp"><Label Text="&gt;" HorizontalAlignment="Center" /></Button>
+          </HorizontalStackPanel>
+          <Button Id="_back" HorizontalAlignment="Center">
+            <Label Id="_backText" Text="Back" HorizontalAlignment="Center" />
+          </Button>
+        </VerticalStackPanel>
+        <Label Id="_optionsHint" Text="enter change    esc back"
+               HorizontalAlignment="Center" Margin="0,24,0,0" />
+      </VerticalStackPanel>
+    </Panel>
+    <Panel Id="_resultsContent" Visible="False" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <VerticalStackPanel Spacing="3">
+        <Label Id="_resultTitle" Text="VICTORY" HorizontalAlignment="Center" />
+        <Label Id="_resultScore" Text="2 - 0" HorizontalAlignment="Center" />
+        <Label Id="_resultRounds" Text="R1 WIN · R2 WIN" HorizontalAlignment="Center" />
+        <Label Id="_resultHits" Text="Hits 0 - 0    Damage 0 - 0" HorizontalAlignment="Center"
+               Margin="0,18,0,0" />
+        <Label Id="_resultDefense" Text="Blocks 0 (timed 0) · Breaks 0"
+               HorizontalAlignment="Center" />
+        <VerticalStackPanel Spacing="2" Margin="0,24,0,0">
+          <Button Id="_rematch" HorizontalAlignment="Center">
+            <Label Id="_rematchText" Text="Rematch" HorizontalAlignment="Center" />
+          </Button>
+          <Button Id="_resultsMenu" HorizontalAlignment="Center">
+            <Label Id="_resultsMenuText" Text="Menu" HorizontalAlignment="Center" />
+          </Button>
+        </VerticalStackPanel>
+        <Label Id="_resultsHint" Text="up / down select    enter confirm"
+               HorizontalAlignment="Center" Margin="0,22,0,0" />
+      </VerticalStackPanel>
+    </Panel>
+  </Panel>
+</Project>

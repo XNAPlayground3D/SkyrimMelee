@@ -9,10 +9,8 @@ namespace SkyrimMelee.Ui
 		private readonly List<Widget> _menuOrder = new();
 		private readonly List<Widget> _optionOrder = new();
 		private readonly Dictionary<Widget, Action> _actions = new();
+		private readonly GameSettings _settings;
 		private Desktop? _desktop;
-		private int _profileIndex = 0; // Novice is the default difficulty.
-		private bool _shake = true;
-		private bool _debug;
 
 		public event Action? DuelSelected;
 
@@ -20,26 +18,18 @@ namespace SkyrimMelee.Ui
 
 		public event Action? QuitSelected;
 
-		public event Action<bool>? ScreenShakeChanged;
-
-		public event Action<bool>? DebugOverlayChanged;
-
-		public MainMenu()
+		public MainMenu(GameSettings settings)
 		{
+			_settings = settings;
 			BuildUI();
 			Style();
 			Wire();
 			Show();
 		}
 
-		public AiProfile Profile => AiProfile.All[_profileIndex];
+		public AiProfile Profile => _settings.Difficulty;
 
-		public bool OptionsOpen => _optionsContent.Visible;
-
-		public bool ShakeEnabled => _shake;
-
-		public bool DebugEnabled => _debug;
-
+		public bool OptionsOpen => _optionsContent.Visible; 
 		public void Attach(Desktop desktop)
 		{
 			_desktop = desktop;
@@ -53,13 +43,6 @@ namespace SkyrimMelee.Ui
 			_menuContent.Visible = true;
 			_optionsContent.Visible = false;
 			UpdateProfileLabels();
-			UpdateSettingLabels();
-		}
-
-		public void SetSettings(bool shake, bool debug)
-		{
-			_shake = shake;
-			_debug = debug;
 			UpdateSettingLabels();
 		}
 
@@ -109,7 +92,7 @@ namespace SkyrimMelee.Ui
 			foreach (var button in new[]
 					 {
 						 _duel, _practice, _options, _quit,
-						 _optionsDifficulty, _screenShake, _debugOverlay, _back
+						 _optionsDifficulty, _screenShake, _debugOverlay, _back,
 					 })
 			{
 				UiSkin.StyleButton(button);
@@ -173,8 +156,18 @@ namespace SkyrimMelee.Ui
 
 		public void CycleProfile(int delta)
 		{
-			_profileIndex =
-				(_profileIndex + delta + AiProfile.All.Count) % AiProfile.All.Count;
+			var index = 0;
+			for (var i = 0; i < AiProfile.All.Count; i++)
+			{
+				if (ReferenceEquals(AiProfile.All[i], _settings.Difficulty))
+				{
+					index = i;
+					break;
+				}
+			}
+
+			index = (index + delta + AiProfile.All.Count) % AiProfile.All.Count;
+			_settings.Difficulty = AiProfile.All[index];
 			UpdateProfileLabels();
 		}
 
@@ -186,22 +179,20 @@ namespace SkyrimMelee.Ui
 
 		private void ToggleShake()
 		{
-			_shake = !_shake;
+			_settings.ScreenShake = !_settings.ScreenShake;
 			UpdateSettingLabels();
-			ScreenShakeChanged?.Invoke(_shake);
 		}
 
 		private void ToggleDebug()
 		{
-			_debug = !_debug;
+			_settings.DebugOverlay = !_settings.DebugOverlay;
 			UpdateSettingLabels();
-			DebugOverlayChanged?.Invoke(_debug);
 		}
 
 		private void UpdateSettingLabels()
 		{
-			_screenShakeText.Text = $"Screen shake: {(_shake ? "On" : "Off")}";
-			_debugOverlayText.Text = $"Debug overlay: {(_debug ? "On" : "Off")}";
+			_screenShakeText.Text = $"Screen shake: {(_settings.ScreenShake ? "On" : "Off")}";
+			_debugOverlayText.Text = $"Debug overlay: {(_settings.DebugOverlay ? "On" : "Off")}";
 		}
 	}
 }

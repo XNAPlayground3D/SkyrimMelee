@@ -28,6 +28,8 @@ Boot → MainMenu → Duel → Pause → Options
 | Results | Outcome, score, hits, damage, blocks, timed blocks, guard breaks, Rematch |
 | Options | Volume, screen shake, debug default, difficulty; session-only |
 
+Pause and results share `Ui/PauseMenu.xmmp`: Esc freezes the simulation and shows Resume / Options / Quit to menu; the results state adds outcome, score, round history (`R1 WIN · R2 LOSS`), total hits/damage, blocks/timed/breaks, and Rematch / Menu. `GameSettings` is the session store shared by the main menu and pause screen; volume is pushed to `SoundEffect.MasterVolume`, shake/debug apply immediately, and difficulty applies at the next fight.
+
 HUD layout: player bars anchored top-left (health at most 420 × 18, stamina at most 340 × 10, both in a 24 px inset), opponent mirrored top-right, round pips centre-top, banner centred. Bars animate; text is cached; zero allocations per frame. On narrow windows bars shrink with their anchor; they never overlap the centre.
 
 The current dev HUD already has a separate **VITALS** block at the bottom-left (24 px inset): a `ROUND 1  0 - 0` line, then a label above each `HorizontalProgressBar` (`Health 150/150`, `Stamina 88/100`). The bars use the palette's health red and stamina green; a denied power attack appends `POWER DENIED` to the stamina label.

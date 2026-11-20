@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T7.3`
+> **Next up:** `T7.4`
 
 ---
 
@@ -509,11 +509,14 @@
 
 **Done when:** HUD updates match stats exactly at 60 FPS; damage ghost and stamina flash are visibly correct in a scripted trade.
 
-### [ ] T7.3 — Pause, options, results
+### [x] T7.3 — Pause, options, results
 **Goal:** the loop is complete.
-- Pause (`Esc`): resume, options, quit to menu; simulation fully frozen.
-- Options: master volume, screen shake on/off, debug overlay default, difficulty preset.
-- Results: victory/defeat, score, per-round stats, rematch / menu.
+- `Ui/PauseMenu.xmmp` + `PauseMenu.cs`: PAUSED overlay with Resume / Options / Quit to menu; options sub-panel with Volume ±10%, Screen shake, Debug overlay, Difficulty (Novice/Adept/Master), Back.
+- `GameSettings` is the session store shared by the main menu and pause screen (volume, shake, debug default, difficulty). `ApplySettings` pushes shake/debug/volume (via `SoundEffect.MasterVolume`) every frame; `--profile` seeds the initial difficulty.
+- Pause sets `_paused` so the fixed-step simulation, clips, and physics freeze; the world keeps rendering under a dark overlay. Resume clears focus and latches the click so the menu click cannot swing.
+- Results appear when `DuelDirector` reaches `MatchOver`: VICTORY/DEFEAT, score, `R1 WIN · R2 LOSS` history, total hits/damage, blocks/timed blocks/breaks, Rematch and Menu. Esc from results returns to the menu.
+- Match totals are accumulated across rounds; per-round winners are recorded at each `ReportDeath`. Round results and totals reset on a new match.
+- Tests: `GameSettingsTests` defaults; visual pause, options, results, and resume at 1600×900.
 
 **Done when:** pausing during an active swing freezes the blade mid-air and resumes exactly; options persist for the session.
 
@@ -658,6 +661,7 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T7.2 — HUD | 2026-11-20 | `247ee68` | developer |
 | T6.4 — Arena health potions | 2026-11-20 | `c8199c6` | developer |
 | T4.8 — One damage instance per swing | 2026-11-20 | `8e6e01b` | developer |
+| T7.3 — Pause, options, results | 2026-11-20 | PENDING | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
 
 
