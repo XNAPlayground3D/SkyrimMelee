@@ -21,13 +21,14 @@ SkyrimMelee/
   Input/      InputRouter, AttackCharge, SlashCombo
   Ai/         DuelistAi, AiProfile
   SelfTest/   SelfTestRunner
+  Validation/ ModelSpec, ModelFacts(Reader), ModelValidator, ModelValidationGame
   Ui/         MyraHost, Hud.xmmp, HudPanel, DebugOverlay.xmmp, DebugOverlay
 SkyrimMelee.Tests/          xUnit tests for pure logic
 ```
 
 Dependencies point one way: `SelfTest → Combat → Attacks → Physics → Animation → Tuning`. `Graphics`, `Fighters`, `Input`, and `Ui` sit beside `Combat` and talk to the same lower layers. `Combat` keeps only the rules; models, clips, geometry, attack data, and the harness live in their own top-level folders.
 
-`SkyrimMelee.Tests` covers pure logic with xUnit; `--self-test` runs full combat scenarios against the real state machines without a window.
+`SkyrimMelee.Tests` covers pure logic with xUnit; `--self-test` runs full combat scenarios against the real state machines without a window. `--validate-models` opens a one-frame window only because DigitalRiseModel needs a GraphicsDevice; the rules themselves run on flattened `ModelFacts`.
 
 ## Loop
 
@@ -113,7 +114,7 @@ The guard hitbox follows the hand while guarding, including while the fighter mo
 
 ## Debug and flags
 
-`--debug` overlay + wireframes · `--god` · `--slowmo` (0.25×) · `--no-ui` · `--play` (skip menu) · `--no-shake` · `--profile=<novice|adept|master>` · `--self-test` · `--help`
+`--debug` overlay + wireframes · `--god` · `--slowmo` (0.25×) · `--no-ui` · `--play` (skip menu) · `--no-shake` · `--profile=<novice|adept|master>` · `--self-test` · `--validate-models` (`--models-dir=<path>`) · `--help`
 
 `GameClock` owns `FrameIndex`, `SimTime`, fixed `DeltaTime`, `TimeScale`, real/scaled time, accumulator and dropped steps. Slow motion scales incoming time, never the step duration.
 

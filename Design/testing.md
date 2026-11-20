@@ -21,6 +21,19 @@ Given identical initial state and intents, tick _n_ must be byte-identical: same
 
 Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash, power stagger, poise stagger, bash, defense outcomes, best of three, input buffer, ai duel, health potion, guard break, stagger interrupt, whiff, one hit per swing, tunneling stress.
 
+## Model validation
+
+`--validate-models` loads `Content/Models/fighter.glb` and `sword.glb` through DigitalRiseModel in a one-frame window, then validates the returned `DrModel`/`DrModelInstance`; the GLB bytes are never parsed by the harness. `ModelFactsReader` flattens skins, parts, vertex declarations, clips, bounds, and textures into `ModelFacts`, so every rule is unit-tested without a graphics device. A failure exits non-zero and names the file, joint/clip, and expected vs actual.
+
+| ID | Checks |
+| --- | --- |
+| `MV-01` | 21 joints, exact names/parents/rest positions; ≤72 skin joints |
+| `MV-02` | Every fighter part skinned, ≤4 influences, weights sum to 1, normals present; ≤20 k triangles |
+| `MV-03` | Height 1.80 m, floor at Y 0, ≤3 materials, 1024/2048 base-colour textures |
+| `MV-04` | 13 clip names/durations, loop seams, no root translation, `weapon_r` not animated |
+| `MV-05` | Sword is static, TriangleList, ≤4 k triangles, tip 1.47 m and crossguard 0.30 m, 1024 texture |
+| `MV-06` | Broken facts fail with a specific message: missing joint, wrong parent/rest, 5 influences, bad weights, bad duration, root motion, animated weapon, wrong texture |
+
 ## Scenarios
 
 | ID | Checks |
@@ -83,6 +96,7 @@ Measure with `dotnet-counters` and the overlay frame graph; report percentiles, 
 dotnet build SkyrimMelee.slnx -c Release   # 0 warnings
 dotnet test SkyrimMelee.slnx               # unit tests
 dotnet run --project SkyrimMelee -- --self-test
+dotnet run --project SkyrimMelee -- --validate-models   # needs Content/Models assets
 ```
 
 Visual and feel checks cannot be automated. They must be reported as "manual" or "not verified on this machine" — never claimed without running.

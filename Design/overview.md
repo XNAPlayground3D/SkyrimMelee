@@ -66,9 +66,10 @@ Verified end-to-end on 2026-11-19 with .NET SDK 10.0.401 (T0.1): window + render
 | Decision | Why |
 | --- | --- |
 | Reference-first fidelity | [reference.md](reference.md) records what Skyrim does; every divergence is deliberate and listed with a reason |
-| DigitalRiseModel for geometry, custom `BasicEffect` renderer | Library has no renderer; a small renderer is easier to control than an engine |
+| DigitalRiseModel for geometry and animation, small custom renderer | Library has no renderer; `BasicEffect` and stock `SkinnedEffect` are easier to control than an engine |
 | Bepu as a query engine only | The blade sweeps and the capsule only changes rigid pose; statics + `Sweep` are all we need |
-| Keyframed clips as the only animation | One animated sword transform plus one rigid body pose, each with a single source of truth |
+| Authored skeletal clips drive poses; `CombatTuning` drives timing | Animation supplies poses, never hit timing; combat rules keep one source of truth |
+| Validate the imported `DrModel`, not the GLB bytes | DigitalRiseModel owns import; facts-based rules run in xUnit and the same pass checks the real loaded model |
 | Fixed 60 Hz deterministic simulation | Reproducible tests, fair timing, AI-vs-AI balance runs |
 | xUnit for pure logic, `--self-test` for combat | Unit tests stay GPU-free; combat scenarios exercise the real loop and state machines |
 | Myra with its embedded FontStashSharp font and a runtime flat skin | No content pipeline, no font files, no image assets |

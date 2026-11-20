@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T9.2`
+> **Next up:** `T9.3`
 
 ---
 
@@ -553,20 +553,21 @@
 - Fighter: 1.80 m tall (±0.01), eye line 1.60 m; ≤20 k triangles, one UV set, position/normal/UV0 + `JOINTS_0`/`WEIGHTS_0`, 4 influences, ≤72 joints, ≤3 materials, embedded 1024/2048 base-colour PNGs. Tangents optional; PBR maps are not rendered by v1.
 - 21-joint table with exact names, parents, world rest positions, and the `weapon_r` socket under `hand_r`; T-pose bind; arms along ±Z; right = +Z.
 - Sword: separate static `sword.glb`, origin at grip, blade +Y, base 0.18 m, tip 1.47 m, radii 0.0425/0.018 m, no hands/skeleton; attaches to `weapon_r` with identity.
-- 60 Hz clip table: Idle/GuardHold loops, GuardRaise 12, GuardLower 9, Slash 49.2 (15/13.2/21), PowerSlash 87.6 (36/9.6/42), Bash 32.4 (9.6/4.8/18), StaggerMicro/Small/Large 15/36/60, Death 72 clamp, Victory 96 clamp. Each row has a description of the clip's gameplay/body intent (ready stance, forehand/backhand, overhead slam, guard, shove, recoil tiers, collapse, victory). Attack `extras` carry windup/active/recovery/loop; the validator reads them from the GLB JSON because DigitalRiseModel does not expose extras.
+- 60 Hz clip table: Idle/GuardHold loops, GuardRaise 12, GuardLower 9, Slash 49.2 (15/13.2/21), PowerSlash 87.6 (36/9.6/42), Bash 32.4 (9.6/4.8/18), StaggerMicro/Small/Large 15/36/60, Death 72 clamp, Victory 96 clamp. Each row has a description of the clip's gameplay/body intent (ready stance, forehand/backhand, overhead slam, guard, shove, recoil tiers, collapse, victory). Attack phases stay authoritative in `CombatTuning`; the validator checks clip names and durations from the loaded `DrModel`, so no per-clip metadata is required.
 - Hard constraints updated: README, AGENTS, and `Design/overview.md` now allow only the approved M9 asset set and fighter-only skeletal animation; the primitive build remains the default until T9.8.
 - Asset-licensing/source note required before acceptance.
 
 **Done when:** every number cross-checks against `CombatTuning`/`BladeGeometry`, and the modeler can build and export without asking a follow-up question.
 
-### [ ] T9.2 — GLB validation harness
+### [x] T9.2 — DrModel validation harness
 **Goal:** reject broken assets before they reach the game.
-- No new loader package: load the GLB through DigitalRiseModel in a graphics-backed `--validate-models` pass, and read the GLB JSON chunk with `System.Text.Json` for skeleton/extras metadata. Unit tests cover the JSON/structural rules; the loader pass runs with the game.
-- `--validate-models` CLI checks `Content/Models/fighter.glb` and `sword.glb` against T9.1: joint table (≤72), influences (≤4), weights, budgets, clip names/`extras`, no root motion, socket, bounds, floor origin, texture sizes.
-- Actionable errors name the file, node/clip, and expected vs actual; exit non-zero.
-- Tests use a valid fixture and deliberately broken copies (missing joint, 5 influences, bad clip time, root motion, missing socket).
+- `--validate-models` opens a one-frame graphics window, loads `Content/Models/fighter.glb` and `sword.glb` with `AssetManager.LoadModel` (`ReadableBuffers`), and validates the returned `DrModel`/`DrModelInstance`. No GLB parser and no `System.Text.Json` reader.
+- Fighter: exactly one skin; 21 required joints (≤72) with exact names, parents, and world rest positions; every part skinned with ≤4 influences and normalized weights; normals present; ≤20 k triangles; 1.8 m tall and standing on the floor; ≤3 materials with 1024/2048 base-colour textures; all 13 clips with matching durations; no root translation; `weapon_r` not animated.
+- Sword: static (no skin, no clips), TriangleList, normals, ≤4 k triangles, tip at Y 1.47 ±0.01, crossguard 0.30 m ±0.01, one 1024 base-colour texture.
+- `ModelFacts` isolates the rules from the graphics pass, so unit tests build valid and broken facts (missing joint, wrong parent/rest, 5 influences, bad weights, bad duration, root motion, animated weapon, loop seam, wrong texture size).
+- Actionable errors name the file, joint/clip, and expected vs actual; exit non-zero. `--models-dir=<path>` overrides `Content/Models`.
 
-**Done when:** a valid GLB passes and each broken case fails with a specific message.
+**Done when:** valid `ModelFacts` pass and each broken case fails with a specific message; the CLI loads a valid `DrModel` pair and exits 0.
 
 ### [ ] T9.3 — Author fighter and sword GLBs
 **Goal:** production assets that pass T9.2.
@@ -589,9 +590,9 @@
 ### [ ] T9.5 — Skeletal animation player and clip contract
 **Goal:** authored clips drive the fighter instead of SwordMotion/BodyMotion.
 - Drive DigitalRiseModel `AnimationController` from the fixed 60 Hz step: `StartClip`/`CrossfadeToClip`, `AnimationFlags.Looped` for Idle/GuardHold, one-shot for the rest, `Pause()`/`Play()` with the game clock. Do not write a second keyframe sampler.
-- Clip registry maps `CombatState`/attack name to clips; `extras` supply wind-up/active/recovery windows for FSM-facing validation only.
+- Clip registry maps `CombatState`/attack name to clips; phase windows stay in `CombatTuning`, not in clip metadata.
 - Debug overlay shows clip, normalized time, active window, bone count.
-- Tests: exact endpoints, loop seam, crossfade, pause/resume, deterministic sampling, `extras` vs `CombatTuning`, 60 Hz and simulated 10 FPS parity.
+- Tests: exact endpoints, loop seam, crossfade, pause/resume, deterministic sampling, clip durations vs `CombatTuning`, 60 Hz and simulated 10 FPS parity.
 
 **Done when:** every attack, guard, stagger, death, and victory fires at the same combat-relevant phase windows as the primitive build.
 
@@ -768,5 +769,6 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T7.4 — UI/gameplay input ownership | 2026-11-20 | `1f7df98` | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
 | T9.1 — Technical asset specification | 2026-11-20 | `1f7fc48` | developer |
+| T9.2 — DrModel validation harness | 2026-11-20 | PENDING | developer |
 
 

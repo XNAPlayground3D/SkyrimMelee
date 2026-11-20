@@ -18,7 +18,7 @@ public sealed record GameOptions
 
 	public const string Usage =
 		"SkyrimMelee [--debug] [--god] [--slowmo] [--no-ui] [--play] [--no-shake] [--profile=<name>] [--clip-time=<s>]\n" +
-		"           [--self-test] [--help]";
+		"           [--validate-models] [--models-dir=<path>] [--self-test] [--help]";
 
 	public static bool TryParse(string[] args, out GameOptions options, out string? error)
 	{

@@ -1,6 +1,6 @@
 # Authored models and animation — technical specification
 
-This is the delivery contract for the fighter and sword assets used by M9. It is technical only: silhouette, colour, material styling, and weapon design are the modeler's choice. Every number here is enforced by the T9.2 validator where possible.
+This is the delivery contract for the fighter and sword assets used by M9. It is technical only: silhouette, colour, material styling, and weapon design are the modeler's choice. T9.2 loads both assets with DigitalRiseModel and validates the resulting `DrModel`; rules that only exist in the authored source are called out as authoring rules.
 
 ## Delivery
 
@@ -89,13 +89,7 @@ The runtime uses MonoGame's stock `SkinnedEffect`: base-colour texture, diffuse/
 
 All clips are 60 Hz timecodes. Durations are in seconds; frame values are `seconds × 60` and may be fractional. Keyframes must land on the exact wind-up/active/recovery boundaries.
 
-Each attack clip carries glTF `extras`:
-
-```json
-"extras": { "windup": 0.25, "active": 0.22, "recovery": 0.35, "loop": false }
-```
-
-DigitalRiseModel does not expose `extras`; the validator reads the GLB JSON chunk with `System.Text.Json`. The combat FSM in `CombatTuning` remains authoritative; a mismatch between clip `extras` and `CombatTuning` is a validation failure.
+Each clip's name and duration must match the table. The phase columns document where keyframes should land; `CombatTuning` remains the only source of combat timing, so the glTF does not need per-clip metadata.
 
 The Description column states the gameplay/body intent of each clip. It is not visual direction; silhouette, framing, and styling remain the designer's call.
 
@@ -140,16 +134,20 @@ The sword origin is the grip centre. Local axes: `+Y` from grip to tip, `+X` acr
 
 The sword has no hands; hands belong to the fighter. It is drawn as a static mesh attached to `weapon_r` with identity transform. It does not cast a separate hit volume; the runtime derives `BladeGeometry` from `weapon_r` and the base/tip/radii above.
 
+## Validation
+
+`--validate-models` loads `Content/Models/fighter.glb` and `sword.glb` through DigitalRiseModel in a one-frame window and validates the returned `DrModel`/`DrModelInstance`. It does not parse the GLB itself. `ModelFacts` flattens the model (skins, parts, vertex declarations, clips, bounds, textures), so the rules run in xUnit without a graphics device. Missing or invalid assets exit non-zero with the file, joint/clip, and expected-vs-actual values in the message.
+
 ## Acceptance
 
 An asset is accepted only when:
 
-1. T9.2 validation passes with zero errors.
-2. All 21 joints exist with the exact parent hierarchy and bind positions within tolerance.
-3. Every vertex has normalised 4-weight skinning and no vertex has more than 4 influences.
+1. T9.2 loads both files through DigitalRiseModel and validates the resulting `DrModel` with zero errors.
+2. All 21 joints exist with the exact parent hierarchy and world rest positions within tolerance; the skin has at most 72 joints.
+3. Every skinned part declares four weights per vertex, the weights sum to 1 ± 0.001, and no part declares more than four influences.
 4. The fighter is within height/bounds budgets and touches the floor at rest; the sword is within the blade dimensions.
-5. All 13 clip names exist; loop/clamp flags, durations, and attack `extras` match the table within 0.001 s.
-6. No root translation, no IK/constraints, no morph targets, no LODs, no external files.
+5. All 13 clip names exist; durations match the table within 0.001 s, and looped clips start and end on the same pose.
+6. No root translation and no channels on `weapon_r`; the sword has no skin or animation. Morph targets, LODs, IK, constraints, and Draco are forbidden and must be absent from the source.
 7. `weapon_r` exists under `hand_r` and the sword attaches with identity without a gap or offset.
 8. The licence/source note is present.
 9. The model loads and renders in the T-pose and Idle at 1600×900 without skinning artifacts.

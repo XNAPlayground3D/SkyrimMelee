@@ -1,6 +1,7 @@
 using SkyrimMelee.Combat;
 using SkyrimMelee.Core;
 using SkyrimMelee.SelfTest;
+using SkyrimMelee.Validation;
 
 namespace SkyrimMelee;
 
@@ -12,6 +13,13 @@ internal static class Program
 		if (HasFlag(args, "--self-test"))
 		{
 			return RunSelfTest();
+		}
+
+		if (HasFlag(args, "--validate-models"))
+		{
+			var directory = ValueOf(args, "--models-dir=") ??
+				Path.Combine(Directory.GetCurrentDirectory(), ModelValidationRunner.DefaultDirectory);
+			return ModelValidationRunner.Run(directory);
 		}
 
 		if (HasFlag(args, "--help") || HasFlag(args, "-h"))
@@ -52,4 +60,17 @@ internal static class Program
 
 	private static bool HasFlag(string[] args, string flag) =>
 		args.Any(a => string.Equals(a, flag, StringComparison.OrdinalIgnoreCase));
+
+	private static string? ValueOf(string[] args, string prefix)
+	{
+		foreach (var arg in args)
+		{
+			if (arg.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+			{
+				return arg[prefix.Length..];
+			}
+		}
+
+		return null;
+	}
 }
