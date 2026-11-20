@@ -108,8 +108,8 @@ The guard hitbox follows the hand while guarding, including while the fighter mo
 
 ## Debug and flags
 
-`--debug` overlay + wireframes · `--god` · `--slowmo` (0.25×) · `--no-ui` · `--self-test` · `--help`
+`--debug` overlay + wireframes · `--god` · `--slowmo` (0.25×) · `--no-ui` · `--no-shake` · `--self-test` · `--help`
 
 `GameClock` owns `FrameIndex`, `SimTime`, fixed `DeltaTime`, `TimeScale`, real/scaled time, accumulator and dropped steps. Slow motion scales incoming time, never the step duration.
 
-`F1` toggles the debug overlay; `F2` toggles flat wireframe. The overlay draws hurtboxes, the blade sphere chain, the last 20 swept segments, contact points and normals, plus the rejection reason for any ignored contact.
+`F1` toggles the debug overlay; `F2` toggles flat wireframe; `F3` cycles camera presets. The overlay shows the fixed-step clock, combat state + timer, clip + normalized time, health/stamina/poise, the last guard/hit outcome, the last 20 blade segments as a trail, and contact points with normals. `;` selects a session timing (`HitFlashDuration`, `StaggerMicroDuration`, `StaggerSmallDuration`, `StaggerLargeDuration`) and `[` / `]` nudge it by ±10 ms; each nudge prints `Name = 0.00f` to stdout and in the overlay for pasting back into `CombatTuning`. Overrides are session-only and skip the attack phase timings because those rebuild clips.

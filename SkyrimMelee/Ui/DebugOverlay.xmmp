@@ -14,6 +14,9 @@
     <Label Id="_clipTime" Text="clip t 0.00" TextColor="#9FD8FF" />
     <Label Id="_fsm" Text="fsm Idle 0.00s" TextColor="#9FD8FF" />
     <Label Id="_fsmFlags" Text="active=no block=no lock=no" TextColor="#9FD8FF" />
+    <Label Id="_vitals" Text="vitals" TextColor="#9FD8FF" />
+    <Label Id="_guard" Text="guard" TextColor="#9FD8FF" />
+    <Label Id="_tune" Text="tune" TextColor="#9FD8FF" />
     <Label Id="_intent" Text="intent idle" TextColor="#9FD8FF" />
     <Label Id="_motion" Text="move 0,0  pos 0,0  yaw 0.00" TextColor="#9FD8FF" />
   </VerticalStackPanel>

@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T5.5`
+> **Next up:** `T5.6`
 
 ---
 
@@ -357,7 +357,7 @@
 - Third-person camera follows the player; the opponent stays static until AI movement (T6).
 - Only the player's sword/body reacts to input; the opponent holds its idle sword pose (hit tint is still feedback).
 - Hit feedback flashes the defender's whole body coral for 300 ms, and one swing deals damage once even if the sweep crosses hips and legs. The opponent plays its own stagger/death reaction when hit, so the end of a round is visible; the F1 overlay shows `hits N`, the last hurtbox/time, and the opponent's health.
-- LMB tap starts `SlashLeft` from rest; a tap chained during the swing answers with the other side (`SlashCombo` follows the blade, not a counter). `1` / `2` force a side. Holding LMB for 350 ms fires `PowerSlash` (real-time charge, even in slow motion). `Shift+LMB` is no longer used.
+- LMB tap starts `SlashLeft` from rest; a tap chained during the swing answers with the other side (`SlashCombo` follows the blade, not a counter) and starts during `Recovery` after `ComboCancelTime` (80 ms), without waiting for the blade to return to idle. `1` / `2` force a side. Holding LMB for 350 ms fires `PowerSlash` (real-time charge, even in slow motion). `Shift+LMB` is no longer used.
 - Stamina follows the Skyrim gate: any stamina starts the attack; at zero a power attack degrades to `SlashLeft` with a stamina flash. Power ×2 and bash ×0.5 damage now match the reference.
 - Tests: arena clamp, facing math, camera follow, zoom/pitch clamps, tap/hold charge, blade-side slash selection, stamina gate.
 - The F1 overlay shows the move input, player position, and camera yaw.
@@ -385,11 +385,14 @@
 
 **Done when:** shake is noticeable but never hides a wind-up; presets all frame both fighters.
 
-### [ ] T5.5 — Debug overlay v2
+### [x] T5.5 — Debug overlay v2
 **Goal:** tune combat without a debugger.
-- Live: state + timer, stamina/health bars in text, current clip and normalized time, active-window flag, poise.
-- Collision: swept capsule trail for the last 20 substeps, contact points, block classification reason.
-- Tuning hotkeys: `[`/`]` to nudge a selected timing value by ±10 ms (session-only, logged for copy-paste into `CombatTuning.cs`).
+- Live: clock, state + timer, health/stamina/poise, clip + normalized time, active-window flag, last hit/guard outcome.
+- Collision: the last 20 blade segments drawn as a trail, plus the contact point and normal for 1 s.
+- Tuning: `;` selects `HitFlashDuration` / `StaggerMicroDuration` / `StaggerSmallDuration` / `StaggerLargeDuration`; `[` / `]` nudge ±10 ms (floor 10 ms, ceiling 3 s). Each nudge logs `Name = 0.00f` to stdout and shows it in the overlay for paste-back.
+- Overrides are session-only and live for the four tunables; attack phase timings are excluded because they rebuild clips.
+- Tests: default values, ±10 ms step and clamp, key cycling, paste-ready log format.
+- Visual: trail during a swing, contact marker on a hit, `;` / `[` / `]` update the tune line.
 
 **Done when:** an entire tuning session can be done in-game with the overlay, and the logged values can be pasted into the tuning file unchanged.
 
@@ -592,4 +595,5 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T5.2 — Skyrim locomotion, camera, input feel, hit feedback | 2026-11-20 | `0b6c643` | developer |
 | T5.3 — First/third person, zoom, bash key (and blade-side slash fix) | 2026-11-20 | `1808e37` | developer |
 | T5.4 — Camera shake, FOV punch, idle drift, F3 presets | 2026-11-20 | `c9091ea` | developer |
+| T5.5 — Debug overlay v2 (trail, contact, tuning, bash guard fixes) | 2026-11-20 | PENDING | developer |
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |

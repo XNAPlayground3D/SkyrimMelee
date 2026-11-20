@@ -26,7 +26,7 @@ Weapon: Iron Greatsword, base damage 20, reach 1.47 m.
 
 - Stamina is charged at wind-up start. Skyrim's rule applies: an attack needs **any** stamina, not its full cost. At zero stamina a power attack degrades to `SlashLeft` (the bar flashes, overlay shows `no stamina: power->slash`); bash is rejected with `bash needs guard`/`stamina`. Light attacks are free and clamp stamina at 0.
 - `FighterStats` owns health, stamina, poise, armor, and skills. Stamina regenerates at 25/s after 0.6 s and is frozen while the guard is up; poise regenerates at 25/s after 1 s.
-- `LightSlash` from `Idle` always starts the same arc; only a chained press mirrors it. The clip determines the visual, the definition determines the phases.
+- `LightSlash` from `Idle` always starts the same arc; only a chained press mirrors it. A chained press may start during `Recovery` once `ComboCancelTime` (80 ms) has elapsed, so the next swing does not wait for the blade to settle back to idle; the clip cross-fades from the follow-through. The clip determines the visual, the definition determines the phases.
 
 ## Sword motion
 
@@ -54,7 +54,7 @@ The moveset has exactly three attacks: `SlashLeft`, `SlashRight`, and `PowerSlas
 
 `PowerSlash` is the power overhead slam: the hilt rises high above the head with the blade back/up, holds for 100 ms, then drives forward and down with a deep follow-through. The blade rolls so the cutting edge stays in the chop plane; the flat faces sideways. It uses 600 / 160 / 700 ms, costs 30 stamina, requires stamina, and has 2.0× damage / 45 stagger. Holding LMB plays it.
 
-`Bash` is a short guard shove: the hilt pulls into the chest, holds for 100 ms, then drives the flat forward and returns to the guard. The fighter is rooted for the whole swing (`LocksMovement`), so wind-up, shove, and recovery happen in place even while walking or blocking. The body stays static; only the sword moves. It uses 160 / 80 / 300 ms, costs 15 stamina, has 0.5× damage and 40 poise, and is only available from `GuardRaise`/`GuardHold`. F or LMB while blocking plays it; if RMB is still held afterwards, `GuardHold` resumes directly at the guard pose, otherwise the sword lowers to idle.
+`Bash` is a short guard shove: the hilt pulls into the chest, holds for 100 ms, then drives the flat forward and returns to the guard. The fighter is rooted for the whole swing (`LocksMovement`), so wind-up, shove, and recovery happen in place even while walking or blocking. The body stays static; only the sword moves. It uses 160 / 80 / 300 ms, costs 15 stamina, has 0.5× damage and 40 poise, and is only available from `GuardRaise`/`GuardHold`. F or LMB while blocking plays it; if RMB is still held afterwards, `GuardHold` resumes directly at the guard pose — `GuardRaise` is not replayed, so the sword never dips to idle after a bash. Otherwise the sword lowers to idle.
 
 ### Guard clips
 
@@ -92,7 +92,7 @@ A confirmed contact flashes the defender's **whole body** coral for `HitFlashDur
 | `Stagger` | `StaggerMicro/Small/Large` | `Idle`, `Dead` |
 | `Dead` | `Death` | reset only (`Idle`) |
 
-Rules: wind-up/active/recovery can only be interrupted by stagger or death; facing is locked from wind-up to recovery end; only `GuardHold` blocks; guard may attack directly out of `GuardRaise/Hold`; a bash that ends while RMB is held resumes `GuardHold` directly; death beats stagger.
+Rules: wind-up/active can only be interrupted by stagger or death; recovery also accepts the next attack after `ComboCancelTime`; facing is locked from wind-up to recovery end; only `GuardHold` blocks; guard may attack directly out of `GuardRaise/Hold`; a bash that ends while RMB is held resumes `GuardHold` directly; death beats stagger.
 
 `CombatStateMachine` runs on the fixed 60 Hz step. `TryStartAttack`, `TryStartGuard`, and `TryReleaseGuard` return false when the transition table rejects them, so an attack cannot be cancelled into a guard or another attack (commit lock). `ApplyStagger` and `Kill` interrupt any non-dead state. The F1 overlay shows the state, state time, and the active/block/facing-lock flags.
 

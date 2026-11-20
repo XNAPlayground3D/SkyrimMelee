@@ -9,7 +9,7 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 
 ## Project state
 
-**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM (top-level Tuning, Animation, Physics, Attacks, Combat, SelfTest), four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash, headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, input buffer, WASD movement and follow camera, move-while-attacking/guarding (bash roots the fighter), alternating slash combo, Skyrim stamina gate, player-only sword motion, opponent hit/death reactions, whole-body hit flash, first/third person with wheel zoom, damage-scaled camera shake, F3 presets, pause status · **Next:** `T5.5`
+**Last updated:** 2026-11-20 · **Phase:** 2 — sword motion · **Code:** solution, clock, Myra, renderer, arena, third-person camera, primitive fighters, swords, HUD, clip player, attack tuning, guard clips, shared blade geometry, combat FSM (top-level Tuning, Animation, Physics, Attacks, Combat, SelfTest), four attack clips (SlashLeft, SlashRight, PowerSlash overhead, Bash), reaction clips with rigid body motion, Bepu hurtboxes, swept blade cast, per-swing hit events, guard classification, poise/stagger rules, block bash, headless self-test scenarios, health/stamina bars, stamina economy, damage model, defense outcomes, duel director, input buffer, WASD movement and follow camera, move-while-attacking/guarding (bash roots the fighter), alternating slash combo, Skyrim stamina gate, player-only sword motion, opponent hit/death reactions, whole-body hit flash, first/third person with wheel zoom, damage-scaled camera shake, F3 presets, debug overlay v2 (blade trail, contact marker, live tuning), pause status · **Next:** `T5.6`
 
 | Area | State |
 | --- | --- |
@@ -47,6 +47,7 @@ A Skyrim-inspired greatsword duel between two white primitive fighters — with 
 | Player movement & camera modes | ✅ `T5.2` |
 | First/third person & zoom | ✅ `T5.3` |
 | Camera feel (shake, presets) | ✅ `T5.4` |
+| Debug overlay v2 (trail, tuning) | ✅ `T5.5` |
 | Code layout (top-level folders) | ✅ `T5.7` |
 | HUD & menus | ⬜ `T7.1` |
 
@@ -78,7 +79,7 @@ dotnet run --project SkyrimMelee/SkyrimMelee.csproj -- --self-test   # headless 
 
 UI markup lives in `SkyrimMelee/Ui/Hud.xmmp` and `DebugOverlay.xmmp`; after editing, run `myra-export <file>.xmmp`.
 
-**Controls:** `WASD` move · mouse look · wheel zoom · `F` first/third person · `LMB` tap slash combo / hold power slash · `B`/LMB while blocking bash · `1`/`2` forced arcs · `RMB` block · `4`–`8` reaction previews · `F1` debug overlay · `F2` wireframe · `F3` camera presets · `Esc` quit.
+**Controls:** `WASD` move · mouse look · wheel zoom · `F` first/third person · `LMB` tap slash combo / hold power slash · `B`/LMB while blocking bash · `1`/`2` forced arcs · `RMB` block · `4`–`8` reaction previews · `F1` debug overlay · `F2` wireframe · `F3` camera presets · `[` `]` `;` tune timings (overlay) · `Esc` quit.
 
 ## License
 

@@ -53,6 +53,7 @@
       <Label Text="F1               Debug overlay" TextColor="#E6DCC8" />
       <Label Text="F2               Wireframe" TextColor="#E6DCC8" />
       <Label Text="F3               Camera preset" TextColor="#E6DCC8" />
+      <Label Text="[ ] / ;          Tune timing (debug)" TextColor="#E6DCC8" />
       <Label Text="Esc              Quit" TextColor="#E6DCC8" />
     </VerticalStackPanel>
   </Panel>

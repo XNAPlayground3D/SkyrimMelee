@@ -19,7 +19,8 @@ namespace SkyrimMelee.Ui
 		}
 
 		public void Update(GameClock clock, CombatStateMachine combat, string clipName,
-			float clipNormalizedTime, string intentText, string motionText)
+			float clipNormalizedTime, string vitalsText, string guardText, string tuneText,
+			string intentText, string motionText)
 		{
 			if (!Visible)
 			{
@@ -38,6 +39,9 @@ namespace SkyrimMelee.Ui
 			_fsmFlags.Text = $"active={(combat.IsActive ? "yes" : "no")} " +
 							 $"block={(combat.Blocks ? "yes" : "no")} " +
 							 $"lock={(combat.IsFacingLocked ? "yes" : "no")}";
+			_vitals.Text = vitalsText;
+			_guard.Text = guardText;
+			_tune.Text = tuneText;
 			_intent.Text = intentText;
 			_motion.Text = motionText;
 		}

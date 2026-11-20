@@ -50,6 +50,7 @@ public sealed class SkyrimMeleeGame : Game
 	private DrMaterial? _hurtboxDebug;
 	private DrMaterial? _guardDebug;
 	private DrMaterial? _hitDebug;
+	private DrMaterial? _trailDebug;
 	private CombatWorld? _combatWorld;
 	private BladeSweep? _bladeSweep;
 	private readonly SwingHitSet _swingHits = new();
@@ -106,6 +107,17 @@ public sealed class SkyrimMeleeGame : Game
 	private bool _d7WasDown;
 	private bool _d8WasDown;
 	private bool _bashKeyWasDown;
+	private bool _tuneSlowWasDown;
+	private bool _tuneFastWasDown;
+	private bool _tuneSelectWasDown;
+	private readonly TuningSession _tuning = new();
+	private readonly BladeGeometry[] _bladeTrail = new BladeGeometry[20];
+	private int _trailCount;
+	private int _trailIndex;
+	private Vector3 _contactPoint;
+	private Vector3 _contactNormal = Vector3.UnitY;
+	private float _contactTimer;
+	private string _lastOutcome = "-";
 	private bool _reactionAdvance;
 	private bool _rightMouseWasDown;
 
@@ -170,6 +182,7 @@ public sealed class SkyrimMeleeGame : Game
 		_hurtboxDebug = _primitives.CreateMaterial(new Color(0x49, 0xE8, 0x8A));
 		_guardDebug = _primitives.CreateMaterial(new Color(0xFF, 0xC2, 0x4B));
 		_hitDebug = _primitives.CreateMaterial(HitFlashColor);
+		_trailDebug = _primitives.CreateMaterial(new Color(0x3A, 0x8E, 0xA8));
 
 		_swordClips = SwordClips.Create();
 		_bodyClips = BodyClips.Create();
@@ -298,6 +311,8 @@ public sealed class SkyrimMeleeGame : Game
 			_camera.Zoom(scrollDelta / 120f);
 		}
 
+		UpdateTuningKeys(keyboard, uiCaptured);
+
 		var moveX = (keyboard.IsKeyDown(Keys.D) ? 1f : 0f) -
 					(keyboard.IsKeyDown(Keys.A) ? 1f : 0f);
 		var moveY = (keyboard.IsKeyDown(Keys.W) ? 1f : 0f) -
@@ -405,6 +420,14 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_lastBlade = blade;
+		if (blade.HasValue && _overlay?.Visible == true)
+		{
+			_bladeTrail[_trailIndex] = blade.Value;
+			_trailIndex = (_trailIndex + 1) % _bladeTrail.Length;
+			_trailCount = Math.Min(_bladeTrail.Length, _trailCount + 1);
+		}
+
+		_contactTimer = MathF.Max(0f, _contactTimer - step);
 		UpdateHitFlashes(step);
 
 		var blocking = _combat.State is CombatState.GuardRaise or
@@ -539,12 +562,16 @@ public sealed class SkyrimMeleeGame : Game
 			for (var i = 0; i < 4; i++)
 			{
 				_hitFlashes[HitIndex(hitEvent.Target, (HurtboxKind)i)] =
-					CombatTuning.HitFlashDuration;
+					_tuning.Value(TuningKey.HitFlash);
 			}
 
 			_opponent?.SetBodyColor(HitFlashColor);
 			_hitCount++;
 			_lastHit = $"{hitEvent.Hurtbox}@{_combat.AttackTime:0.00}";
+			_lastOutcome = $"clean {hitEvent.Hurtbox}";
+			_contactPoint = hitEvent.Point;
+			_contactNormal = hitEvent.Normal;
+			_contactTimer = 1f;
 
 			if (!_swingHits.TryMarkDamagingHit())
 			{
@@ -552,9 +579,13 @@ public sealed class SkyrimMeleeGame : Game
 			}
 
 			var stagger = StaggerRules.Resolve(hitEvent.Attack, _opponentStats);
+			var staggerLarge = stagger.Staggered &&
+				stagger.Duration >= CombatTuning.StaggerLargeDuration - 0.001f;
 			if (stagger.Staggered)
 			{
-				_opponentCombat.ApplyStagger(stagger.Duration);
+				var duration = _tuning.Value(
+					staggerLarge ? TuningKey.StaggerLarge : TuningKey.StaggerSmall);
+				_opponentCombat.ApplyStagger(duration);
 			}
 
 			var defense = DefenseResolver.Resolve(
@@ -576,8 +607,7 @@ public sealed class SkyrimMeleeGame : Game
 			}
 			else if (stagger.Staggered)
 			{
-				var large = stagger.Duration >= CombatTuning.StaggerLargeDuration - 0.001f;
-				PlayOpponentClip(large ? "StaggerLarge" : "StaggerSmall");
+				PlayOpponentClip(staggerLarge ? "StaggerLarge" : "StaggerSmall");
 			}
 		}
 	}
@@ -878,6 +908,7 @@ public sealed class SkyrimMeleeGame : Game
 
 		_playerStats.Spend(attack);
 		_swingHits.Begin(attack);
+		_trailCount = 0;
 		PlayClip(attack.Name);
 
 		if (attack.Name == "PowerSlash")
@@ -887,6 +918,33 @@ public sealed class SkyrimMeleeGame : Game
 
 		_lastRejection = powerFallback ? "no stamina: power->slash" : "-";
 		return true;
+	}
+
+	private void UpdateTuningKeys(KeyboardState keyboard, bool uiCaptured)
+	{
+		var slowKey = keyboard.IsKeyDown(Keys.OemOpenBrackets);
+		var fastKey = keyboard.IsKeyDown(Keys.OemCloseBrackets);
+		var selectKey = keyboard.IsKeyDown(Keys.OemSemicolon);
+		var active = _overlay?.Visible == true && !uiCaptured && !_paused;
+
+		if (active && slowKey && !_tuneSlowWasDown)
+		{
+			_tuning.Nudge(-1);
+		}
+
+		if (active && fastKey && !_tuneFastWasDown)
+		{
+			_tuning.Nudge(1);
+		}
+
+		if (active && selectKey && !_tuneSelectWasDown)
+		{
+			_tuning.Next();
+		}
+
+		_tuneSlowWasDown = slowKey;
+		_tuneFastWasDown = fastKey;
+		_tuneSelectWasDown = selectKey;
 	}
 
 	private void UpdateGuardFromMouse(bool uiCaptured)
@@ -910,7 +968,20 @@ public sealed class SkyrimMeleeGame : Game
 
 	private void PlayGuardRaise()
 	{
-		if (_paused || _swordMotion is null || !_combat.TryStartGuard())
+		if (_paused || _swordMotion is null)
+		{
+			return;
+		}
+
+		// A bash that just ended resumes at the guard pose. Replaying
+		// GuardRaise would start from idle and read as a dip after every bash.
+		if (_swordMotion.Clip?.Name == "Bash" && _combat.TryResumeGuard())
+		{
+			PlayClip("GuardHold");
+			return;
+		}
+
+		if (!_combat.TryStartGuard())
 		{
 			return;
 		}
@@ -935,7 +1006,9 @@ public sealed class SkyrimMeleeGame : Game
 			return;
 		}
 
-		var duration = large ? CombatTuning.StaggerLargeDuration : CombatTuning.StaggerSmallDuration;
+		var duration = large
+			? _tuning.Value(TuningKey.StaggerLarge)
+			: _tuning.Value(TuningKey.StaggerSmall);
 		_combat.ApplyStagger(duration);
 		if (_combat.State != CombatState.Stagger)
 		{
@@ -952,7 +1025,7 @@ public sealed class SkyrimMeleeGame : Game
 			return;
 		}
 
-		_combat.ApplyStagger(CombatTuning.StaggerMicroDuration);
+		_combat.ApplyStagger(_tuning.Value(TuningKey.StaggerMicro));
 		if (_combat.State != CombatState.Stagger)
 		{
 			return;
@@ -1012,14 +1085,22 @@ public sealed class SkyrimMeleeGame : Game
 		}
 		else if (clip.Name == "Bash")
 		{
-			if (_rightMouseWasDown && _combat.TryResumeGuard())
+			if (!_rightMouseWasDown)
+			{
+				// The FSM is already Idle by the time the bash clip ends, so the
+				// idle gate would freeze the lower; let this one reaction play out.
+				PlayClip("GuardLower");
+				_reactionAdvance = true;
+				return;
+			}
+
+			if (_combat.TryResumeGuard())
 			{
 				PlayClip("GuardHold");
 			}
-			else
-			{
-				PlayClip("GuardLower");
-			}
+
+			// Otherwise the bash recovery is still committed; the next frame
+			// resumes the guard as soon as the FSM reaches Idle.
 		}
 	}
 
@@ -1051,6 +1132,10 @@ public sealed class SkyrimMeleeGame : Game
 		_lastRejection = "-";
 		_hitCount = 0;
 		_lastHit = "-";
+		_lastOutcome = "-";
+		_trailCount = 0;
+		_trailIndex = 0;
+		_contactTimer = 0f;
 		_input.Clear();
 		_swordMotion.ResetTo(_swordClips[0]);
 		_opponentSwordMotion?.ResetTo(_swordClips[0]);
@@ -1184,6 +1269,49 @@ public sealed class SkyrimMeleeGame : Game
 					Matrix.CreateFromQuaternion(rotation) *
 					Matrix.CreateTranslation(center);
 		_renderer.DrawLines(_primitives.LineCircle, _bladeDebug, world);
+	}
+
+	private void DrawBladeTrail()
+	{
+		if (_renderer is null || _primitives is null || _trailDebug is null)
+		{
+			return;
+		}
+
+		for (var i = 0; i < _trailCount; i++)
+		{
+			var index = (_trailIndex - 1 - i + _bladeTrail.Length * 2) % _bladeTrail.Length;
+			var blade = _bladeTrail[index];
+			if (blade.Length <= 1e-4f)
+			{
+				continue;
+			}
+
+			var world = Matrix.CreateScale(blade.Length) *
+						Matrix.CreateFromQuaternion(blade.AxisRotation) *
+						Matrix.CreateTranslation(blade.Base);
+			_renderer.DrawLines(_primitives.LineSegment, _trailDebug, world);
+		}
+	}
+
+	private void DrawContactMarker()
+	{
+		if (_contactTimer <= 0f || _renderer is null || _primitives is null || _hitDebug is null)
+		{
+			return;
+		}
+
+		var dot = Matrix.CreateScale(0.05f) * Matrix.CreateTranslation(_contactPoint);
+		_renderer.Draw(_primitives.Sphere, _hitDebug, dot);
+
+		if (_contactNormal.LengthSquared() > 1e-6f)
+		{
+			var normal = Vector3.Normalize(_contactNormal);
+			var line = Matrix.CreateScale(0.35f) *
+					   Matrix.CreateFromQuaternion(GeometryMath.RotationFromY(normal)) *
+					   Matrix.CreateTranslation(_contactPoint);
+			_renderer.DrawLines(_primitives.LineSegment, _hitDebug, line);
+		}
 	}
 
 	private void DrawHurtboxes()
@@ -1389,8 +1517,15 @@ public sealed class SkyrimMeleeGame : Game
 		var rejection = _lastRejection == "-" ? string.Empty : $"  reject {_lastRejection}";
 		var motion = FormattableString.Invariant(
 			$"move {_moveInput.X:0},{_moveInput.Y:0}  pos {_player?.Position.X ?? 0f:0.00},{_player?.Position.Z ?? 0f:0.00}  yaw {_camera.Yaw:0.00}  face {_player?.FacingYaw ?? 0f:0.00}  hits {_hitCount} {_lastHit}  foe {_opponentStats.Health:0}/{_opponentStats.MaxHealth:0}");
+		var vitals = FormattableString.Invariant(
+			$"vitals hp {_playerStats.Health:0}/{_playerStats.MaxHealth:0} st {_playerStats.Stamina:0} poise {_playerStats.Poise:0}/{_playerStats.MaxPoise:0}");
+		var guard = $"guard blade={(_guardHurtbox ? "yes" : "no")} " +
+					$"block={(_combat.Blocks ? "yes" : "no")} last={_lastOutcome}";
+		var tune = FormattableString.Invariant(
+			$"tune {TuningSession.Name(_tuning.Selected)} {_tuning.SelectedValue * 1000:0} ms  [ ] nudge  ; select  -> {_tuning.LastChange}");
 		_overlay?.Update(_clock, _combat, _swordMotion?.Clip?.Name ?? "-",
-			_swordMotion?.NormalizedTime ?? 0f, $"intent {buffered}{rejection}", motion);
+			_swordMotion?.NormalizedTime ?? 0f, vitals, guard, tune,
+			$"intent {buffered}{rejection}", motion);
 	}
 
 	protected override void Draw(GameTime gameTime)
@@ -1441,6 +1576,12 @@ public sealed class SkyrimMeleeGame : Game
 			if (_renderer.Wireframe)
 			{
 				DrawHurtboxes();
+			}
+
+			if (_overlay?.Visible == true)
+			{
+				DrawBladeTrail();
+				DrawContactMarker();
 			}
 
 			_renderer.End();
