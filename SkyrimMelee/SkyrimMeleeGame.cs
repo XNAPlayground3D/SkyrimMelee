@@ -88,6 +88,8 @@ public sealed class SkyrimMeleeGame : Game
 	private readonly CombatStateMachine _combat = new();
 	private readonly CombatStateMachine _opponentCombat = new();
 	private readonly DuelDirector _duel = new();
+	private readonly HealthPotions _potions = new(seed: 20261121);
+	private readonly List<PotionRig> _potionRigs = new();
 	private bool _paused;
 	private double _baseTimeScale = 1.0;
 	private float _swordClipSpeed = 1f;
@@ -331,6 +333,13 @@ public sealed class SkyrimMeleeGame : Game
 		_renderer?.Dispose();
 		_renderer = null;
 
+		foreach (var rig in _potionRigs)
+		{
+			rig.Dispose();
+		}
+
+		_potionRigs.Clear();
+
 		_primitives?.Dispose();
 		_primitives = null;
 
@@ -468,6 +477,8 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			StepSimulation();
 		}
+
+		SyncPotionVisuals();
 
 		ProcessIntent(uiCaptured);
 		UpdateGuardFromMouse(uiCaptured);
@@ -677,6 +688,57 @@ public sealed class SkyrimMeleeGame : Game
 		}
 	}
 
+	private void UpdatePotions(float step)
+	{
+		if (_player is null || _opponent is null)
+		{
+			return;
+		}
+
+		_potions.Update(step, _player.Position, _opponent.Position);
+		TryPickupPotions();
+	}
+
+	private void TryPickupPotions()
+	{
+		if (_player is null || _opponent is null)
+		{
+			return;
+		}
+
+		while (HealthPotions.TryTake(
+				   _potions.Positions, _player.Position, _opponent.Position,
+				   out var index, out var playerTakes))
+		{
+			if (playerTakes)
+			{
+				_playerStats.Heal(CombatTuning.PotionHeal);
+			}
+			else
+			{
+				_opponentStats.Heal(CombatTuning.PotionHeal);
+			}
+
+			_potions.RemoveAt(index);
+		}
+	}
+
+	private void SyncPotionVisuals()
+	{
+		if (_primitives is null)
+		{
+			return;
+		}
+
+		// Keep the rigs alive for the session: a rig's meshes clone the shared
+		// primitive buffers, and disposing one mid-fight would take the arena
+		// with it. Unused rigs are simply not drawn.
+		while (_potionRigs.Count < _potions.Positions.Count)
+		{
+			_potionRigs.Add(new PotionRig(_primitives));
+		}
+	}
+
 	private void StepSimulation()
 	{
 		if (_paused)
@@ -699,6 +761,7 @@ public sealed class SkyrimMeleeGame : Game
 		_opponentCombat.Update(step);
 		UpdateOpponentFacing();
 		UpdateOpponentAi(step);
+		UpdatePotions(step);
 		if (_opponentCombat.State != CombatState.Idle)
 		{
 			_opponentSwordMotion?.Update(step);
@@ -1952,6 +2015,8 @@ public sealed class SkyrimMeleeGame : Game
 		_swordMotion.ResetTo(_swordClips[0]);
 		_opponentSwordMotion?.ResetTo(_swordClips[0]);
 		_opponentBodyMotion?.Reset();
+		_potions.Reset();
+		SyncPotionVisuals();
 		ResetPositions();
 		ApplySwordPose();
 		_hud?.ShowBanner(
@@ -2354,7 +2419,7 @@ public sealed class SkyrimMeleeGame : Game
 		var buffered = _input.IsPending ? $"buffered {_input.Pending}" : "idle";
 		var rejection = _lastRejection == "-" ? string.Empty : $"  reject {_lastRejection}";
 		var motion = FormattableString.Invariant(
-			$"move {_moveInput.X:0},{_moveInput.Y:0}  pos {_player?.Position.X ?? 0f:0.00},{_player?.Position.Z ?? 0f:0.00}  cam {(_camera.FirstPerson ? "fp" : "tp")} d {_camera.Distance:0.0}  yaw {_camera.Yaw:0.00}  face {_player?.FacingYaw ?? 0f:0.00}  hits {_hitCount} {_lastHit}  foe {_opponentStats.Health:0}/{_opponentStats.MaxHealth:0} @ {_opponent?.Position.X ?? 0f:0.00},{_opponent?.Position.Z ?? 0f:0.00}");
+			$"move {_moveInput.X:0},{_moveInput.Y:0}  pos {_player?.Position.X ?? 0f:0.00},{_player?.Position.Z ?? 0f:0.00}  cam {(_camera.FirstPerson ? "fp" : "tp")} d {_camera.Distance:0.0}  yaw {_camera.Yaw:0.00}  face {_player?.FacingYaw ?? 0f:0.00}  hits {_hitCount} {_lastHit}  potions {_potions.Positions.Count}  foe {_opponentStats.Health:0}/{_opponentStats.MaxHealth:0} @ {_opponent?.Position.X ?? 0f:0.00},{_opponent?.Position.Z ?? 0f:0.00}");
 		var vitals = FormattableString.Invariant(
 			$"vitals hp {_playerStats.Health:0}/{_playerStats.MaxHealth:0} st {_playerStats.Stamina:0} poise {_playerStats.Poise:0}/{_playerStats.MaxPoise:0}");
 		var guard = $"guard blade={(_guardHurtbox ? "yes" : "no")} " +
@@ -2390,6 +2455,27 @@ public sealed class SkyrimMeleeGame : Game
 			$"intent {buffered}{rejection}", motion, ai, aiWhy, aiStats, _aiLog);
 	}
 
+	private void DrawPotions()
+	{
+		if (_renderer is null)
+		{
+			return;
+		}
+
+		var time = (float)_clock.SimTime;
+		var count = Math.Min(_potionRigs.Count, _potions.Positions.Count);
+		for (var i = 0; i < count; i++)
+		{
+			var phase = i * 1.7f;
+			var bob = MathF.Sin(time * 2.4f + phase) * 0.03f;
+			var world =
+				Matrix.CreateRotationY(time * 1.6f + phase) *
+				Matrix.CreateTranslation(
+					_potions.Positions[i] + new Vector3(0f, 0.03f + bob, 0f));
+			_renderer.Draw(_potionRigs[i].Instance, world);
+		}
+	}
+
 	protected override void Draw(GameTime gameTime)
 	{
 		GraphicsDevice.Clear(BackgroundColor);
@@ -2403,6 +2489,7 @@ public sealed class SkyrimMeleeGame : Game
 
 			_renderer.Begin(_camera.View, _camera.GetProjection(aspect));
 			_renderer.Draw(_arena.Instance, Matrix.Identity);
+			DrawPotions();
 
 			if (_player is not null)
 			{

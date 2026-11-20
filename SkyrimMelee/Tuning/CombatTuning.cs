@@ -50,6 +50,14 @@ public static class CombatTuning
 	/// <summary>Half-angle of the bash hit cone.</summary>
 	public const float BashConeDegrees = 60f;
 
+	public const float PotionHeal = 35f;
+	public const float PotionPickupRadius = 0.65f;
+	public const float PotionInitialDelay = 4f;
+	public const float PotionSpawnInterval = 8f;
+	public const int PotionMaxActive = 2;
+	public const float PotionSpawnMinRadius = 3.5f;
+	public const float PotionSpawnMaxRadius = 5f;
+
 	/// <summary>A guard younger than this is a timed block; older is a normal block.</summary>
 	public const float GuardTimedBlockWindow = 0.25f;
 

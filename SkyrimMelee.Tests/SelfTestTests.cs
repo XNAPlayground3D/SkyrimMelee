@@ -9,7 +9,7 @@ public class SelfTestTests
 	{
 		var results = SelfTestRunner.Run();
 
-		Assert.Equal(16, results.Count);
+		Assert.Equal(17, results.Count);
 		Assert.All(results, result =>
 			Assert.True(result.Passed, $"{result.Name}: {result.Detail}"));
 	}

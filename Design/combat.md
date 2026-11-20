@@ -153,6 +153,13 @@ Every hit subtracts `Stagger`, and poise is restored at 100 on entering `Stagger
 
 Stagger cancels any action and blocks all input, guard included. Damage can still be taken.
 
+## Health potions
+
+- A seeded pickup field spawns up to two potions per round. The first appears after 4 s, then one every 8 s while fewer than two are active. Each spawns at a random angle on a 3.5–5 m ring; if the roll lands within 1 m of a fighter it retries up to six times.
+- Pickup radius is 0.65 m. The nearest fighter takes it (ties favour the player); the potion disappears and instantly restores 35 health, capped at `MaxHealth`. Both fighters can pick up.
+- The field is deterministic: a fixed seed and the fixed 60 Hz step produce the same sequence and positions every run. It resets on every round; potions do not expire.
+- The visual is primitive-only: a red liquid sphere, glass neck, cork, and a floor glow ring; it bobs and spins without affecting the hitboxes.
+
 ## Edge cases
 
 | Case | Rule |

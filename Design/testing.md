@@ -19,7 +19,7 @@ Given identical initial state and intents, tick _n_ must be byte-identical: same
 
 `--self-test` runs without a window using the real state machines, tuning, clips, and physics. `SelfTestRunner` builds a fresh `CombatWorld` per scenario and scripts blade sweeps / FSM transitions directly, so every run starts from identical state. Output is one `PASS/FAIL` line per scenario; a failure exits non-zero. The xUnit project asserts all scenarios pass and that 10 consecutive runs are identical.
 
-Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash, power stagger, poise stagger, bash, defense outcomes, best of three, input buffer, ai duel, guard break, stagger interrupt, whiff, one hit per swing, tunneling stress.
+Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash, power stagger, poise stagger, bash, defense outcomes, best of three, input buffer, ai duel, health potion, guard break, stagger interrupt, whiff, one hit per swing, tunneling stress.
 
 ## Scenarios
 
@@ -47,6 +47,7 @@ Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash
 | `ST-16/17` | Guard released during raise does not block; `--god` clamps at 1 health |
 | `AI-01` | Master beats Novice in ≥ 8/10 fixed-seed duels; every pairing shows blocks, timed blocks, guard breaks |
 | `AI-02` | Decision telemetry carries action/reason and a stable id; the reaction countdown is exposed; `AiFightStats` hit/block rates and reset are correct |
+| `IT-01` | Health potions spawn inside the 3.5–5 m ring after the seeded delays, stop at two, heal 35 with a max clamp, and reset each round |
 
 ## Manual checklist
 

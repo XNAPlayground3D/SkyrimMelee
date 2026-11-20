@@ -33,6 +33,7 @@ public static class SelfTestRunner
 		BestOfThree(),
 		InputBuffer(),
 		AiDuel(),
+		Potion(),
 		GuardBreak(),
 		StaggerInterrupt(),
 		Whiff(),
@@ -312,6 +313,37 @@ public static class SelfTestRunner
 
 		return new SelfTestResult("ai duel", passed,
 			$"{result.Winner} {result.Seconds:0.0}s hits {result.FirstHits}/{result.SecondHits}");
+	}
+
+	private static SelfTestResult Potion()
+	{
+		var potions = new HealthPotions(seed: 5);
+		var away = new Vector3(5f, 0f, 5f);
+		potions.Update(CombatTuning.PotionInitialDelay + 0.01f, away, away);
+
+		var spawned = potions.Positions.Count == 1;
+		var radius = 0f;
+		if (spawned)
+		{
+			var position = potions.Positions[0];
+			radius = MathF.Sqrt(position.X * position.X + position.Z * position.Z);
+		}
+
+		var stats = new FighterStats();
+		stats.ApplyDamage(100f);
+		stats.Heal(CombatTuning.PotionHeal);
+		var healed = MathF.Abs(stats.Health -
+			(CombatTuning.MaxHealth - 100f + CombatTuning.PotionHeal)) < 1e-3f;
+
+		var picked = HealthPotions.TryTake(
+			new[] { new Vector3(0.4f, 0f, 0f) },
+			Vector3.Zero, new Vector3(3f, 0f, 0f), out _, out var playerTakes);
+
+		var passed = spawned && healed && picked && playerTakes &&
+			radius >= CombatTuning.PotionSpawnMinRadius &&
+			radius <= CombatTuning.PotionSpawnMaxRadius;
+		return new SelfTestResult("health potion", passed,
+			$"spawned={spawned} r={radius:0.00} healed={stats.Health:0} picked={picked}");
 	}
 
 	private static SelfTestResult GuardBreak()

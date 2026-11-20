@@ -46,6 +46,17 @@ public sealed class FighterStats
 		Health = MathF.Max(0f, Health - amount);
 	}
 
+	/// <summary>Instant healing from a pickup; never exceeds the maximum.</summary>
+	public void Heal(float amount)
+	{
+		if (amount <= 0f)
+		{
+			return;
+		}
+
+		Health = MathF.Min(MaxHealth, Health + amount);
+	}
+
 	/// <summary>Skyrim's rule: a stamina attack needs any stamina, not its full cost.</summary>
 	public bool CanAfford(AttackDefinition attack) => StaminaRules.Allows(this, attack);
 

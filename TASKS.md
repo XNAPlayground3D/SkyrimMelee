@@ -460,6 +460,17 @@
 
 **Done when:** every AI decision shown in the overlay corresponds to a state-machine event in the log.
 
+### [x] T6.4 — Arena health potions
+**Goal:** a risk/reward pickup that breaks up pure sword trades.
+- `Combat/HealthPotions.cs`: seeded spawn field. First potion after 4 s, then one every 8 s while fewer than two are active; spawns on a 3.5–5 m ring, retrying up to six times to stay 1 m away from both fighters.
+- Pickup radius 0.65 m; the nearest fighter takes it (ties to the player). Instant `Heal(35)` capped at max health. Both fighters can pick up.
+- Deterministic under the fixed 60 Hz step; resets each round. No potion lifetime.
+- `Fighters/PotionRig.cs`: red sphere, glass neck, cork, glow ring; bobs/spins, no hurtbox. Rigs are created lazily and never disposed mid-fight: their cloned meshes share the primitive library buffers, so disposing one on pickup would take the arena with it.
+- Tuning in `CombatTuning`; HUD health bar shows the instant heal. F1 debug line includes the active potion count.
+- Tests: spawn delay/cap/ring/determinism, 5.5 s at 60 Hz, heal cap, nearest/tie/out-of-range pickup; self-test `health potion`. 285 xUnit, 17/17 self-test.
+
+**Done when:** potions appear at the seeded times inside the ring, cap at two, and restore 35 health on pickup for either fighter.
+
 ---
 
 ## M7 — Myra UI
@@ -635,6 +646,7 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T6.3 — AI visualization | 2026-11-20 | `3712217` | developer |
 | T7.1 — Skin + main menu | 2026-11-20 | `ebcffdb` | developer |
 | T7.2 — HUD | 2026-11-20 | `247ee68` | developer |
+| T6.4 — Arena health potions | 2026-11-20 | PENDING | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
 
 
