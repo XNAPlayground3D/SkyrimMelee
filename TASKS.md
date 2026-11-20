@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T7.4`
+> **Next up:** `T8.1`
 
 ---
 
@@ -520,11 +520,13 @@
 
 **Done when:** pausing during an active swing freezes the blade mid-air and resumes exactly; options persist for the session.
 
-### [ ] T7.4 — UI/gameplay input ownership
+### [x] T7.4 — UI/gameplay input ownership
 **Goal:** no click leaks into a swing.
-- `InputRouter` gives Myra exclusive input while any blocking screen is open.
-- Losing window focus pauses the game and drops buffered intents.
-- Clicking a menu button can never also trigger an attack on the frame the menu closes.
+- Gameplay input stays behind `uiCaptured = MyraHost.CapturesInput`; menus/pause/results are modal and Myra owns the keyboard.
+- Focus loss is detected after the window was active (`_hadFocus` transition), clears the pending `InputRouter` intent and attack charge, and opens PAUSED. No auto-resume.
+- `_suppressAttackUntilMouseUp` latches after Resume and after entering a fight, so the release/click that closed a screen cannot become a slash.
+- Debug check: click Resume with `--debug`; player fsm stays `Idle`, clip stays `SlashLeft`, while the AI continues its own action.
+- Focus check: minimize then restore; the game is PAUSED under the overlay.
 
 **Done when:** a click on "Resume" does not produce a slash; alt-tabbing mid-swing pauses safely.
 
@@ -672,6 +674,7 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.8 — One damage instance per swing | 2026-11-20 | `8e6e01b` | developer |
 | T7.3 — Pause, options, results | 2026-11-20 | `37c3ab0` | developer |
 | T7.5 — Rules screen | 2026-11-20 | `9f7776d` | developer |
+| T7.4 — UI/gameplay input ownership | 2026-11-20 | PENDING | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
 
 

@@ -139,6 +139,8 @@ public sealed class SkyrimMeleeGame : Game
 	private readonly GameSettings _settings = new();
 	private PauseMenu? _pauseMenu;
 	private bool _resultsOpen;
+	private bool _focusInitialized;
+	private bool _hadFocus;
 	private readonly List<string> _roundResults = new();
 	private int _matchPlayerHits;
 	private int _matchOpponentHits;
@@ -370,6 +372,18 @@ public sealed class SkyrimMeleeGame : Game
 
 		UpdateFade(elapsed);
 		ApplySettings();
+
+		if (!_focusInitialized)
+		{
+			_focusInitialized = true;
+			_hadFocus = IsActive;
+		}
+		else if (_hadFocus && !IsActive)
+		{
+			OnFocusLost();
+		}
+
+		_hadFocus = IsActive;
 
 		if (_pauseMenu?.IsOpen == true)
 		{
@@ -619,6 +633,27 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_lastKeys = keyboard;
+	}
+
+	private void OnFocusLost()
+	{
+		if (_screen != Screen.Playing || _resultsOpen || _fadeActive ||
+			_pauseMenu?.IsOpen == true)
+		{
+			return;
+		}
+
+		_input.Clear();
+		_attackCharge.Reset();
+
+		if (_ui is not null)
+		{
+			OpenPause();
+		}
+		else
+		{
+			_paused = true;
+		}
 	}
 
 	private void OpenPause()

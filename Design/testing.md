@@ -63,6 +63,7 @@ Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash
 - [ ] Pausing mid-swing freezes the blade and resumes exactly; volume/shake/debug/difficulty persist between the menu and pause options.
 - [ ] Results show score, round history, hits/damage/blocks/breaks; Rematch resets and Menu returns to the main menu.
 - [ ] Rules opens from the main menu, fits at 1280×720, and Back returns focus to the Rules item.
+- [ ] Alt-tabbing or minimizing pauses; restoring leaves the game paused. Click Resume and confirm the player stays Idle (no slash).
 - [ ] Pause freezes the blade mid-air; results numbers match debug counters.
 
 ## Performance
