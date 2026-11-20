@@ -591,7 +591,7 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T5.3 — First/third person, zoom, bash key (and blade-side slash fix) | 2026-11-20 | `1808e37` | developer |
 | T5.4 — Camera shake, FOV punch, idle drift, F3 presets | 2026-11-20 | `c9091ea` | developer |
 | T5.5 — Debug overlay v2 (trail, contact, tuning, bash guard fixes) | 2026-11-20 | `fc45e65` | developer |
-| T6.1 — Reactive duelist AI (movement, two-way combat, bash) | 2026-11-20 | PENDING | developer |
-| T4.6 — Guard coverage cone | 2026-11-20 | PENDING | developer |
+| T6.1 — Reactive duelist AI (movement, two-way combat, bash) | 2026-11-20 | `7a93a4a` | developer |
+| T4.6 — Guard coverage cone | 2026-11-20 | `7a93a4a` | developer |
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |
 
