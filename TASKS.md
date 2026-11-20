@@ -646,7 +646,7 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T6.3 — AI visualization | 2026-11-20 | `3712217` | developer |
 | T7.1 — Skin + main menu | 2026-11-20 | `ebcffdb` | developer |
 | T7.2 — HUD | 2026-11-20 | `247ee68` | developer |
-| T6.4 — Arena health potions | 2026-11-20 | PENDING | developer |
+| T6.4 — Arena health potions | 2026-11-20 | `c8199c6` | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
 
 
