@@ -57,7 +57,7 @@ DigitalRiseModel builds `DrMesh`/`DrMeshPart` geometry and nothing else. We draw
 | Fighters | Player `(-1.0, 0, 0)` facing `+X`; opponent `(+1.0, 0, 0)` facing `-X` |
 | Gap | 2.0 m; the grip sits ~0.42 m forward, so full extension reaches into the torso |
 | Camera | `(0.3, 2.6, −5.2)` → `(0, 1.0, 0)`, FOV 44° |
-| Arena | Shallow stone cylinder radius 6, four rings, two duelling-position markers, four pillars, gradient backdrop |
+| Arena | Shallow stone cylinder radius 6, four rings, two duelling-position markers, eight pillars spaced evenly around the rim, gradient backdrop |
 
 Meshes are cached in `PrimitiveLibrary` (unit box; sphere/cylinder/cone/disc/plane built from radius/length parameters; capsules keyed by length+radius; line versions for debug). Draw calls take a part, a `DrMaterial` (colour), and a world matrix. ~60 draw calls total; merging fighter parts is a later optimisation.
 

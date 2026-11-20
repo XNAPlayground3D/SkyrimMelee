@@ -505,6 +505,14 @@
 
 ## M8 — Polish & release
 
+### [x] T8.0 — Even arena columns
+**Goal:** the arena reads as a ring from every camera preset.
+- Replace the four hand-placed pillars (clustered on +Z) with eight pillars at equal angles on a 5.7 m radius.
+- `Arena.cs` keeps the count and radius as named constants; no other geometry changes.
+- Verified in gameplay and the F3 preset.
+
+**Done when:** the eight columns are equally spaced around the ring and visible from the gameplay and F3 presets.
+
 ### [ ] T8.1 — Hit VFX from primitives
 **Goal:** contact reads clearly without art assets.
 - Block ring (torus flash), guard-break shatter (deformed box shards).
@@ -622,5 +630,6 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.7 — Bash interrupts, it does not stun | 2026-11-20 | `bf5742b` | developer |
 | T6.3 — AI visualization | 2026-11-20 | `3712217` | developer |
 | T7.1 — Skin + main menu | 2026-11-20 | `ebcffdb` | developer |
+| T8.0 — Even arena columns | 2026-11-20 | PENDING | developer |
 
 

@@ -36,12 +36,18 @@ public sealed class Arena : IDisposable
 				World(new Vector3(0f, 0.01f, 0f), new Vector3(radii[i])));
 		}
 
-		var pillars = new[] { (-4f, 4f), (4f, 4f), (-2f, 5.4f), (2f, 5.4f) };
-		for (var i = 0; i < pillars.Length; i++)
+		// Columns ring the duelling circle at equal angles so the arena reads the
+		// same from every camera preset.
+		const int pillarCount = 8;
+		const float pillarRadius = 5.7f;
+		for (var i = 0; i < pillarCount; i++)
 		{
-			var (x, z) = pillars[i];
+			var angle = MathHelper.TwoPi * i / pillarCount;
+			var position = new Vector3(
+				MathF.Cos(angle) * pillarRadius, 1.8f,
+				MathF.Sin(angle) * pillarRadius);
 			Add($"Pillar{i}", primitives.Cylinder, darkStone,
-				World(new Vector3(x, 1.8f, z), new Vector3(0.55f, 3.6f, 0.55f)));
+				World(position, new Vector3(0.55f, 3.6f, 0.55f)));
 		}
 
 		var root = new DrModelBone("Arena") { Children = bones.ToArray() };
