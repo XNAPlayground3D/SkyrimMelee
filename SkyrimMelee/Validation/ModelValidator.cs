@@ -164,7 +164,11 @@ public static class ModelValidator
 			}
 
 			var parent = spec.Parent ?? "<none>";
-			if (joint.ParentName != spec.Parent)
+			var parentMatches = joint.ParentName == spec.Parent ||
+				(spec.Parent is null &&
+					(joint.ParentName == "_Root" ||
+						(joint.ParentName is not null && ModelSpec.FindJoint(joint.ParentName) is null)));
+			if (!parentMatches)
 			{
 				report.Error(
 					facts.File,

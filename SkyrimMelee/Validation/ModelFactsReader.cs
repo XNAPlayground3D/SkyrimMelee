@@ -79,20 +79,22 @@ public static class ModelFactsReader
 				skinning.Error));
 		}
 
-		var clips = model.Animations.Values
-			.Select(clip => new ClipFact(
-				clip.Name,
-				(float)clip.Duration.TotalSeconds,
-				clip.Channels.Select(channel => new ChannelFact(
-					channel.BoneIndex >= 0 && channel.BoneIndex < model.Bones.Length
-						? model.Bones[channel.BoneIndex].Name
-						: $"bone_{channel.BoneIndex}",
-					channel.Keyframes.Select(keyframe => new KeyframeFact(
-						(float)keyframe.Time.TotalSeconds,
-						keyframe.Pose.Translation,
-						keyframe.Pose.Rotation,
-						keyframe.Pose.Scale)).ToArray())).ToArray()))
-			.ToArray();
+		var clips = model.Animations is null
+			? Array.Empty<ClipFact>()
+			: model.Animations.Values
+				.Select(clip => new ClipFact(
+					clip.Name,
+					(float)clip.Duration.TotalSeconds,
+					clip.Channels.Select(channel => new ChannelFact(
+						channel.BoneIndex >= 0 && channel.BoneIndex < model.Bones.Length
+							? model.Bones[channel.BoneIndex].Name
+							: $"bone_{channel.BoneIndex}",
+						channel.Keyframes.Select(keyframe => new KeyframeFact(
+							(float)keyframe.Time.TotalSeconds,
+							keyframe.Pose.Translation,
+							keyframe.Pose.Rotation,
+							keyframe.Pose.Scale)).ToArray())).ToArray()))
+				.ToArray();
 
 		return new ModelFacts(file, kind, bones, skins, parts, clips, instance.BoundingBox, materials);
 	}

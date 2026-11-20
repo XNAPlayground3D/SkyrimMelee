@@ -30,7 +30,7 @@ Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash
 | `MV-01` | 21 joints, exact names/parents/rest positions; ≤72 skin joints |
 | `MV-02` | Every fighter part skinned, ≤4 influences, weights sum to 1, normals present; ≤20 k triangles |
 | `MV-03` | Height 1.80 m, floor at Y 0, ≤3 materials, 1024/2048 base-colour textures |
-| `MV-04` | 13 clip names/durations, loop seams, no root translation, `weapon_r` not animated |
+| `MV-04` | 17 clip names/durations, loop seams, no root translation, `weapon_r` not animated |
 | `MV-05` | Sword is static, TriangleList, ≤4 k triangles, tip 1.47 m and crossguard 0.30 m, 1024 texture |
 | `MV-06` | Broken facts fail with a specific message: missing joint, wrong parent/rest, 5 influences, bad weights, bad duration, root motion, animated weapon, wrong texture |
 

@@ -1,24 +1,8 @@
-# Authored models and animation — technical specification
+# Fighter model
 
-This is the delivery contract for the fighter and sword assets used by M9. It is technical only: silhouette, colour, material styling, and weapon design are the modeler's choice. T9.2 loads both assets with DigitalRiseModel and validates the resulting `DrModel`; rules that only exist in the authored source are called out as authoring rules.
+Shared delivery rules are in [overview.md](overview.md). This file contains the fighter's complete specification: size, skeleton, mesh, materials, and animation.
 
-## Delivery
-
-| Item | Requirement |
-| --- | --- |
-| Format | glTF 2.0 binary, `.glb`, single file |
-| Files | `Content/Models/fighter.glb`, `Content/Models/sword.glb` |
-| Units | metres |
-| Up axis | `+Y` |
-| Forward | `+X`; the runtime does **not** rotate the model |
-| Origin | Fighter: floor midpoint between the feet. Sword: grip centre |
-| Bind pose | Fighter T-pose, arms extended along ±Z; sword is not part of the fighter mesh |
-| Source | A licence/source note is committed next to the assets or in this file |
-| Forbidden | Root motion, IK, constraints, morph targets, LODs, custom shaders, Draco compression, external texture files |
-
-`fighter.glb` contains one skinned mesh (one or more primitives sharing one skin) and all clips. `sword.glb` is a static mesh with no skeleton, no skin, and no animation.
-
-## Fighter size and anchors
+## Size and anchors
 
 Height 1.800 m ± 0.010, measured from the floor to the top of the head. The camera eye line is 1.600 m.
 
@@ -70,22 +54,22 @@ Right-handed coordinates: `+X` forward, `+Y` up, `+Z` right. The right side is `
 
 ## Mesh and materials
 
-| Property | Fighter | Sword |
-| --- | --- | --- |
-| Triangle budget | ≤ 20,000 | ≤ 4,000 |
-| Vertex attributes | `POSITION`, `NORMAL`, `TEXCOORD_0`, `JOINTS_0`, `WEIGHTS_0` | `POSITION`, `NORMAL`, `TEXCOORD_0` |
-| Tangents | Optional; not required by v1 | Optional |
-| Skin influences | 4 per vertex, normalised to 1 ± 0.001 | None |
-| UV sets | 1 | 1 |
-| Materials | ≤ 3 | ≤ 3 |
-| Base-colour texture | 1024 or 2048 PNG, embedded, sRGB | 1024 PNG, embedded, sRGB |
-| Transparency | Opaque only | Opaque only |
-| Normal/roughness/metalness maps | May be authored but v1 does not render them | May be authored but not rendered |
-| Morph targets / LODs | None | None |
+| Property | Requirement |
+| --- | --- |
+| Triangle budget | ≤ 20,000 |
+| Vertex attributes | `POSITION`, `NORMAL`, `TEXCOORD_0`, `JOINTS_0`, `WEIGHTS_0` |
+| Tangents | Optional; not required by v1 |
+| Skin influences | 4 per vertex, normalised to 1 ± 0.001 |
+| UV sets | 1 |
+| Materials | ≤ 3 |
+| Base-colour texture | 1024 or 2048 PNG, embedded, sRGB |
+| Transparency | Opaque only |
+| Normal/roughness/metalness maps | May be authored but v1 does not render them |
+| Morph targets / LODs | None |
 
 The runtime uses MonoGame's stock `SkinnedEffect`: base-colour texture, diffuse/specular/emissive colours, default lighting, four weights, 72-bone maximum. Do not rely on PBR, normal maps, alpha test, or custom shader features.
 
-## Animation contract
+## Animation
 
 All clips are 60 Hz timecodes. Durations are in seconds; frame values are `seconds × 60` and may be fractional. Keyframes must land on the exact wind-up/active/recovery boundaries.
 
@@ -99,6 +83,10 @@ The Description column states the gameplay/body intent of each clip. It is not v
 | `GuardRaise` | Draw the blade up across the body into a front guard: elbows in, shoulders square, weight settles onto the back foot. | no | 12.0 | — | — | — | 0.20 s |
 | `GuardHold` | Hold the front guard with the blade between the fighters. Small breathing and weight shifts only; no drift into an attack. | yes | 120.0 | — | — | — | 2.0 s loop |
 | `GuardLower` | Release the guard and settle back into the relaxed idle stance. | no | 9.0 | — | — | — | 0.15 s |
+| `WalkForward` | In-place forward walk: alternating leg swing, opposite arm swing, subtle torso counter-rotation. | yes | 60.0 | — | — | — | 1.0 s loop |
+| `WalkBackward` | In-place backpedal: reversed swing with a shorter stride and the same body counter-rotation. | yes | 60.0 | — | — | — | 1.0 s loop |
+| `StrafeLeft` | In-place side-step to the left: alternating leg abduction, arms balancing, torso leaning into the step. | yes | 60.0 | — | — | — | 1.0 s loop |
+| `StrafeRight` | Mirrored side-step to the right. | yes | 60.0 | — | — | — | 1.0 s loop |
 | `SlashLeft` | Forehand cut: turn the hips and shoulders right, pull the sword behind the body, then step in and sweep the edge across the front to the left. Follow through before recovering. | no | 49.2 | 15.0 | 13.2 | 21.0 | 0.25/0.22/0.35 s |
 | `SlashRight` | Mirrored backhand: wind left, rotate through the hips, sweep the edge across the front to the right, then recover. | no | 49.2 | 15.0 | 13.2 | 21.0 | mirrored |
 | `PowerSlash` | Heavy overhead: shift weight back, raise the hilt above the head with both hands, hold the telegraph, then drive the torso forward and slam the blade down through the centreline. Deep follow-through with a long, committed recovery. | no | 87.6 | 36.0 | 9.6 | 42.0 | 0.60/0.16/0.70 s |
@@ -117,46 +105,4 @@ Rules:
 - `Death`/`Victory` clamp on their last pose; all other one-shots return to `Idle` (the runtime crossfades).
 - Runtime crossfade is 0.1 s. The animation controller is advanced only from the fixed 60 Hz step; pause/alt-tab freezes it.
 - No root motion, no IK, no constraints, no animation of `weapon_r` itself.
-
-## Sword geometry
-
-The sword origin is the grip centre. Local axes: `+Y` from grip to tip, `+X` across the blade edge, `+Z` through the flat.
-
-| Measurement | Value |
-| --- | --- |
-| Blade base from origin | 0.18 m |
-| Blade tip from origin | 1.47 m |
-| Blade base radius | 0.0425 m |
-| Blade tip radius | 0.018 m |
-| Crossguard width | 0.30 m ± 0.01 |
-| Grip length | 0.30 m ± 0.01 |
-| Maximum triangles | 4,000 |
-
-The sword has no hands; hands belong to the fighter. It is drawn as a static mesh attached to `weapon_r` with identity transform. It does not cast a separate hit volume; the runtime derives `BladeGeometry` from `weapon_r` and the base/tip/radii above.
-
-## Validation
-
-`--validate-models` loads `Content/Models/fighter.glb` and `sword.glb` through DigitalRiseModel in a one-frame window and validates the returned `DrModel`/`DrModelInstance`. It does not parse the GLB itself. `ModelFacts` flattens the model (skins, parts, vertex declarations, clips, bounds, textures), so the rules run in xUnit without a graphics device. Missing or invalid assets exit non-zero with the file, joint/clip, and expected-vs-actual values in the message.
-
-## Acceptance
-
-An asset is accepted only when:
-
-1. T9.2 loads both files through DigitalRiseModel and validates the resulting `DrModel` with zero errors.
-2. All 21 joints exist with the exact parent hierarchy and world rest positions within tolerance; the skin has at most 72 joints.
-3. Every skinned part declares four weights per vertex, the weights sum to 1 ± 0.001, and no part declares more than four influences.
-4. The fighter is within height/bounds budgets and touches the floor at rest; the sword is within the blade dimensions.
-5. All 13 clip names exist; durations match the table within 0.001 s, and looped clips start and end on the same pose.
-6. No root translation and no channels on `weapon_r`; the sword has no skin or animation. Morph targets, LODs, IK, constraints, and Draco are forbidden and must be absent from the source.
-7. `weapon_r` exists under `hand_r` and the sword attaches with identity without a gap or offset.
-8. The licence/source note is present.
-9. The model loads and renders in the T-pose and Idle at 1600×900 without skinning artifacts.
-
-Visual review (silhouette, palette, readability) is separate from this contract and is the designer's call.
-
-## Source and licence
-
-- Deliver the editable source (for example `.blend`) alongside the `.glb` when the modeler agrees; the runtime only consumes the `.glb`.
-- Commit `Content/Models/LICENSES.md` naming the author, licence, source/URL, date, and any texture/font licences.
-- No unlicensed third-party meshes, textures, or animation data. The project's MIT licence does not cover the artwork; the asset licence must be compatible with redistribution.
-- Record any changes made to a third-party base mesh or animation and keep the original licence text.
+- Locomotion clips are in-place and loop; the runtime translates the root. They do not rotate the body; facing stays on the camera.

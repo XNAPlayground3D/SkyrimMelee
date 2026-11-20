@@ -4,7 +4,7 @@
 
 ```text
 SkyrimMelee.slnx
-Design/                     overview, architecture, reference, combat, ui-and-ai, testing
+Design/                     overview, architecture, reference, combat, ui-and-ai, testing, models/
 README.md  AGENTS.md  TASKS.md  LICENSE
 SkyrimMelee/
   Program.cs  SkyrimMeleeGame.cs

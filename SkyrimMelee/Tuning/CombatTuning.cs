@@ -38,6 +38,9 @@ public static class CombatTuning
 	public const float GuardHoldDuration = 2.0f;
 	public const float GuardLowerDuration = 0.15f;
 
+	/// <summary>One looped in-place walk or strafe cycle.</summary>
+	public const float WalkCycleDuration = 1.0f;
+
 	/// <summary>Half-angle of the defender's front cone that can block.</summary>
 	public const float GuardConeDegrees = 60f;
 

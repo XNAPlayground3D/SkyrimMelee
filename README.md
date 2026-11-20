@@ -61,7 +61,7 @@ Combat stays deterministic at 60 Hz: authored clips supply poses only; attack ph
 | Pause, options & results | ✅ `T7.3` |
 | Rules screen | ✅ `T7.5` |
 | Input ownership | ✅ `T7.4` |
-| Authored models (M9) | 🚧 spec and validation ✅; `T9.3` next |
+| Authored models (M9) | 🚧 `T9.3` waiting for external fighter/sword assets |
 
 ## Stack
 
@@ -74,7 +74,7 @@ Combat stays deterministic at 60 Hz: authored clips supply poses only; attack ph
 
 ## Documentation
 
-Detailed specifications live in [`Design/`](Design/overview.md): [overview](Design/overview.md), [architecture](Design/architecture.md), [combat](Design/combat.md), [Skyrim reference](Design/reference.md), [UI & AI](Design/ui-and-ai.md), [testing](Design/testing.md), [models](Design/models.md). Start there for anything beyond the summary above. The work plan is in [TASKS.md](TASKS.md); the agent workflow is in [AGENTS.md](AGENTS.md).
+Detailed specifications live in [`Design/`](Design/overview.md): [overview](Design/overview.md), [architecture](Design/architecture.md), [combat](Design/combat.md), [Skyrim reference](Design/reference.md), [UI & AI](Design/ui-and-ai.md), [testing](Design/testing.md), [models](Design/models/overview.md). Start there for anything beyond the summary above. The work plan is in [TASKS.md](TASKS.md); the agent workflow is in [AGENTS.md](AGENTS.md).
 
 ## Build & run
 

@@ -23,6 +23,38 @@ public class ModelValidationTests
 	}
 
 	[Fact]
+	public void SyntheticRootParentIsAccepted()
+	{
+		var fighter = ValidFighter();
+		var skin = fighter.Skins[0] with
+		{
+			Joints = fighter.Skins[0].Joints
+				.Select(joint => joint.Name == "root" ? joint with { ParentName = "_Root" } : joint)
+				.ToArray()
+		};
+
+		var report = ModelValidator.Validate(fighter with { Skins = [skin] });
+
+		Assert.True(report.IsValid, string.Join("\n", report.Issues));
+	}
+
+	[Fact]
+	public void ArmatureParentIsAccepted()
+	{
+		var fighter = ValidFighter();
+		var skin = fighter.Skins[0] with
+		{
+			Joints = fighter.Skins[0].Joints
+				.Select(joint => joint.Name == "root" ? joint with { ParentName = "FighterRig" } : joint)
+				.ToArray()
+		};
+
+		var report = ModelValidator.Validate(fighter with { Skins = [skin] });
+
+		Assert.True(report.IsValid, string.Join("\n", report.Issues));
+	}
+
+	[Fact]
 	public void MissingJointFails()
 	{
 		var fighter = ValidFighter();
@@ -113,6 +145,15 @@ public class ModelValidationTests
 		var clips = fighter.Clips.Where(clip => clip.Name != "Idle").ToArray();
 
 		AssertFails(fighter with { Clips = clips }, "missing clip 'Idle'");
+	}
+
+	[Fact]
+	public void MissingMovementClipFails()
+	{
+		var fighter = ValidFighter();
+		var clips = fighter.Clips.Where(clip => clip.Name != "WalkForward").ToArray();
+
+		AssertFails(fighter with { Clips = clips }, "missing clip 'WalkForward'");
 	}
 
 	[Fact]

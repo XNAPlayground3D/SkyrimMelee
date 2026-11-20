@@ -549,11 +549,11 @@
 
 ### [x] T9.1 — Technical asset specification (fighter, sword, animations)
 **Goal:** a written, testable contract for the modeler; technical only, no visual direction.
-- `Design/models.md` now holds the delivery contract: glTF 2.0 `.glb`, metres, +Y up, +X forward, floor origin between the feet, identity object transforms, no root motion, no constraints/IK, no morph targets, no LOD, no external texture files.
+- `Design/models/overview.md` now holds the shared delivery contract: glTF 2.0 `.glb`, metres, +Y up, +X forward, floor origin between the feet, identity object transforms, no root motion, no constraints/IK, no morph targets, no LOD, no external texture files.
 - Fighter: 1.80 m tall (±0.01), eye line 1.60 m; ≤20 k triangles, one UV set, position/normal/UV0 + `JOINTS_0`/`WEIGHTS_0`, 4 influences, ≤72 joints, ≤3 materials, embedded 1024/2048 base-colour PNGs. Tangents optional; PBR maps are not rendered by v1.
 - 21-joint table with exact names, parents, world rest positions, and the `weapon_r` socket under `hand_r`; T-pose bind; arms along ±Z; right = +Z.
 - Sword: separate static `sword.glb`, origin at grip, blade +Y, base 0.18 m, tip 1.47 m, radii 0.0425/0.018 m, no hands/skeleton; attaches to `weapon_r` with identity.
-- 60 Hz clip table: Idle/GuardHold loops, GuardRaise 12, GuardLower 9, Slash 49.2 (15/13.2/21), PowerSlash 87.6 (36/9.6/42), Bash 32.4 (9.6/4.8/18), StaggerMicro/Small/Large 15/36/60, Death 72 clamp, Victory 96 clamp. Each row has a description of the clip's gameplay/body intent (ready stance, forehand/backhand, overhead slam, guard, shove, recoil tiers, collapse, victory). Attack phases stay authoritative in `CombatTuning`; the validator checks clip names and durations from the loaded `DrModel`, so no per-clip metadata is required.
+- 60 Hz clip table: Idle/GuardHold loops, GuardRaise 12, GuardLower 9, WalkForward/WalkBackward/StrafeLeft/StrafeRight 60 (1.0 s loops), Slash 49.2 (15/13.2/21), PowerSlash 87.6 (36/9.6/42), Bash 32.4 (9.6/4.8/18), StaggerMicro/Small/Large 15/36/60, Death 72 clamp, Victory 96 clamp. Each row has a description of the clip's gameplay/body intent (ready stance, forehand/backhand, overhead slam, guard, shove, recoil tiers, collapse, victory, locomotion). Attack phases stay authoritative in `CombatTuning`; the validator checks clip names and durations from the loaded `DrModel`, so no per-clip metadata is required.
 - Hard constraints updated: README, AGENTS, and `Design/overview.md` now allow only the approved M9 asset set and fighter-only skeletal animation; the primitive build remains the default until T9.8.
 - Asset-licensing/source note required before acceptance.
 
@@ -562,7 +562,7 @@
 ### [x] T9.2 — DrModel validation harness
 **Goal:** reject broken assets before they reach the game.
 - `--validate-models` opens a one-frame graphics window, loads `Content/Models/fighter.glb` and `sword.glb` with `AssetManager.LoadModel` (`ReadableBuffers`), and validates the returned `DrModel`/`DrModelInstance`. No GLB parser and no `System.Text.Json` reader.
-- Fighter: exactly one skin; 21 required joints (≤72) with exact names, parents, and world rest positions; every part skinned with ≤4 influences and normalized weights; normals present; ≤20 k triangles; 1.8 m tall and standing on the floor; ≤3 materials with 1024/2048 base-colour textures; all 13 clips with matching durations; no root translation; `weapon_r` not animated.
+- Fighter: exactly one skin; 21 required joints (≤72) with exact names, parents, and world rest positions; every part skinned with ≤4 influences and normalized weights; normals present; ≤20 k triangles; 1.8 m tall and standing on the floor; ≤3 materials with 1024/2048 base-colour textures; all 17 clips with matching durations; no root translation; `weapon_r` not animated.
 - Sword: static (no skin, no clips), TriangleList, normals, ≤4 k triangles, tip at Y 1.47 ±0.01, crossguard 0.30 m ±0.01, one 1024 base-colour texture.
 - `ModelFacts` isolates the rules from the graphics pass, so unit tests build valid and broken facts (missing joint, wrong parent/rest, 5 influences, bad weights, bad duration, root motion, animated weapon, loop seam, wrong texture size).
 - Actionable errors name the file, joint/clip, and expected vs actual; exit non-zero. `--models-dir=<path>` overrides `Content/Models`.
@@ -571,10 +571,10 @@
 
 ### [ ] T9.3 — Author fighter and sword GLBs
 **Goal:** production assets that pass T9.2.
-- Model/animate in Blender (or equivalent) to T9.1; export `fighter.glb` + `sword.glb` into `Content/Models/`.
-- Fighter includes all 13 clips and the T-pose bind; sword is a static attachment.
-- Iterate only against the validator and a neutral viewer; visual style is the designer's call.
-- Commit the GLBs and the source/licence note; no generated content caches.
+- Supply `Content/Models/fighter.glb` and `sword.glb` from the external modeler/tooling; commit them with the editable source when available and `Content/Models/LICENSES.md`.
+- Fighter: 21-joint skin, T-pose bind, all 17 clips with `CombatTuning` durations, including `WalkForward`, `WalkBackward`, `StrafeLeft`, and `StrafeRight`. Sword: static blade/guard/grip with tip at Y 1.47 and crossguard 0.30 m.
+- Iterate only against `--validate-models` and a neutral viewer; visual style is the designer's call.
+- Commit the GLBs, any source files, and the licence note; no generated content caches.
 
 **Done when:** `--validate-models` passes; a viewer shows the full skeleton, weights, and clip boundaries.
 
@@ -589,12 +589,12 @@
 
 ### [ ] T9.5 — Skeletal animation player and clip contract
 **Goal:** authored clips drive the fighter instead of SwordMotion/BodyMotion.
-- Drive DigitalRiseModel `AnimationController` from the fixed 60 Hz step: `StartClip`/`CrossfadeToClip`, `AnimationFlags.Looped` for Idle/GuardHold, one-shot for the rest, `Pause()`/`Play()` with the game clock. Do not write a second keyframe sampler.
-- Clip registry maps `CombatState`/attack name to clips; phase windows stay in `CombatTuning`, not in clip metadata.
+- Drive DigitalRiseModel `AnimationController` from the fixed 60 Hz step: `StartClip`/`CrossfadeToClip`, `AnimationFlags.Looped` for Idle/GuardHold and the four locomotion clips, one-shot for the rest, `Pause()`/`Play()` with the game clock. Do not write a second keyframe sampler.
+- Clip registry maps `CombatState`/attack name and locomotion direction to clips; phase windows stay in `CombatTuning`, not in clip metadata.
 - Debug overlay shows clip, normalized time, active window, bone count.
-- Tests: exact endpoints, loop seam, crossfade, pause/resume, deterministic sampling, clip durations vs `CombatTuning`, 60 Hz and simulated 10 FPS parity.
+- Tests: exact endpoints, loop seam, crossfade, pause/resume, deterministic sampling, clip durations vs `CombatTuning`, forward/back/strafe selection, 60 Hz and simulated 10 FPS parity.
 
-**Done when:** every attack, guard, stagger, death, and victory fires at the same combat-relevant phase windows as the primitive build.
+**Done when:** every attack, guard, stagger, death, victory, and locomotion direction plays the matching clip at the same combat-relevant phase windows as the primitive build.
 
 ### [ ] T9.6 — Sword attachment and blade geometry from the hand
 **Goal:** the sword is a hand attachment, not a separately animated rig.
@@ -627,7 +627,7 @@
 - Profile `SkinnedEffect` draw cost, bone palette uploads, and memory; target ≤ 2 ms simulation and ≤ 6 ms draw as before.
 - No per-frame allocations in the animation/skinning path; pool bone palettes and instance data.
 - Fix visible skinning issues at extreme staggers/death; verify first/third person, F3 presets, resize, and slow motion.
-- Record final bone/triangle budgets in `Design/models.md`.
+- Record final bone/triangle budgets in `Design/models/fighter.md` and `Design/models/sword.md`.
 
 **Done when:** the performance targets hold in a double power-attack exchange and the visual checks pass from every camera preset.
 

@@ -16,14 +16,14 @@ The game recreates Skyrim's **melee rules**, not its world: stamina economy, att
 
 | # | Constraint | Consequence |
 | --- | --- | --- |
-| 1 | **Only the approved M9 asset set may be imported.** Current build: primitives. Target: `Content/Models/fighter.glb` and `sword.glb` only. | Arena, VFX, and UI remain generated. The technical contract is [models.md](models.md). |
+| 1 | **Only the approved M9 asset set may be imported.** Current build: primitives. Target: `Content/Models/fighter.glb` and `sword.glb` only. | Arena, VFX, and UI remain generated. The technical contract is [models/overview.md](models/overview.md). |
 | 2 | **Skeletal animation is fighter-only.** Clips have no root motion and no IK; the sword is a static attachment on `weapon_r`. | The fixed 60 Hz `CombatTuning` timings remain authoritative; animation supplies poses, never hit timing. |
 
 ### The two-handed grip
 
 **Current build:** a rigid assembly of white primitives; both hand boxes are part of the sword rig and travel with the grip, so the body never bends.
 
-**M9 target:** a skinned fighter with `hand_l`/`hand_r` bones; the sword is a static mesh on `weapon_r`, attached to `hand_r`. The two-handed grip is posed by the animation; the sword remains the only moving threat. Exact dimensions, joints, and clip timing are in [models.md](models.md).
+**M9 target:** a skinned fighter with `hand_l`/`hand_r` bones; the sword is a static mesh on `weapon_r`, attached to `hand_r`. The two-handed grip is posed by the animation; the sword remains the only moving threat. Exact dimensions, joints, and clip timing are in [models/fighter.md](models/fighter.md).
 
 ## Scope
 
