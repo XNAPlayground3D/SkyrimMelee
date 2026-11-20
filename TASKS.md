@@ -621,6 +621,6 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T6.2 — Difficulty profiles | 2026-11-20 | `55dcf9c` | developer |
 | T4.7 — Bash interrupts, it does not stun | 2026-11-20 | `bf5742b` | developer |
 | T6.3 — AI visualization | 2026-11-20 | `3712217` | developer |
-| T7.1 — Skin + main menu | 2026-11-20 | PENDING | developer |
+| T7.1 — Skin + main menu | 2026-11-20 | `ebcffdb` | developer |
 
 
