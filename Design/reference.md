@@ -212,7 +212,7 @@ arena pacing, which has no Skyrim equivalent.
 | Stamina gate | Action allowed above 0 stamina; power degrades at 0 | Same (`StaminaRules`); power falls back to a slash at 0 | ✅ matches |
 | Stamina costs | 74 power / 35 bash of a 100 pool with slow regen | 30 power / 15 bash of 100 with 25/s regen | ⚠️ deliberate (arena pacing) |
 | Stagger | Chance-based, interrupt | Poise meter: light hits chip, power always staggers | ⚠️ deliberate (deterministic) |
-| Directional power attacks | Forward dash, backstep, sidestep | Not implemented | ⬜ T5.6 |
+| Directional power attacks | Forward dash, backstep, sidestep | Not implemented — cut for scope; the standing overhead stays | ⚠️ out of scope |
 | Camera toggle | `F` / wheel | `F` toggles view; wheel zooms (Skyrim's wheel toggle deferred) | ✅ matches (zoom) |
 | First/third person | Both | Both: eye-level first person with the capsule hidden | ✅ matches |
 | Death | Ragdoll, no rounds | Rigid topple + best-of-three rounds | ⚠️ deliberate |
@@ -248,7 +248,6 @@ These are choices, not gaps. Each one is kept because of a project constraint.
 - **T4.6 — Guard coverage cone.** Skyrim blocks in a 35° cone; the project
   currently only blocks when the blade capsule intersects, so a visually correct
   block can still be a clean hit.
-- **T5.6 — Directional power attacks.** Forward dash, backstep, and sidestep
-  variants chosen by movement input, per §3.
 - **Power bash** and **sprint power attacks** are listed in
   [TASKS.md](../TASKS.md#backlog-not-scheduled) until the base duel is tuned.
+

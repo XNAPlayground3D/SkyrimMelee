@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T5.6`
+> **Next up:** `T6.1`
 
 ---
 
@@ -396,18 +396,6 @@
 
 **Done when:** an entire tuning session can be done in-game with the overlay, and the logged values can be pasted into the tuning file unchanged.
 
-### [ ] T5.6 — Directional power attacks
-**Goal:** the power attack reads the movement stick the way Skyrim's does.
-- Forward + hold LMB: dash strike (steps ~0.4 m into the target before the chop).
-- Backward + hold LMB: backstep strike (steps away, then chops).
-- Left/right + hold LMB: side strike (sidesteps; the overhead clip is reused, mirrored for the side).
-- No input: the current standing overhead.
-- Root motion is a short, deterministic offset clamped by the arena/opponent rules; no extra clips beyond a mirrored reuse.
-- Tuning: `PowerDashDistance`, `PowerStepBackDistance`, `PowerSideStepDistance` in `CombatTuning.cs`.
-- Tests: variant selection from the move input at release; root offsets; self-test direction matrix.
-
-**Done when:** each of the four input states produces a visibly different power attack and none of them tunnels through the arena or the opponent.
-
 ### [x] T5.7 — Split the game code out of Combat
 **Goal:** `Combat/` stops being a 26-file grab bag; each top-level folder owns one concern.
 - `Tuning/` — `CombatTuning` (every number, single source of truth).
@@ -540,6 +528,7 @@
 
 Ideas that fit the constraints but are out of scope for v1. Promote into a milestone only with developer agreement.
 
+- Directional power attacks (forward dash / backstep / side sweep): cut for scope; the standing overhead stays.
 - Greatsword variants with different reach/speed/damage (iron, steel, ebony) — visuals via primitive proportions + palette.
 - Power bash (hold LMB while blocking): 55 stamina, ×1.5 damage/stagger, needs a new bash clip variant.
 - Sprinting power attacks (Skyrim's `Great Critical Charge`): needs sprint state + stamina drain.
@@ -597,3 +586,4 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T5.4 — Camera shake, FOV punch, idle drift, F3 presets | 2026-11-20 | `c9091ea` | developer |
 | T5.5 — Debug overlay v2 (trail, contact, tuning, bash guard fixes) | 2026-11-20 | `fc45e65` | developer |
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |
+
