@@ -419,6 +419,7 @@
 - Behavior: observe wind-up → choose block / trade / punish recovery / power attack; guard-break opportunism when player stamina is low.
 - Reaction delay per profile; mistake chance (late block, greedy attack).
 - Outputs `CombatIntent` only — AI cannot cheat the state machine.
+- The opponent's attacks run the same damage/defense pipeline against the player; incoming blocked and clean hits add the block-scaled camera shake noted in T5.4.
 
 **Done when:** a 2-minute fight shows all of: clean hits, blocks, timed blocks, guard breaks, and staggers from both sides; AI never uses an illegal transition.
 
@@ -542,6 +543,7 @@ Ideas that fit the constraints but are out of scope for v1. Promote into a miles
 - Procedural audio replacing placeholder tones.
 - Two-on-one encounters (multiple static fighters, AI target selection).
 - Photo mode with free camera and clip scrubbing.
+- First-person weapon presentation: offset/scale the sword rig so the hilt sits further from the eye.
 - Native AOT / trimming experiment.
 
 ## Risks & unknowns
