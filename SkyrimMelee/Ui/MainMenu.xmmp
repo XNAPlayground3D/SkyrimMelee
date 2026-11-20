@@ -1,0 +1,57 @@
+<Project>
+  <Project.ExportOptions Namespace="SkyrimMelee.Ui" Class="MainMenu" />
+  <Panel>
+    <Panel Background="#0A0C10E6" />
+    <Panel Id="_menuContent" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <VerticalStackPanel Spacing="2">
+        <Label Id="_title" Text="SKYRIM MELEE" HorizontalAlignment="Center" />
+        <Label Id="_tagline" Text="a greatsword duel" HorizontalAlignment="Center" />
+        <VerticalStackPanel Id="_items" Spacing="2" Margin="0,30,0,0">
+          <Button Id="_duel" HorizontalAlignment="Center">
+            <Label Id="_duelText" Text="Duel" HorizontalAlignment="Center" />
+          </Button>
+          <Button Id="_practice" HorizontalAlignment="Center">
+            <Label Id="_practiceText" Text="Practice" HorizontalAlignment="Center" />
+          </Button>
+          <Button Id="_options" HorizontalAlignment="Center">
+            <Label Id="_optionsText" Text="Options" HorizontalAlignment="Center" />
+          </Button>
+          <Button Id="_quit" HorizontalAlignment="Center">
+            <Label Id="_quitText" Text="Quit" HorizontalAlignment="Center" />
+          </Button>
+        </VerticalStackPanel>
+        <HorizontalStackPanel Margin="0,26,0,0" Spacing="10" HorizontalAlignment="Center">
+          <Button Id="_previousDifficulty">
+            <Label Text="&lt;" HorizontalAlignment="Center" />
+          </Button>
+          <Label Id="_difficulty" Text="Novice" MinWidth="120" TextAlign="Center" VerticalAlignment="Center" />
+          <Button Id="_nextDifficulty">
+            <Label Text="&gt;" HorizontalAlignment="Center" />
+          </Button>
+        </HorizontalStackPanel>
+        <Label Id="_difficultyHint" Text="difficulty" HorizontalAlignment="Center" />
+        <Label Id="_hint" Text="up / down select    enter confirm" HorizontalAlignment="Center" Margin="0,26,0,0" />
+      </VerticalStackPanel>
+    </Panel>
+    <Panel Id="_optionsContent" Visible="False" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <VerticalStackPanel Spacing="2">
+        <Label Id="_optionsTitle" Text="OPTIONS" HorizontalAlignment="Center" />
+        <VerticalStackPanel Id="_optionItems" Spacing="2" Margin="0,24,0,0">
+          <Button Id="_optionsDifficulty" HorizontalAlignment="Center">
+            <Label Id="_optionsDifficultyText" Text="Difficulty: Novice" HorizontalAlignment="Center" />
+          </Button>
+          <Button Id="_screenShake" HorizontalAlignment="Center">
+            <Label Id="_screenShakeText" Text="Screen shake: On" HorizontalAlignment="Center" />
+          </Button>
+          <Button Id="_debugOverlay" HorizontalAlignment="Center">
+            <Label Id="_debugOverlayText" Text="Debug overlay: Off" HorizontalAlignment="Center" />
+          </Button>
+          <Button Id="_back" HorizontalAlignment="Center">
+            <Label Id="_backText" Text="Back" HorizontalAlignment="Center" />
+          </Button>
+        </VerticalStackPanel>
+        <Label Id="_optionsHint" Text="enter change    esc back" HorizontalAlignment="Center" Margin="0,24,0,0" />
+      </VerticalStackPanel>
+    </Panel>
+  </Panel>
+</Project>

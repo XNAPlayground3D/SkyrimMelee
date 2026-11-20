@@ -75,6 +75,20 @@ public sealed class Camera
 	public float Yaw => _yaw;
 	public float Pitch => _pitch;
 
+	/// <summary>Returns to the default third-person orbit for a fresh fight.</summary>
+	public void ResetView()
+	{
+		_yaw = 0f;
+		_pitch = -0.32f;
+		_distance = DefaultDistance;
+		_firstPersonFov = FirstPersonFov;
+		_fovPunch = 0f;
+		_fovPunchRemaining = 0f;
+		_shakeRemaining = 0f;
+		Mode = CameraMode.ThirdPerson;
+		Preset = CameraPreset.Gameplay;
+	}
+
 	public float Distance
 	{
 		get => _distance;

@@ -44,6 +44,9 @@ public sealed record AiProfile(
 	public static IReadOnlyList<AiProfile> All { get; } =
 		new[] { Novice, Adept, Master };
 
+	/// <summary>The profile used when neither the menu nor --profile overrides it.</summary>
+	public static AiProfile Default => Novice;
+
 	public static AiProfile? ByName(string? name) =>
 		name is null
 			? null

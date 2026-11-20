@@ -131,6 +131,26 @@ public sealed class SkyrimMeleeGame : Game
 	private long _aiDecisionSeen;
 	private bool _reactionAdvance;
 	private bool _rightMouseWasDown;
+	private bool _screenShake;
+	private bool _suppressAttackUntilMouseUp;
+
+	private enum Screen
+	{
+		Menu,
+		Playing
+	}
+
+	private Screen _screen = Screen.Menu;
+	private MainMenu? _menu;
+	private bool _practice;
+	private float _practiceReset;
+	private KeyboardState _lastKeys;
+	private Texture2D? _fadePixel;
+	private float _fadeAlpha;
+	private float _fadeTime;
+	private bool _fadeActive;
+	private bool _fadeOut;
+	private Action? _fadeAction;
 
 	public SkyrimMeleeGame(GameOptions options)
 	{
@@ -167,13 +187,39 @@ public sealed class SkyrimMeleeGame : Game
 		if (!_options.NoUi)
 		{
 			_ui = new MyraHost(this);
+			UiSkin.Initialize();
 
 			_hud = new HudPanel();
 			_overlay = new DebugOverlay(_options);
 			_overlay.Visible = _options.Debug;
 			_hud.Widgets.Add(_overlay);
 
-			_ui.Root = _hud;
+			_screenShake = _options.ScreenShake;
+			_menu = new MainMenu();
+			_menu.SetSettings(_screenShake, _options.Debug);
+			_menu.DuelSelected += () => StartFight(practice: false);
+			_menu.PracticeSelected += () => StartFight(practice: true);
+			_menu.QuitSelected += () => BeginFade(Exit);
+			_menu.ScreenShakeChanged += enabled => _screenShake = enabled;
+			_menu.DebugOverlayChanged += enabled =>
+			{
+				if (_overlay is not null)
+				{
+					_overlay.Visible = enabled;
+				}
+			};
+
+			if (_options.Play)
+			{
+				_screen = Screen.Playing;
+				_ui.Root = _hud;
+			}
+			else
+			{
+				_screen = Screen.Menu;
+				_ui.Root = _menu;
+				_menu.Attach(_ui.Desktop);
+			}
 		}
 
 		_primitives = new PrimitiveLibrary(GraphicsDevice);
@@ -210,7 +256,7 @@ public sealed class SkyrimMeleeGame : Game
 		_opponentSwordMotion.ResetTo(_swordClips[0]);
 		_opponentBodyMotion = new BodyMotion();
 		_ai = new DuelistAi(
-			AiProfile.ByName(_options.AiProfile) ?? AiProfile.Adept, seed: 20261120);
+			AiProfile.ByName(_options.AiProfile) ?? AiProfile.Default, seed: 20261120);
 
 		_combatWorld = new CombatWorld();
 		_combatWorld.AddFighter(FighterId.Player, _player.DrawTransform);
@@ -226,10 +272,22 @@ public sealed class SkyrimMeleeGame : Game
 
 		_backdrop = new ScreenGradient(GraphicsDevice);
 		_spriteBatch = new SpriteBatch(GraphicsDevice);
+		_fadePixel = new Texture2D(GraphicsDevice, 1, 1);
+		_fadePixel.SetData(new[] { Color.White });
 		_camera.Update(_player.Position, 0f);
-		IsMouseVisible = false;
-		CenterMouse();
+		_scrollWheelValue = Mouse.GetState().ScrollWheelValue;
+		IsMouseVisible = _screen == Screen.Menu;
+		if (_screen == Screen.Playing)
+		{
+			CenterMouse();
+		}
+
 		_skipLook = true;
+
+		if (_options.NoUi)
+		{
+			_screen = Screen.Playing;
+		}
 
 		base.LoadContent();
 	}
@@ -260,6 +318,9 @@ public sealed class SkyrimMeleeGame : Game
 		_spriteBatch?.Dispose();
 		_spriteBatch = null;
 
+		_fadePixel?.Dispose();
+		_fadePixel = null;
+
 		_renderer?.Dispose();
 		_renderer = null;
 
@@ -274,12 +335,40 @@ public sealed class SkyrimMeleeGame : Game
 	protected override void Update(GameTime gameTime)
 	{
 		var keyboard = Keyboard.GetState();
-		if (keyboard.IsKeyDown(Keys.Escape) ||
-			GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
+		var elapsed = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+		UpdateFade(elapsed);
+
+		if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
 		{
 			Exit();
 			return;
 		}
+
+		if (_screen == Screen.Menu)
+		{
+			UpdateMenuInput(keyboard);
+			base.Update(gameTime);
+			return;
+		}
+
+		if (Pressed(keyboard, Keys.Escape) && !_fadeActive)
+		{
+			_lastKeys = keyboard;
+			if (_ui is not null)
+			{
+				GoToMenu();
+			}
+			else
+			{
+				Exit();
+			}
+
+			base.Update(gameTime);
+			return;
+		}
+
+		_lastKeys = keyboard;
 
 		var f1Down = keyboard.IsKeyDown(Keys.F1);
 		if (f1Down && !_f1WasDown)
@@ -297,7 +386,6 @@ public sealed class SkyrimMeleeGame : Game
 
 		_f2WasDown = f2Down;
 
-		var elapsed = gameTime.ElapsedGameTime.TotalSeconds;
 		var uiCaptured = _ui?.CapturesInput == true;
 
 		var f3Down = keyboard.IsKeyDown(Keys.F3);
@@ -341,7 +429,13 @@ public sealed class SkyrimMeleeGame : Game
 		UpdateSwordClipInput(keyboard, uiCaptured);
 
 		var mouse = Mouse.GetState();
-		if (!_paused && !uiCaptured)
+		if (_suppressAttackUntilMouseUp &&
+			mouse.LeftButton == ButtonState.Released)
+		{
+			_suppressAttackUntilMouseUp = false;
+		}
+
+		if (!_paused && !uiCaptured && !_suppressAttackUntilMouseUp)
 		{
 			var charge = _attackCharge.Update(
 				mouse.LeftButton == ButtonState.Pressed, (float)elapsed);
@@ -398,6 +492,174 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		base.Update(gameTime);
+	}
+
+	private bool Pressed(KeyboardState keyboard, Keys key) =>
+		keyboard.IsKeyDown(key) && _lastKeys.IsKeyUp(key);
+
+	private void UpdateMenuInput(KeyboardState keyboard)
+	{
+		if (!_fadeActive && _menu is not null)
+		{
+			if (Pressed(keyboard, Keys.Up))
+			{
+				_menu.MoveFocus(-1);
+			}
+
+			if (Pressed(keyboard, Keys.Down))
+			{
+				_menu.MoveFocus(1);
+			}
+
+			if (Pressed(keyboard, Keys.Enter) || Pressed(keyboard, Keys.Space))
+			{
+				_menu.ActivateFocused();
+			}
+
+			if (Pressed(keyboard, Keys.Escape))
+			{
+				_menu.Back();
+			}
+
+			if (!_menu.OptionsOpen)
+			{
+				if (Pressed(keyboard, Keys.Left))
+				{
+					_menu.CycleProfile(-1);
+				}
+
+				if (Pressed(keyboard, Keys.Right))
+				{
+					_menu.CycleProfile(1);
+				}
+			}
+		}
+
+		_lastKeys = keyboard;
+	}
+
+	private void StartFight(bool practice)
+	{
+		if (_fadeActive)
+		{
+			return;
+		}
+
+		BeginFade(() => EnterFight(practice));
+	}
+
+	private void EnterFight(bool practice)
+	{
+		_practice = practice;
+		_practiceReset = 0f;
+		_duel.Reset();
+		_ai = new DuelistAi(
+			_menu?.Profile ?? AiProfile.Default, seed: 20261120);
+		ResetRound();
+		_screen = Screen.Playing;
+		_suppressAttackUntilMouseUp = true;
+		_paused = false;
+
+		if (_ui is not null && _hud is not null)
+		{
+			_ui.Root = _hud;
+			_ui.Desktop.FocusedKeyboardWidget = null;
+			_ui.Desktop.KeyDownHandler = _ui.Desktop.OnKeyDown;
+		}
+
+		IsMouseVisible = false;
+		CenterMouse();
+		_skipLook = true;
+		_camera.ResetView();
+	}
+
+	private void GoToMenu()
+	{
+		if (_fadeActive)
+		{
+			return;
+		}
+
+		BeginFade(() =>
+		{
+			_screen = Screen.Menu;
+			_practice = false;
+			_practiceReset = 0f;
+			_attackCharge.Reset();
+			_input.Clear();
+			_moveInput = Vector2.Zero;
+			IsMouseVisible = true;
+
+			if (_ui is not null && _menu is not null)
+			{
+				_ui.Root = _menu;
+				_menu.Show();
+				_menu.Attach(_ui.Desktop);
+			}
+		});
+	}
+
+	private void BeginFade(Action atBlack)
+	{
+		if (_fadeActive)
+		{
+			return;
+		}
+
+		_fadeActive = true;
+		_fadeOut = true;
+		_fadeTime = 0f;
+		_fadeAlpha = 0f;
+		_fadeAction = atBlack;
+	}
+
+	private void UpdateFade(float elapsed)
+	{
+		if (!_fadeActive)
+		{
+			return;
+		}
+
+		const float fadeSeconds = 0.18f;
+		_fadeTime += elapsed;
+		var t = Math.Clamp(_fadeTime / fadeSeconds, 0f, 1f);
+
+		if (_fadeOut)
+		{
+			_fadeAlpha = t;
+			if (t >= 1f)
+			{
+				_fadeAction?.Invoke();
+				_fadeAction = null;
+				_fadeOut = false;
+				_fadeTime = 0f;
+				_fadeAlpha = 1f;
+			}
+
+			return;
+		}
+
+		_fadeAlpha = 1f - t;
+		if (t >= 1f)
+		{
+			_fadeActive = false;
+			_fadeAlpha = 0f;
+		}
+	}
+
+	private void ResetPositions()
+	{
+		if (_player is not null)
+		{
+			_player.Position = new Vector3(-1f, 0f, 0f);
+			_player.FacingYaw = 0f;
+		}
+
+		if (_opponent is not null)
+		{
+			_opponent.Position = new Vector3(1f, 0f, 0f);
+			_opponent.FacingYaw = MathHelper.Pi;
+		}
 	}
 
 	private void StepSimulation()
@@ -463,7 +725,23 @@ public sealed class SkyrimMeleeGame : Game
 		_playerStats.Update(step, blocking);
 		_opponentStats.Update(step, _opponentCombat.Blocks);
 
-		if (_duel.Update(step))
+		if (_practice)
+		{
+			if (_playerStats.IsDead || _opponentStats.IsDead)
+			{
+				_practiceReset += step;
+				if (_practiceReset >= 1.6f)
+				{
+					_practiceReset = 0f;
+					ResetRound();
+				}
+			}
+			else
+			{
+				_practiceReset = 0f;
+			}
+		}
+		else if (_duel.Update(step))
 		{
 			ResetRound();
 		}
@@ -653,7 +931,7 @@ public sealed class SkyrimMeleeGame : Game
 			PlayOpponentClip(large ? "StaggerLarge" : "StaggerSmall");
 		}
 
-		if (_options.ScreenShake)
+		if (_screenShake)
 		{
 			_camera.AddShake(guarding ? 0.012f : 0.030f, 0.09f);
 		}
@@ -662,7 +940,10 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			_opponentCombat.Kill();
 			PlayOpponentClip("Death");
-			_duel.ReportDeath(FighterId.Opponent);
+			if (!_practice)
+			{
+				_duel.ReportDeath(FighterId.Opponent);
+			}
 		}
 	}
 
@@ -727,7 +1008,7 @@ public sealed class SkyrimMeleeGame : Game
 				PlayMicroStagger();
 			}
 
-			if (_options.ScreenShake)
+			if (_screenShake)
 			{
 				_camera.AddShake(0.010f, 0.09f);
 			}
@@ -766,7 +1047,7 @@ public sealed class SkyrimMeleeGame : Game
 			hitEvent.Attack, _playerStats, _opponentStats, HitOutcome.Clean);
 		_opponentStats.ApplyDamage(defense.Damage.Final);
 
-		if (_options.ScreenShake)
+		if (_screenShake)
 		{
 			var severity = Math.Clamp(
 				defense.Damage.Final / _opponentStats.MaxHealth, 0f, 1f);
@@ -777,7 +1058,10 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			_opponentCombat.Kill();
 			PlayOpponentClip("Death");
-			_duel.ReportDeath(FighterId.Opponent);
+			if (!_practice)
+			{
+				_duel.ReportDeath(FighterId.Opponent);
+			}
 		}
 		else if (stagger.Staggered)
 		{
@@ -1068,7 +1352,7 @@ public sealed class SkyrimMeleeGame : Game
 			PlayOpponentClip("StaggerMicro");
 		}
 
-		if (_options.ScreenShake)
+		if (_screenShake)
 		{
 			var severity = Math.Clamp(
 				defense.Damage.Final / _playerStats.MaxHealth, 0f, 1f);
@@ -1081,7 +1365,10 @@ public sealed class SkyrimMeleeGame : Game
 		{
 			_combat.Kill();
 			PlayDeath();
-			_duel.ReportDeath(FighterId.Player);
+			if (!_practice)
+			{
+				_duel.ReportDeath(FighterId.Player);
+			}
 		}
 	}
 
@@ -1624,6 +1911,7 @@ public sealed class SkyrimMeleeGame : Game
 		_swordMotion.ResetTo(_swordClips[0]);
 		_opponentSwordMotion?.ResetTo(_swordClips[0]);
 		_opponentBodyMotion?.Reset();
+		ResetPositions();
 		ApplySwordPose();
 	}
 
@@ -2018,7 +2306,7 @@ public sealed class SkyrimMeleeGame : Game
 		_hud.UpdatePause(_paused);
 		_hud.UpdateVitals(_playerStats.Health, _playerStats.MaxHealth,
 			_playerStats.Stamina, _playerStats.MaxStamina, _staminaCue > 0f);
-		_hud.UpdateDuel(_duel.Round, _duel.PlayerScore, _duel.OpponentScore);
+		_hud.UpdateDuel(_duel.Round, _duel.PlayerScore, _duel.OpponentScore, _practice);
 		var buffered = _input.IsPending ? $"buffered {_input.Pending}" : "idle";
 		var rejection = _lastRejection == "-" ? string.Empty : $"  reject {_lastRejection}";
 		var motion = FormattableString.Invariant(
@@ -2119,6 +2407,17 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		_ui?.Draw();
+
+		if (_fadeAlpha > 0f && _spriteBatch is not null && _fadePixel is not null)
+		{
+			var width = GraphicsDevice.PresentationParameters.BackBufferWidth;
+			var height = GraphicsDevice.PresentationParameters.BackBufferHeight;
+			_spriteBatch.Begin();
+			_spriteBatch.Draw(
+				_fadePixel, new Rectangle(0, 0, width, height),
+				Color.Black * _fadeAlpha);
+			_spriteBatch.End();
+		}
 
 		base.Draw(gameTime);
 	}

@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T7.1`
+> **Next up:** `T7.2`
 
 ---
 
@@ -464,11 +464,16 @@
 
 ## M7 — Myra UI
 
-### [ ] T7.1 — Skin + main menu
+### [x] T7.1 — Skin + main menu
 **Goal:** it looks like a game, not a debug harness.
-- `UiSkin`: flat, low-contrast, parchment/steel palette; one custom font size set (title, body, small).
-- Main menu: Duel / Practice / Options / Quit, keyboard + mouse navigation, focus ring, difficulty selector from `AiProfile.All`.
-- Screen transitions with a short fade.
+- `UiSkin`: parchment/steel palette, four Inter sizes (46 / 30 / 21 / 15), and one flat `ButtonStyle` with ink panels, steel borders, and an amber focus ring.
+- `MainMenu` lives in `Ui/MainMenu.xmmp` + `MainMenu.cs`: title, Duel / Practice / Options / Quit, difficulty row (default Novice), and an options sub-panel (difficulty, screen shake, debug overlay, back).
+- Mouse clicks use Myra; Up / Down move focus with wrap-around, Enter / Space activate, Escape backs out of options, Left / Right change difficulty. Myra's key handler is cleared while the menu is open so a press cannot activate twice.
+- Practice starts the same fight without `DuelDirector` rounds: deaths do not score and both fighters reset to spawn after 1.6 s; the HUD shows `PRACTICE`.
+- Launch boots to the menu; `Esc` in a fight returns to it. Screen changes use a 180 ms black fade drawn over the UI. Starting a fight resets the camera to the default third-person orbit and both fighters to spawn; the scroll-wheel baseline is captured at load so a stale OS wheel value cannot zoom the camera on launch.
+- `--play` skips the menu for captures and automation. `ResetRound` now returns both fighters to spawn, so rounds and menu-started fights begin from the same state.
+- Options shell only: real pause/options/results stay in T7.3.
+- Verified visually at 1600×900 and 1280×720; mouse navigation through Duel / Practice / Options / Quit; keyboard focus movement (Up/Down) and the amber ring.
 
 **Done when:** every menu item is reachable by keyboard and mouse; no text renders blurry at 1600×900 or after resize.
 
@@ -616,5 +621,6 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T6.2 — Difficulty profiles | 2026-11-20 | `55dcf9c` | developer |
 | T4.7 — Bash interrupts, it does not stun | 2026-11-20 | `bf5742b` | developer |
 | T6.3 — AI visualization | 2026-11-20 | `3712217` | developer |
+| T7.1 — Skin + main menu | 2026-11-20 | PENDING | developer |
 
 

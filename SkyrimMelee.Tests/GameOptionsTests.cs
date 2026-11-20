@@ -29,6 +29,16 @@ public class GameOptionsTests
 	}
 
 	[Fact]
+	public void PlaySwitchSkipsTheMenu()
+	{
+		Assert.True(GameOptions.TryParse(
+			new[] { "--play" }, out var options, out var error));
+
+		Assert.Null(error);
+		Assert.True(options.Play);
+	}
+
+	[Fact]
 	public void NoShakeSwitchDisablesIt()
 	{
 		Assert.True(GameOptions.TryParse(

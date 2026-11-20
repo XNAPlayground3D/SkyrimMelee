@@ -13,6 +13,13 @@ public class AiProfileTests
 		Assert.Equal("Master", AiProfile.All[2].Name);
 	}
 
+	[Fact]
+	public void NoviceIsTheDefaultProfile()
+	{
+		Assert.Same(AiProfile.Novice, AiProfile.Default);
+		Assert.Equal(AiProfile.Novice, AiProfile.All[0]);
+	}
+
 	[Theory]
 	[InlineData("novice", "Novice")]
 	[InlineData("ADEPT", "Adept")]

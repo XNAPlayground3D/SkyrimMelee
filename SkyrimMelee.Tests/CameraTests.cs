@@ -218,4 +218,23 @@ public class CameraTests
 
 		Assert.True(Vector3.Distance(first, second) > 1e-5f);
 	}
+
+	[Fact]
+	public void ResetViewReturnsToTheDefaultThirdPersonOrbit()
+	{
+		var camera = new Camera();
+		camera.AddLook(300f, 200f);
+		camera.Zoom(-2f);
+		camera.ToggleMode();
+		camera.CyclePreset();
+
+		camera.ResetView();
+		camera.Update(Focus, 0f);
+
+		Assert.False(camera.FirstPerson);
+		Assert.Equal(CameraPreset.Gameplay, camera.Preset);
+		Assert.Equal(0f, camera.Yaw, 4);
+		Assert.Equal(-0.32f, camera.Pitch, 4);
+		Assert.Equal(Camera.DefaultDistance, camera.Distance, 4);
+	}
 }

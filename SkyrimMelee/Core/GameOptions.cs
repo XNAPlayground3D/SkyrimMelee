@@ -9,6 +9,7 @@ public sealed record GameOptions
 	public bool GodMode { get; init; }
 	public bool SlowMotion { get; init; }
 	public bool NoUi { get; init; }
+	public bool Play { get; init; }
 	public bool ScreenShake { get; init; } = true;
 	public string? AiProfile { get; init; }
 
@@ -16,7 +17,7 @@ public sealed record GameOptions
 	public float? ClipTime { get; init; }
 
 	public const string Usage =
-		"SkyrimMelee [--debug] [--god] [--slowmo] [--no-ui] [--no-shake] [--profile=<name>] [--clip-time=<s>]\n" +
+		"SkyrimMelee [--debug] [--god] [--slowmo] [--no-ui] [--play] [--no-shake] [--profile=<name>] [--clip-time=<s>]\n" +
 		"           [--self-test] [--help]";
 
 	public static bool TryParse(string[] args, out GameOptions options, out string? error)
@@ -68,6 +69,9 @@ public sealed record GameOptions
 					break;
 				case "--no-ui":
 					result = result with { NoUi = true };
+					break;
+				case "--play":
+					result = result with { Play = true };
 					break;
 				case "--no-shake":
 					result = result with { ScreenShake = false };

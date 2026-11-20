@@ -57,6 +57,7 @@ Current scenarios: clean hit, blocked hit, timed block, no stamina power→slash
 - [ ] Alt-tab mid-swing pauses and resumes; resize re-anchors the HUD without clipping.
 - [ ] Timed block, guard break, and stagger are distinguishable in one glance.
 - [ ] Every menu works by mouse and keyboard; Resume never swings.
+- [ ] Main menu fits at 1600×900 and 1280×720; the focus ring follows Up/Down and text stays crisp.
 - [ ] Pause freezes the blade mid-air; results numbers match debug counters.
 
 ## Performance

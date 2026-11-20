@@ -180,11 +180,11 @@ The guard delay is `reaction − GuardRaiseDuration`, so the guard completes whe
 | Adept | 100 ms | 0.75 | 0.25 | 0.45 | 0.55 | 0.25 | 0.10 |
 | Master | 60 ms | 0.92 | 0.50 | 0.70 | 0.30 | 0.20 | 0.02 |
 
-`Aggression` is the chance to punish a recovering opponent; `Mistake` is the chance to trade into a committed wind-up instead of guarding; `Power` only adds pressure on a recovering or low-stamina target. `--profile=<name>` selects a preset at launch (the menu selector arrives with T7.1). `AiDuelSimulator` runs the same FSMs headless at 1.6 m; over seeds 1–10 Master wins 10/10 against Novice, and Novice still lands 0–3 hits per duel.
+`Aggression` is the chance to punish a recovering opponent; `Mistake` is the chance to trade into a committed wind-up instead of guarding; `Power` only adds pressure on a recovering or low-stamina target. `--profile=<name>` selects a preset at launch; without it the duel starts on Novice (the menu selector starts there too). `AiDuelSimulator` runs the same FSMs headless at 1.6 m; over seeds 1–10 Master wins 10/10 against Novice, and Novice still lands 0–3 hits per duel.
 
 ## Rounds and input
 
-- Best of three, 5 s intro, 3 s post-death hold, full reset between rounds.
+- Best of three, 3 s post-death hold, full reset between rounds; the reset also returns both fighters to their spawn points. A practice fight skips the director: deaths do not score, and after 1.6 s both fighters reset to spawn with full health and stamina.
 - Player movement is camera-relative WASD at `PlayerWalkSpeed` (3.2 m/s), clamped to the arena radius (5.5 m) and a 1.15 m opponent separation. `Idle`/`Recovery` move at full speed; `Windup`/`Active` at `AttackMoveMultiplier` (0.25×) with facing locked; guard states at `GuardMoveMultiplier` (0.45×). Rooted actions stop the fighter completely: `Bash` (`LocksMovement`) never moves, so its wind-up, shove, and recovery all happen in place. The capsule keeps facing the camera while moving forward, strafing, or backpedaling — only the travel direction changes, Skyrim-style; there is no walk animation. Attacks also turn the fighter to the camera forward before the wind-up locks. The guard hitbox follows the hand while moving.
 - `DuelDirector` owns the round, score, phase, and match winner. A death scores the round and starts the 3 s hold; the first to 2 wins. A double KO replays the round without score. On a new round the caller resets stats, FSMs, clips, hit sets, and guard shapes.
 - Attack intents buffer for 120 ms of real time; one pending intent, newest wins; it fires on the first legal frame and rejected intents (no guard) are consumed. Guard is level-triggered, so holding RMB through recovery raises on the first legal frame.

@@ -11,6 +11,8 @@ Myra renders at the window's **native resolution**. The HUD anchors to the edges
 
 **HUD markup.** `SkyrimMelee/Ui/Hud.xmmp` and `DebugOverlay.xmmp` are the source of truth. `myra-export <file>.xmmp` writes a manual partial (never overwritten) and a `.Generated.cs` designer file (always regenerated); both are committed. The HUD is two `VerticalStackPanel` blocks — render statistics (FPS, draw calls, primitives, current clip, speed, progress) and controls — with one `Label` per row. The F1 debug overlay is another exported `VerticalStackPanel` with one `Label` per row; `F2` toggles the flat wireframe. Do not construct HUD widgets in C#; edit the markup and re-export. Panel backgrounds use MML's `#RRGGBBAA` color format (e.g. `#00000066`). Controls that are not implemented yet are amber, with a muted legend line.
 
+**Menu skin.** `UiSkin` builds four Inter sizes (46 / 30 / 21 / 15 px) from Myra's embedded font and one flat button style: ink panels, steel borders, parchment text, and an amber focus ring. `MainMenu.xmmp` holds the title, Duel / Practice / Options / Quit, the difficulty row, and the options sub-panel; `MainMenu.cs` owns the events, focus order, and label updates. Mouse clicks go through Myra; the game routes Up / Down / Enter / Space / Escape and Left / Right for difficulty. Myra's key handler is cleared while the menu is open so a key press cannot activate a button twice. Every screen change uses a 180 ms black fade drawn above the UI. `--play` skips the menu for gameplay captures and automation.
+
 ```text
 Boot → MainMenu → Duel → Pause → Options
                    ↓         ↓
@@ -58,6 +60,6 @@ The AI plays by the same rules: it emits `CombatIntent`s and cannot shorten a wi
 | Power chance | 0.10 | 0.25 | 0.20 |
 | Mistake chance | 0.35 | 0.10 | 0.02 |
 
-Profiles are data (`AiProfile`); adding a difficulty needs no new decision code. `--profile=<name>` selects one at launch; the main-menu selector arrives with T7.1.
+Profiles are data (`AiProfile`); adding a difficulty needs no new decision code. The menu starts on **Novice** (`AiProfile.Default`); `--profile=<name>` overrides it at launch.
 
 **Telemetry.** `DuelistAi` publishes `LastDecision` (`action`, `reason`) plus a monotonically increasing `DecisionId`, the pending `ReactionRemaining`, `GuardRemaining`, and the current `Intent`/`Approach`. The game logs each new decision once with the simulation time and the FSM state it produced (`SlashRight (idle pressure) -> Windup SlashRight`). The F1 overlay shows the profile, intent, reaction countdown, guard timer, approach, the last decision and reason, per-round `AiFightStats` (attacks, hit rate, block rate, guard breaks), and the last two decision/state lines.
