@@ -120,8 +120,9 @@ Once the developer confirms:
 1. Change the task from `[ ]` to `[x]` in TASKS.md (or `[~]` → `[x]`).
 2. Add a row to **Done log**: task ID, date, commit hash (fill after committing), "confirmed by: <developer>".
 3. Move the **Next up** marker to the next unchecked task.
-4. If the task changed the plan, adjust dependent tasks and note it in the commit body.
-5. Commit, then push:
+4. **Review and curate TASKS.md freely.** Now that the task is confirmed, add, remove, reword, split, merge, or reorder tasks as reality demands — including cutting scope. Keep the **Invariants** intact, keep dependencies coherent, and leave `Next up` on the top-most unchecked task. Mention board changes in the commit body. This is expected work, not something to ask permission for.
+5. If the task changed the plan, adjust dependent tasks and note it in the commit body.
+6. Commit, then push:
 
 ```powershell
 git add -A

@@ -12,6 +12,7 @@
 - `[ ]` not started · `[~]` in progress · `[x]` done and confirmed by the developer
 - The **next task is the top-most unchecked task**, unless the developer names a different one.
 - A task is only `[x]` after the developer explicitly confirms it (see [AGENTS.md](AGENTS.md)).
+- After a task is confirmed, the agent curates this board without asking: adding, removing, rewording, splitting, merging, or reordering tasks as the project needs.
 - Each task lists **Goal** and **Done when**. "Done when" is the test plan, not a suggestion.
 - **Specs live in [`Design/`](Design/overview.md), not here.** Tasks reference the relevant doc; the doc wins on details.
 - [`Design/reference.md`](Design/reference.md) records what Skyrim does. When a task changes feel, check it there first; new divergences go in its divergence list.
