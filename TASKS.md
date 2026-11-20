@@ -347,6 +347,16 @@
 
 **Done when:** bashing an idle, recovering, or raising opponent deals damage/poise but does not stagger, while a bash into wind-up/active or a held guard still staggers.
 
+### [x] T4.8 — One damage instance per swing
+**Goal:** a power slash should not delete a full health bar in one swing.
+- `ResolveOpponentHits` was missing `TryMarkDamagingHit`; a single overhead could pass through head, torso, hips, and legs and apply full damage for each unique hurtbox (up to 4 × 50 = 200).
+- The opponent path now claims the swing's one damage instance after the first registered contact; later hurtboxes in the same swing cannot add damage.
+- AI difficulty follow-up: power use now uses `PowerChance` directly instead of `0.5 + chance`; Novice aggression 0.40 (was 0.55) and power 10%, Master power 45%.
+- Self-test `one hit per swing` now registers two different hurtboxes and asserts only the first damage claim succeeds.
+- Docs/profile tables updated.
+
+**Done when:** one enemy swing deals damage at most once regardless of how many hurtboxes it crosses; Novice no longer chains power slashes.
+
 ---
 
 ## M5 — Player, camera, feel
@@ -444,7 +454,7 @@
 - The AI schedules its guard including the raise time, and a timed-block read delays the raise slightly without finishing after the active window.
 - `AiDuelSimulator` runs headless AI-vs-AI duels at 1.6 m with the real FSMs, stamina, guard/defense and stagger rules; it reports winner, hits, blocks, damage, duration.
 - Tests: profile data, Master beats Novice ≥8/10 seeds, Novice lands hits, deterministic duels. Self-test scenario `ai duel`.
-- Balance: Master 0.06 s reaction / 0.92 block / 0.70 pre-guard / 0.30 aggression / 0.02 mistake; Novice 0.22 / 0.40 / 0.10 / 0.55 / 0.35.
+- Balance: Master 0.06 s reaction / 0.92 block / 0.70 pre-guard / 0.30 aggression / 0.45 power / 0.02 mistake; Novice 0.22 / 0.40 / 0.10 / 0.40 / 0.10 / 0.35.
 
 **Done when:** Master beats Novice in ≥8 of 10 headless AI-vs-AI duels; Novice still lands occasional hits.
 
@@ -647,6 +657,7 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T7.1 — Skin + main menu | 2026-11-20 | `ebcffdb` | developer |
 | T7.2 — HUD | 2026-11-20 | `247ee68` | developer |
 | T6.4 — Arena health potions | 2026-11-20 | `c8199c6` | developer |
+| T4.8 — One damage instance per swing | 2026-11-20 | PENDING | developer |
 | T8.0 — Even arena columns | 2026-11-20 | `0e90144` | developer |
 
 

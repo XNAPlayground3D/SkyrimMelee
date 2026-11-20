@@ -183,9 +183,9 @@ The guard delay is `reaction − GuardRaiseDuration`, so the guard completes whe
 
 | Profile | Reaction | Block | Timed block | Pre-guard | Aggression | Power | Mistake |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Novice | 220 ms | 0.40 | 0.10 | 0.10 | 0.55 | 0.10 | 0.35 |
+| Novice | 220 ms | 0.40 | 0.10 | 0.10 | 0.40 | 0.10 | 0.35 |
 | Adept | 100 ms | 0.75 | 0.25 | 0.45 | 0.55 | 0.25 | 0.10 |
-| Master | 60 ms | 0.92 | 0.50 | 0.70 | 0.30 | 0.20 | 0.02 |
+| Master | 60 ms | 0.92 | 0.50 | 0.70 | 0.30 | 0.45 | 0.02 |
 
 `Aggression` is the chance to punish a recovering opponent; `Mistake` is the chance to trade into a committed wind-up instead of guarding; `Power` only adds pressure on a recovering or low-stamina target. `--profile=<name>` selects a preset at launch; without it the duel starts on Novice (the menu selector starts there too). `AiDuelSimulator` runs the same FSMs headless at 1.6 m; over seeds 1–10 Master wins 10/10 against Novice, and Novice still lands 0–3 hits per duel.
 

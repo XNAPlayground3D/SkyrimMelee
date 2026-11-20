@@ -1394,6 +1394,13 @@ public sealed class SkyrimMeleeGame : Game
 			return;
 		}
 
+		// A swing damages the player once, even when the sweep crosses several
+		// hurtboxes (head, torso, hips, legs).
+		if (!_opponentSwingHits.TryMarkDamagingHit())
+		{
+			return;
+		}
+
 		_lastOutcome = $"taken {outcome} {contact.Hurtbox.Kind}".ToLowerInvariant();
 		_contactPoint = hitEvent.Point;
 		_contactNormal = hitEvent.Normal;

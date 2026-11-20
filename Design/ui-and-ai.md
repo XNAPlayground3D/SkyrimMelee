@@ -56,8 +56,8 @@ The AI plays by the same rules: it emits `CombatIntent`s and cannot shorten a wi
 | Block chance | 0.40 | 0.75 | 0.92 |
 | Timed-block chance | 0.10 | 0.25 | 0.50 |
 | Pre-guard chance | 0.10 | 0.45 | 0.70 |
-| Aggression | 0.55 | 0.55 | 0.30 |
-| Power chance | 0.10 | 0.25 | 0.20 |
+| Aggression | 0.40 | 0.55 | 0.30 |
+| Power chance | 0.10 | 0.25 | 0.45 |
 | Mistake chance | 0.35 | 0.10 | 0.02 |
 
 Profiles are data (`AiProfile`); adding a difficulty needs no new decision code. The menu starts on **Novice** (`AiProfile.Default`); `--profile=<name>` overrides it at launch.

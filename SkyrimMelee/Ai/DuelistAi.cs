@@ -198,7 +198,7 @@ public sealed class DuelistAi
 		{
 			_guardHold = 0f;
 			var attack = ctx.SelfStamina >= 30f &&
-						 Roll(0.5f + _profile.PowerChance)
+						 Roll(_profile.PowerChance)
 				? CombatIntent.PowerSlash
 				: _random.Next(2) == 0
 					? CombatIntent.SlashLeft
@@ -230,7 +230,7 @@ public sealed class DuelistAi
 		var power = ctx.SelfStamina >= 30f &&
 			(ctx.PlayerState == CombatState.Recovery ||
 			 ctx.PlayerStamina < 20f) &&
-			Roll(0.5f + _profile.PowerChance * 0.5f);
+			Roll(_profile.PowerChance);
 
 		return power
 			? CombatIntent.PowerSlash

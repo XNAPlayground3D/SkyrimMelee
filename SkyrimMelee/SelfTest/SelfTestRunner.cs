@@ -411,10 +411,17 @@ public static class SelfTestRunner
 
 		var first = set.TryRegister(hit, FighterId.Player, attack.WindupEnd, out _);
 		var second = set.TryRegister(hit, FighterId.Player, attack.WindupEnd, out _);
+		var head = new BladeHit(
+			new Hurtbox(FighterId.Opponent, HurtboxKind.Head),
+			new Vector3(1f, 1.6f, 0f), Vector3.UnitX, 0.01f);
+		var third = set.TryRegister(head, FighterId.Player, attack.WindupEnd, out _);
+		var damageFirst = set.TryMarkDamagingHit();
+		var damageSecond = set.TryMarkDamagingHit();
 
 		return new SelfTestResult("one hit per swing",
-			first && !second && set.Count == 1,
-			$"first={first} second={second} count={set.Count}");
+			first && !second && third && damageFirst && !damageSecond,
+			$"first={first} second={second} third={third} " +
+			$"damage={damageFirst}/{damageSecond}");
 	}
 
 	private static SelfTestResult TunnelingStress()

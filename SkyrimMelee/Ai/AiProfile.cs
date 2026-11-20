@@ -17,7 +17,7 @@ public sealed record AiProfile(
 		BlockChance: 0.40f,
 		TimedBlockChance: 0.10f,
 		TurtleChance: 0.10f,
-		Aggression: 0.55f,
+		Aggression: 0.40f,
 		PowerChance: 0.10f,
 		MistakeChance: 0.35f);
 
@@ -38,7 +38,7 @@ public sealed record AiProfile(
 		TimedBlockChance: 0.50f,
 		TurtleChance: 0.70f,
 		Aggression: 0.30f,
-		PowerChance: 0.20f,
+		PowerChance: 0.45f,
 		MistakeChance: 0.02f);
 
 	public static IReadOnlyList<AiProfile> All { get; } =
