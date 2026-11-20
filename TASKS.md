@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T8.1`
+> **Next up:** `T9.1`
 
 ---
 
@@ -538,6 +538,112 @@
 - Keyboard focus order and Left/Right difficulty handling exclude the Rules panel.
 
 **Done when:** Rules is reachable by mouse and keyboard, the described controls match the game, and Back returns to the main menu.
+
+---
+
+## M9 — Authored models and skeletal animation
+
+> **Scope change:** this milestone replaces the primitive fighter/sword with authored glTF assets and retires hard rules H1 (no 3D model files) and H2 (no skeletal animation). The primitive build remains the shipping path until T9.8 flips the default. T9.1 updates the constraints in README, AGENTS, and `Design/` before any asset is integrated. All model work stays behind a feature flag until parity is proven.
+
+### [ ] T9.1 — Technical asset specification (fighter, sword, animations)
+**Goal:** a written, testable contract for the modeler; technical only, no visual direction.
+- Add `Design/models.md`: glTF 2.0 binary (`.glb`), metres, Y-up, floor origin between the feet, exact forward axis, identity object transforms, no root motion, no constraints/IK, no morph targets, no LOD.
+- Fighter: 1.80 m tall (±0.02), eye line at 1.60 m; maximum 20 k triangles, one UV set, position/normal/tangent/UV0, up to 4 skin influences, weights normalised, max 3 PBR metallic-roughness materials, embedded 1024/2048 PNG textures, no custom shaders.
+- Skeleton table with exact names, parents, rest positions, and lengths: `root`, `pelvis`, `spine_01`, `spine_02`, `neck`, `head`, `clavicle_l/r`, `upperarm_l/r`, `forearm_l/r`, `hand_l/r`, `thigh_l/r`, `calf_l/r`, `foot_l/r`, `weapon_r` (21 joints). `weapon_r` is a child of `hand_r`; bind pose is the T-pose.
+- Sword: separate `sword.glb`, static, no skeleton/animation; origin at the grip centre, blade along +Y, blade base 0.18 m and tip 1.47 m from the grip, base/tip radii 0.0425/0.018 m; two-handed grip geometry may be part of the sword. The runtime attaches it to `weapon_r`.
+- Clip contract at 60 Hz. Every clip is one-shot unless marked loop, has no root motion, and carries glTF `extras`: `windup`, `active`, `recovery` in seconds, `loop` bool.
+
+| Clip | Loop | Total frames | Wind-up | Active | Recovery |
+| --- | --- | --- | --- | --- | --- |
+| Idle | yes | 150 | — | — | — |
+| GuardRaise | no | 12 | — | — | — |
+| GuardHold | yes | 120 | — | — | — |
+| GuardLower | no | 9 | — | — | — |
+| SlashLeft / SlashRight | no | 49.2 | 15.0 | 13.2 | 21.0 |
+| PowerSlash | no | 87.6 | 36.0 | 9.6 | 42.0 |
+| Bash | no | 32.4 | 9.6 | 4.8 | 18.0 |
+| StaggerMicro | no | 15 | — | — | — |
+| StaggerSmall | no | 36 | — | — | — |
+| StaggerLarge | no | 60 | — | — | — |
+| Death | no (clamp) | 72 | — | — | — |
+| Victory | no (clamp) | 96 | — | — | — |
+
+- Phase frames are exact 60 Hz timecodes (`ms × 0.06`); keyframes land on those boundaries. The combat FSM in `CombatTuning` remains authoritative; the validator rejects clips whose `extras` disagree.
+- Validation rules: file names, joint names/hierarchy, identity bind transforms, ≤4 influences, weight sum 1 ± 0.001, triangle budget, texture limits, clip names/times, no root translation, weapon socket present, bounds and floor contact.
+- Retire H1/H2 in README, AGENTS, and `Design/overview.md`; add the asset-licensing/source note.
+
+**Done when:** every number cross-checks against `CombatTuning`/`BladeGeometry`, and the modeler can build and export without asking a follow-up question.
+
+### [ ] T9.2 — GLB validation harness
+**Goal:** reject broken assets before they reach the game.
+- Proposed loader: `SharpGLTF.Core` (approval required before adding the dependency); CPU-only parsing in the test project.
+- `--validate-models` CLI checks `Content/Models/fighter.glb` and `sword.glb` against T9.1: joint table, influences, weights, budgets, clip names/`extras`, no root motion, socket, bounds, floor origin, texture sizes.
+- Actionable errors name the file, node/clip, and expected vs actual; exit non-zero.
+- Tests use a valid fixture and deliberately broken copies (missing joint, 5 influences, bad clip time, root motion, missing socket).
+
+**Done when:** a valid GLB passes and each broken case fails with a specific message.
+
+### [ ] T9.3 — Author fighter and sword GLBs
+**Goal:** production assets that pass T9.2.
+- Model/animate in Blender (or equivalent) to T9.1; export `fighter.glb` + `sword.glb` into `Content/Models/`.
+- Fighter includes all 13 clips and the T-pose bind; sword is a static attachment.
+- Iterate only against the validator and a neutral viewer; visual style is the designer's call.
+- Commit the GLBs and the source/licence note; no generated content caches.
+
+**Done when:** `--validate-models` passes; a viewer shows the full skeleton, weights, and clip boundaries.
+
+### [ ] T9.4 — Skinned renderer with `SkinEffect`
+**Goal:** draw the authored fighter on the GPU.
+- Add `Graphics/SkinnedModel`/`SkinnedMesh`: glTF positions/normals/tangents/UV0/joints/weights → GPU buffers; bind-pose inverse matrices; bone palette (max 32/64 joints).
+- Add `SkinEffect.fx` (HLSL): world/view/projection, bone palette, 4-weight skinning, normal skinning, albedo/roughness/metalness; compile with the existing `mgfxc` tool or a checked-in `.mgfx`; no Content Pipeline dependency.
+- `--models` feature flag selects the authored fighter; primitives remain the fallback. Render the sword as a static mesh attached to a test bone.
+- Tests: vertex/index counts, bone palette size, missing-joint errors; visual check with the skinning debug palette.
+
+**Done when:** the T-pose and Idle clip render without skinning artifacts at 1600×900 and the primitive path still works.
+
+### [ ] T9.5 — Skeletal animation player and clip contract
+**Goal:** authored clips drive the fighter instead of SwordMotion/BodyMotion.
+- `Animation/SkeletalAnimator`: sample glTF keyframes at the fixed 60 Hz step, loop Idle/GuardHold, clamp Death/Victory, 0.1 s crossfade, no root motion, pause/freeze with the clock.
+- Clip registry maps `CombatState`/attack name to clips; `extras` supply wind-up/active/recovery windows for FSM-facing validation only.
+- Debug overlay shows clip, normalized time, active window, bone count.
+- Tests: exact endpoints, loop seam, crossfade, pause/resume, deterministic sampling, `extras` vs `CombatTuning`, 60 Hz and simulated 10 FPS parity.
+
+**Done when:** every attack, guard, stagger, death, and victory fires at the same combat-relevant phase windows as the primitive build.
+
+### [ ] T9.6 — Sword attachment and blade geometry from the hand
+**Goal:** the sword is a hand attachment, not a separately animated rig.
+- Attach `sword.glb` to `weapon_r` (child of `hand_r`); remove the sword's independent clip animation.
+- Compute `BladeGeometry` (grip, base, tip, radii) from the weapon bone world transform and the fixed sword-local blade points.
+- Guard blade hurtbox and blade trail follow the same bone; no visual sword rig separate from the hand.
+- Tests: base/tip at known poses, reach 1.47 m, one-hit-per-swing unchanged, guard cone unchanged.
+
+**Done when:** the swept blade still lands at the same ranges/TOIs; only the visual source changed.
+
+### [ ] T9.7 — Bone-driven hurtboxes and physics
+**Goal:** colliders follow the skeleton, not a rigid capsule assembly.
+- Build capsule/sphere colliders from named bones at load; rewrite Bepu static poses each fixed step from bone world transforms.
+- Keep the 4 body hurtboxes + guard blade; map `HurtboxKind` to bones. Death/stagger comes from the skeleton, not `BodyClip`.
+- `F2` draws colliders against the skinned mesh; verify every shape.
+- Tests: bone→collider mapping, topple/death bounds, hit parity against the primitive build over a scripted trade.
+
+**Done when:** the self-test suite and F2 wireframe show the same hit behavior as before.
+
+### [ ] T9.8 — Switch default and remove the primitive fighter
+**Goal:** authored assets are the shipping fighter.
+- Default to models; delete `FighterRig`/`GreatswordRig` body/sword geometry, rigid `BodyClip` reactions, and the sword clip catalog where superseded. Keep primitives for arena, potions, debug, and VFX.
+- Remove the `--models`/fallback flag after parity; update README/AGENTS/Design constraints (H1/H2 retired; new asset/skinning rules), controls/debug docs, and licensing notes.
+- Ensure headless tests/self-test never require a graphics device; model validation stays in tests.
+
+**Done when:** a clean clone builds, plays, and tests with only the GLBs; no primitive fighter or sword path remains.
+
+### [ ] T9.9 — Skinning performance and polish
+**Goal:** hold 60 FPS with authored characters.
+- Profile `SkinEffect` draw cost, bone palette uploads, and memory; target ≤ 2 ms simulation and ≤ 6 ms draw as before.
+- No per-frame allocations in the animation/skinning path; pool bone palettes and instance data.
+- Fix visible skinning issues at extreme staggers/death; verify first/third person, F3 presets, resize, and slow motion.
+- Record final bone/triangle budgets in `Design/models.md`.
+
+**Done when:** the performance targets hold in a double power-attack exchange and the visual checks pass from every camera preset.
 
 ---
 
