@@ -11,6 +11,24 @@ public class GameOptionsTests
 	}
 
 	[Fact]
+	public void ProfileSwitchAcceptsKnownNames()
+	{
+		Assert.True(GameOptions.TryParse(
+			new[] { "--profile=master" }, out var options, out var error));
+
+		Assert.Null(error);
+		Assert.Equal("master", options.AiProfile);
+	}
+
+	[Fact]
+	public void UnknownProfileIsRejected()
+	{
+		Assert.False(GameOptions.TryParse(
+			new[] { "--profile=dragon" }, out _, out var error));
+		Assert.NotNull(error);
+	}
+
+	[Fact]
 	public void NoShakeSwitchDisablesIt()
 	{
 		Assert.True(GameOptions.TryParse(

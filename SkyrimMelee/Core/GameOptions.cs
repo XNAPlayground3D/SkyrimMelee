@@ -10,12 +10,13 @@ public sealed record GameOptions
 	public bool SlowMotion { get; init; }
 	public bool NoUi { get; init; }
 	public bool ScreenShake { get; init; } = true;
+	public string? AiProfile { get; init; }
 
 	/// <summary>Freeze the first sword clip at this time (seconds) for inspection.</summary>
 	public float? ClipTime { get; init; }
 
 	public const string Usage =
-		"SkyrimMelee [--debug] [--god] [--slowmo] [--no-ui] [--no-shake] [--clip-time=<s>]\n" +
+		"SkyrimMelee [--debug] [--god] [--slowmo] [--no-ui] [--no-shake] [--profile=<name>] [--clip-time=<s>]\n" +
 		"           [--self-test] [--help]";
 
 	public static bool TryParse(string[] args, out GameOptions options, out string? error)
@@ -25,6 +26,20 @@ public sealed record GameOptions
 
 		foreach (var arg in args)
 		{
+			if (arg.StartsWith("--profile=", StringComparison.OrdinalIgnoreCase))
+			{
+				var name = arg["--profile=".Length..];
+				if (SkyrimMelee.Ai.AiProfile.ByName(name) is null)
+				{
+					error = $"Unknown AI profile: {name}";
+					options = result;
+					return false;
+				}
+
+				result = result with { AiProfile = name };
+				continue;
+			}
+
 			if (arg.StartsWith("--clip-time=", StringComparison.OrdinalIgnoreCase))
 			{
 				var text = arg["--clip-time=".Length..];

@@ -35,7 +35,7 @@ public class DefenseResolverTests
 			Attack("SlashLeft"), Attacker(), defender, HitOutcome.Block);
 
 		Assert.Equal(DamageKind.Block, result.Damage.Kind);
-		Assert.Equal(8f, result.Damage.Final, 3);
+		Assert.Equal(4f, result.Damage.Final, 3);
 		Assert.Equal(5.5552f, result.StaminaSpent, 3);
 		Assert.Equal(94.4448f, defender.Stamina, 3);
 		Assert.Equal(0f, result.AttackerStagger, 3);
@@ -50,7 +50,7 @@ public class DefenseResolverTests
 			Attack("SlashLeft"), Attacker(), defender, HitOutcome.TimedBlock);
 
 		Assert.Equal(DamageKind.TimedBlock, result.Damage.Kind);
-		Assert.Equal(5f, result.Damage.Final, 3);
+		Assert.Equal(2f, result.Damage.Final, 3);
 		Assert.Equal(2.3808f, result.StaminaSpent, 3);
 		Assert.Equal(97.6192f, defender.Stamina, 3);
 		Assert.Equal(CombatTuning.StaggerMicroDuration, result.AttackerStagger, 3);

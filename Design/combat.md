@@ -8,7 +8,7 @@
 | Stamina | 100 | +25/s after 0.6 s; no regen while guarding |
 | Armor | 0 | 0.12 % reduction per point, cap 80 % (667) |
 | Two-handed skill | 60 | Damage ×(1 + 0.4 × skill/100) |
-| Block skill | 50 | Block reduction 0.30 + 0.45 × skill/100 |
+| Block skill | 50 | Block reduction 0.55 + 0.35 × skill/100 (cap 0.80) |
 | Poise | 100 | +25/s after 1 s unhit; empty ⇒ stagger |
 
 Weapon: Iron Greatsword, base damage 20, reach 1.47 m.
@@ -105,7 +105,7 @@ Blade hitbox: local `(0, 0.18, 0)` → `(0, 1.47, 0)`, transformed to world, app
 ```text
 raw        = 20 × damageMultiplier × (1 + 0.4 × skill / 100)
 armored    = raw × (1 − min(0.80, armor × 0.0012))
-blocked    = armored × (1 − blockReduction)        // 0.30 + 0.45 × blockSkill/100
+blocked    = armored × (1 − blockReduction)        // 0.55 + 0.35 × blockSkill/100
 timed      = armored × (1 − min(0.85, blockReduction + 0.15))
 guardBreak = armored
 ```
@@ -115,8 +115,8 @@ Rounded once at the end (`AwayFromZero`), minimum 1 on any connecting hit. Examp
 | Situation (armor 300, skill 60) | Damage |
 | --- | --- |
 | Clean hit | 16 |
-| Blocked (block skill 50) | 8 |
-| Timed block (block skill 50) | 5 |
+| Blocked (block skill 50) | 4 |
+| Timed block (block skill 50) | 2 |
 | Guard break | 16 |
 | Power slash clean | 32 |
 
@@ -167,6 +167,20 @@ Stagger cancels any action and blocks all input, guard included. Damage can stil
 | Stamina equals the cost | Allowed |
 | Stamina below the cost | Allowed (Skyrim gate); stamina clamps at 0 |
 | Power attack at 0 stamina | Degrades to `SlashLeft`; the bar flashes |
+
+## AI opponent
+
+`Ai/DuelistAi` is seeded and deterministic. Every tick it emits a guard wish, at most one `CombatIntent`, and an approach value; the game runs them through the same FSMs, stamina checks, `GuardResolver`, and `DefenseResolver` as the player, so the opponent follows the same rules.
+
+The guard delay is `reaction − GuardRaiseDuration`, so the guard completes when the read says the hit lands. A successful timed-block roll delays the raise by a further 40 ms. Attacks are started before a held guard is lowered, because `GuardLower` would block the wind-up transition for one tick. The opponent walks in past 2.3 m, gives ground inside 1.35 m, faces the player unless committed to an attack, and braces during its own wind-up and active frames.
+
+| Profile | Reaction | Block | Timed block | Pre-guard | Aggression | Power | Mistake |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Novice | 220 ms | 0.40 | 0.10 | 0.10 | 0.55 | 0.10 | 0.35 |
+| Adept | 100 ms | 0.75 | 0.25 | 0.45 | 0.55 | 0.25 | 0.10 |
+| Master | 60 ms | 0.92 | 0.50 | 0.70 | 0.30 | 0.20 | 0.02 |
+
+`Aggression` is the chance to punish a recovering opponent; `Mistake` is the chance to trade into a committed wind-up instead of guarding; `Power` only adds pressure on a recovering or low-stamina target. `--profile=<name>` selects a preset at launch (the menu selector arrives with T7.1). `AiDuelSimulator` runs the same FSMs headless at 1.6 m; over seeds 1–10 Master wins 10/10 against Novice, and Novice still lands 0–3 hits per duel.
 
 ## Rounds and input
 

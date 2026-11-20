@@ -209,7 +209,8 @@ public sealed class SkyrimMeleeGame : Game
 		_opponentSwordMotion = new SwordMotion();
 		_opponentSwordMotion.ResetTo(_swordClips[0]);
 		_opponentBodyMotion = new BodyMotion();
-		_ai = new DuelistAi(AiProfile.Adept, seed: 20261120);
+		_ai = new DuelistAi(
+			AiProfile.ByName(_options.AiProfile) ?? AiProfile.Adept, seed: 20261120);
 
 		_combatWorld = new CombatWorld();
 		_combatWorld.AddFighter(FighterId.Player, _player.DrawTransform);

@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SkyrimMelee.Ai;
 using SkyrimMelee.Input;
 using SkyrimMelee.Tuning;
 using SkyrimMelee.Animation;
@@ -31,6 +32,7 @@ public static class SelfTestRunner
 		DefenseOutcomes(),
 		BestOfThree(),
 		InputBuffer(),
+		AiDuel(),
 		GuardBreak(),
 		StaggerInterrupt(),
 		Whiff(),
@@ -292,6 +294,17 @@ public static class SelfTestRunner
 		var passed = blocked && queued && fired && !router.IsPending;
 		return new SelfTestResult("input buffer", passed,
 			$"blocked={blocked} queued={queued} fired={fired}");
+	}
+
+	private static SelfTestResult AiDuel()
+	{
+		var result = AiDuelSimulator.Run(AiProfile.Master, AiProfile.Novice, seed: 3);
+		var passed = result.Winner == "first" &&
+					 result.FirstHits > 0 &&
+					 result.SecondHits > 0;
+
+		return new SelfTestResult("ai duel", passed,
+			$"{result.Winner} {result.Seconds:0.0}s hits {result.FirstHits}/{result.SecondHits}");
 	}
 
 	private static SelfTestResult GuardBreak()

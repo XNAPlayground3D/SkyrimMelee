@@ -22,9 +22,9 @@ public class DamageModelTests
 	}
 
 	[Theory]
-	[InlineData(0f, 11f)]
-	[InlineData(50f, 8f)]
-	[InlineData(100f, 4f)]
+	[InlineData(0f, 7f)]
+	[InlineData(50f, 4f)]
+	[InlineData(100f, 2f)]
 	public void BlockDamageMatchesSkillTable(float blockSkill, float expected)
 	{
 		var result = DamageModel.Compute(
@@ -34,8 +34,8 @@ public class DamageModelTests
 	}
 
 	[Theory]
-	[InlineData(0f, 9f)]
-	[InlineData(50f, 5f)]
+	[InlineData(0f, 5f)]
+	[InlineData(50f, 2f)]
 	[InlineData(100f, 2f)]
 	public void TimedBlockDamageMatchesSkillTable(float blockSkill, float expected)
 	{

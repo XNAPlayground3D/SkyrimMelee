@@ -3,7 +3,7 @@
 > **This document is a living board, not a contract.**
 > The agent may split, merge, reorder, reword, or delete tasks whenever reality disagrees with the plan — as long as the result is still moving toward the goal described in [README.md](README.md) and [Design/](Design/overview.md). When you change the plan, say so in the commit message.
 >
-> **Next up:** `T6.2`
+> **Next up:** `T6.3`
 
 ---
 
@@ -418,7 +418,7 @@
 - `Ai/DuelistAi`: seeded, deterministic policy. It sees only the player/self state, stamina, and distance; it emits one `CombatIntent`, a guard wish, and an approach value.
 - Movement: walks toward the player when farther than 2.3 m, gives ground inside 1.35 m, and braces while the player's attack is committed. `MoveOpponent` uses the same `PlayerWalkSpeed × Locomotion.MovementMultiplier` as the player (0.25× attacking, 0.45× guarding), clamped by the arena radius and the 1.15 m separation, and faces the player.
 - Behavior: reacts to a player wind-up after a profile delay to guard (timed if late), occasionally pre-guards (normal blocks), punishes recovery, presses a held guard with a power attack, attacks an idle player, and sometimes makes a greedy trade.
-- `AiProfile.Adept`: 100 ms reaction, 75% block, 45% pre-guard, 55% aggression, 25% power, 10% mistake. T6.2 will add presets.
+- `AiProfile.Adept`: 100 ms reaction, 75% block, 45% pre-guard, 55% aggression, 25% power, 10% mistake. Presets live in T6.2.
 - Both directions use the same rules: the opponent's attacks sweep the player's hurtboxes, are classified by `GuardResolver` (blade contact or the 35° cone), and run `DefenseResolver` for damage/stamina/guard breaks; the player's hits are classified against the opponent's guard the same way.
 - Incoming clean hits/staggers/death apply to the player; blocked hits add the smaller block shake from T5.4.
 - F1 shows both sides' guard state, clip, positions, and block/timed/break/hit counters.
@@ -426,11 +426,14 @@
 
 **Done when:** a 2-minute fight shows all of: clean hits, blocks, timed blocks, guard breaks, and staggers from both sides; AI never uses an illegal transition.
 
-### [ ] T6.2 — Difficulty profiles
+### [x] T6.2 — Difficulty profiles
 **Goal:** three opponents worth beating.
-- `AiProfile`: reaction ms, block accuracy, timed-block chance, aggression, power-attack frequency.
-- Presets: Novice, Adept, Master. Selectable from the main menu.
-- Data-only: profiles must not require new code to tune.
+- `AiProfile`: reaction, block chance, timed-block chance, pre-guard (turtle), aggression, power frequency, mistake chance.
+- Presets: `AiProfile.Novice`, `Adept`, `Master` (data only; `AiProfile.All`, `ByName`). `--profile=<name>` selects one at launch; the main-menu selector lands in T7.1.
+- The AI schedules its guard including the raise time, and a timed-block read delays the raise slightly without finishing after the active window.
+- `AiDuelSimulator` runs headless AI-vs-AI duels at 1.6 m with the real FSMs, stamina, guard/defense and stagger rules; it reports winner, hits, blocks, damage, duration.
+- Tests: profile data, Master beats Novice ≥8/10 seeds, Novice lands hits, deterministic duels. Self-test scenario `ai duel`.
+- Balance: Master 0.06 s reaction / 0.92 block / 0.70 pre-guard / 0.30 aggression / 0.02 mistake; Novice 0.22 / 0.40 / 0.10 / 0.55 / 0.35.
 
 **Done when:** Master beats Novice in ≥8 of 10 headless AI-vs-AI duels; Novice still lands occasional hits.
 
@@ -448,7 +451,7 @@
 ### [ ] T7.1 — Skin + main menu
 **Goal:** it looks like a game, not a debug harness.
 - `UiSkin`: flat, low-contrast, parchment/steel palette; one custom font size set (title, body, small).
-- Main menu: Duel / Practice / Options / Quit, keyboard + mouse navigation, focus ring.
+- Main menu: Duel / Practice / Options / Quit, keyboard + mouse navigation, focus ring, difficulty selector from `AiProfile.All`.
 - Screen transitions with a short fade.
 
 **Done when:** every menu item is reachable by keyboard and mouse; no text renders blurry at 1600×900 or after resize.
@@ -594,4 +597,6 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T6.1 — Reactive duelist AI (movement, two-way combat, bash) | 2026-11-20 | `7a93a4a` | developer |
 | T4.6 — Guard coverage cone | 2026-11-20 | `7a93a4a` | developer |
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |
+| T6.2 — Difficulty profiles | 2026-11-20 | PENDING | developer |
+
 

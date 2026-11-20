@@ -77,7 +77,7 @@ Both hands are attached to the sword rig and travel with the hilt; the primitive
 
 **Camera feel:** hits add a short shake scaled by damage (`0.012 + 0.10 × damage/maxHealth`, 90 ms), a power slash adds a 2.5°/180 ms FOV punch, and standing still applies a slow ±1.2 cm look drift. `--no-shake` disables the shake for captures. `F3` cycles gameplay → side profile → top-down → gameplay; presets force third person, ignore mouse look, and restore the saved look when returning to gameplay.
 
-**AI:** `Ai/DuelistAi` is a seeded, deterministic policy that reads only the player/self state, stamina, and distance. It emits a guard wish, one `CombatIntent`, and an approach value; the game feeds all three through the same state machine, stamina checks, movement multipliers, `GuardResolver`, and `DefenseResolver` as the player, so the AI cannot cheat. It walks toward the player past 2.3 m, gives ground inside 1.35 m, and braces during a committed attack; the opponent's blade sweeps the player's hurtboxes while its guard blade is registered, and its reactions (stagger/death) use the same clips. `AiProfile` holds reaction, block, pre-guard, aggression, power, and mistake chances; `F1` shows both sides' guard state, clip, positions, and block/timed/break/hit counters.
+**AI:** `Ai/DuelistAi` is a seeded, deterministic policy that reads only the player/self state, stamina, and distance. It emits a guard wish, one `CombatIntent`, and an approach value; the game feeds all three through the same state machine, stamina checks, movement multipliers, `GuardResolver`, and `DefenseResolver` as the player, so the AI cannot cheat. It walks toward the player past 2.3 m, gives ground inside 1.35 m, and braces during a committed attack; the opponent's blade sweeps the player's hurtboxes while its guard blade is registered, and its reactions (stagger/death) use the same clips. `AiProfile` holds reaction, block, timed-block, pre-guard, aggression, power, and mistake chances; preset Novice/Adept/Master (`--profile=`), and `AiDuelSimulator` runs headless AI-vs-AI duels for balance; `F1` shows both sides' guard state, clip, positions, and block/timed/break/hit counters.
 
 **VFX:** a hit flashes the defender's whole body coral for 300 ms; pooled 256 box shards and expanding torus rings add the blue block ring, red guard-break shards, and dark grounding disc. Zero allocations in combat.
 
@@ -111,7 +111,7 @@ The guard hitbox follows the hand while guarding, including while the fighter mo
 
 ## Debug and flags
 
-`--debug` overlay + wireframes · `--god` · `--slowmo` (0.25×) · `--no-ui` · `--no-shake` · `--self-test` · `--help`
+`--debug` overlay + wireframes · `--god` · `--slowmo` (0.25×) · `--no-ui` · `--no-shake` · `--profile=<novice|adept|master>` · `--self-test` · `--help`
 
 `GameClock` owns `FrameIndex`, `SimTime`, fixed `DeltaTime`, `TimeScale`, real/scaled time, accumulator and dropped steps. Slow motion scales incoming time, never the step duration.
 

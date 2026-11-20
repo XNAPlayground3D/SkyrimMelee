@@ -11,8 +11,9 @@ public class DuelistAiTests
 		float turtle = 0f,
 		float aggression = 1f,
 		float power = 0f,
-		float mistake = 0f) =>
-		new("Test", reaction, block, turtle, aggression, power, mistake);
+		float mistake = 0f,
+		float timedBlock = 0f) =>
+		new("Test", reaction, block, timedBlock, turtle, aggression, power, mistake);
 
 	private static AiContext Context(
 		CombatState player = CombatState.Idle,
@@ -25,13 +26,13 @@ public class DuelistAiTests
 	[Fact]
 	public void GuardsOnlyAfterTheReactionDelay()
 	{
-		var ai = new DuelistAi(Profile(reaction: 0.2f, block: 1f), seed: 7);
+		var ai = new DuelistAi(Profile(reaction: 0.5f, block: 1f), seed: 7);
 		var windup = Context(player: CombatState.Windup);
 
 		ai.Update(0.1f, windup);
 		Assert.False(ai.GuardHeld);
 
-		ai.Update(0.12f, windup);
+		ai.Update(0.25f, windup);
 		Assert.True(ai.GuardHeld);
 	}
 

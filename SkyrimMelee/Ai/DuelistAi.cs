@@ -1,5 +1,6 @@
 using SkyrimMelee.Combat;
 using SkyrimMelee.Input;
+using SkyrimMelee.Tuning;
 
 namespace SkyrimMelee.Ai;
 
@@ -86,8 +87,16 @@ public sealed class DuelistAi
 		if (ctx.PlayerState == CombatState.Windup && !_sawWindup)
 		{
 			_sawWindup = true;
-			_guardDelay = _profile.ReactionSeconds *
+			var reaction = _profile.ReactionSeconds *
 				(0.9f + 0.2f * (float)_random.NextDouble());
+			_guardDelay = MathF.Max(0f, reaction - CombatTuning.GuardRaiseDuration);
+
+			// A timed-block read: start the raise slightly later so the guard is
+			// fresh when the hit lands, without finishing after the active window.
+			if (Roll(_profile.TimedBlockChance))
+			{
+				_guardDelay = MathF.Max(_guardDelay, 0.04f);
+			}
 		}
 		else if (ctx.PlayerState is not (CombatState.Windup or CombatState.Active))
 		{
@@ -120,6 +129,23 @@ public sealed class DuelistAi
 			}
 		}
 
+		if (ctx.SelfState is not (CombatState.Idle or CombatState.GuardRaise or
+				CombatState.GuardHold))
+		{
+			return;
+		}
+
+		// Punish recovery, including out of a held guard.
+		if (ctx.PlayerState == CombatState.Recovery &&
+			_attackCooldown <= 0f &&
+			Roll(_profile.Aggression))
+		{
+			_guardHold = 0f;
+			Intent = ChooseAttack(ctx);
+			_attackCooldown = 1.3f;
+			return;
+		}
+
 		if (ctx.SelfState != CombatState.Idle)
 		{
 			return;
@@ -133,17 +159,6 @@ public sealed class DuelistAi
 			_guardHold = 0f;
 			Intent = ChooseAttack(ctx);
 			_attackCooldown = 1.4f;
-			return;
-		}
-
-		// Punish recovery.
-		if (ctx.PlayerState == CombatState.Recovery &&
-			_attackCooldown <= 0f &&
-			Roll(_profile.Aggression))
-		{
-			_guardHold = 0f;
-			Intent = ChooseAttack(ctx);
-			_attackCooldown = 1.3f;
 			return;
 		}
 
@@ -178,8 +193,12 @@ public sealed class DuelistAi
 
 	private CombatIntent ChooseAttack(in AiContext ctx)
 	{
+		// Power attacks are punish tools: the long wind-up loses a raw trade, so
+		// only use one on a recovering or low-stamina target.
 		var power = ctx.SelfStamina >= 30f &&
-			(ctx.PlayerStamina < 20f || Roll(_profile.PowerChance));
+			(ctx.PlayerState == CombatState.Recovery ||
+			 ctx.PlayerStamina < 20f) &&
+			Roll(0.5f + _profile.PowerChance * 0.5f);
 
 		return power
 			? CombatIntent.PowerSlash
