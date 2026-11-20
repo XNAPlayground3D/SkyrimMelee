@@ -336,6 +336,17 @@
 
 **Done when:** a guard held straight ahead blocks a chest-height sweep that misses the blade by ≤ 0.15 m, and a flanking hit still lands.
 
+### [x] T4.7 — Bash interrupts, it does not stun
+**Goal:** a bash is an interrupt/punish tool, not a stun-lock.
+- `CombatTuning.Bash` no longer sets `AlwaysStagger`; it keeps 40 poise and 0.5× damage.
+- `BashRules.ForcesStagger(targetState, guarding)` is the single rule: true only for a held guard or a target in wind-up/active.
+- `SkyrimMeleeGame.ResolveBashHit` forces the stagger only for those cases; otherwise the bash goes through `StaggerRules` (poise chip, stagger on poise break).
+- An interrupt cancels the opponent's attack and staggers `StaggerSmallDuration`; a held guard is shoved (large stagger on guard break).
+- Tests: `ForcesStagger` state table, bash chips 40 poise per hit and staggers on the third, attack definition no longer always-staggers; self-test `bash` asserts the idle hit does not stagger and the interrupt table is right.
+- Docs: `combat.md` and `reference.md` bash rows.
+
+**Done when:** bashing an idle, recovering, or raising opponent deals damage/poise but does not stagger, while a bash into wind-up/active or a held guard still staggers.
+
 ---
 
 ## M5 — Player, camera, feel
@@ -598,5 +609,6 @@ The live risk register (R1–R6, with retirement tasks) lives in [Design/overvie
 | T4.6 — Guard coverage cone | 2026-11-20 | `7a93a4a` | developer |
 | T5.7 — Split game code into top-level folders | 2026-11-20 | `0b6c643` | developer |
 | T6.2 — Difficulty profiles | 2026-11-20 | `55dcf9c` | developer |
+| T4.7 — Bash interrupts, it does not stun | 2026-11-20 | PENDING | developer |
 
 

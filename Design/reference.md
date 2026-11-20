@@ -204,7 +204,7 @@ arena pacing, which has no Skyrim equivalent.
 | Power damage | ×2 | ×2 | ✅ matches |
 | Bash input | Tap `LMB` while blocking | Tap `LMB` (or `B`) while blocking | ✅ matches |
 | Bash damage | ×0.5 | ×0.5 | ✅ matches |
-| Bash stagger | Chance-based, interrupts power attacks | Always staggers 0.6 s when in melee range (1.7 m, 60°); no effect out of range; interrupts wind-up/active and shoves a held guard | ⚠️ deterministic |
+| Bash stagger | Chance-based, interrupts power attacks | Forces 0.6 s only when it interrupts a wind-up/active attack or connects with a held guard; otherwise 40 poise and damage only (1.7 m, 60°); no effect out of range | ⚠️ deterministic |
 | Bash movement | Planted | `LocksMovement` roots the fighter | ✅ matches |
 | Attack movement | Reduced, not stopped | 0.25× walk | 🚧 tuned lower than Skyrim |
 | Block movement | ≈0.22× run | 0.45× walk | 🚧 tuned higher than Skyrim |

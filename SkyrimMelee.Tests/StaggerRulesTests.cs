@@ -39,13 +39,23 @@ public class StaggerRulesTests
 	}
 
 	[Fact]
-	public void BashAlwaysStaggersForItsShortWindow()
+	public void BashChipsPoiseInsteadOfForcingAStagger()
 	{
-		var result = StaggerRules.Resolve(Attack("Bash"), new FighterStats());
+		var bash = Attack("Bash");
+		var stats = new FighterStats();
 
-		Assert.True(result.Staggered);
-		Assert.Equal(CombatTuning.StaggerSmallDuration, result.Duration, 4);
-		Assert.Equal(CombatTuning.MaxPoise, result.PoiseAfter, 4);
+		var first = StaggerRules.Resolve(bash, stats);
+		Assert.False(first.Staggered);
+		Assert.Equal(60f, first.PoiseAfter, 4);
+
+		var second = StaggerRules.Resolve(bash, stats);
+		Assert.False(second.Staggered);
+		Assert.Equal(20f, second.PoiseAfter, 4);
+
+		var third = StaggerRules.Resolve(bash, stats);
+		Assert.True(third.Staggered);
+		Assert.Equal(CombatTuning.StaggerSmallDuration, third.Duration, 4);
+		Assert.Equal(CombatTuning.MaxPoise, third.PoiseAfter, 4);
 	}
 
 	[Fact]

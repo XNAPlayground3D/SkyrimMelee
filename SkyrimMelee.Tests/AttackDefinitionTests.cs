@@ -36,12 +36,12 @@ public class AttackDefinitionTests
 	}
 
 	[Fact]
-	public void BashRequiresStaminaAndAlwaysStaggers()
+	public void BashRequiresStaminaAndIsNotAnAutomaticStagger()
 	{
 		var bash = Attack("Bash");
 
 		Assert.True(bash.RequiresStamina);
-		Assert.True(bash.AlwaysStagger);
+		Assert.False(bash.AlwaysStagger);
 		Assert.Equal(15f, bash.StaminaCost, 4);
 		Assert.Equal(0.5f, bash.DamageMultiplier, 4);
 		Assert.Equal(40f, bash.StaggerPower, 4);

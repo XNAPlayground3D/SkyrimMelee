@@ -162,14 +162,21 @@ public static class SelfTestRunner
 		stats.Spend(attack);
 
 		var stagger = StaggerRules.Resolve(attack, new FighterStats());
+		var interrupts =
+			BashRules.ForcesStagger(CombatState.Windup, guarding: false) &&
+			BashRules.ForcesStagger(CombatState.Active, guarding: false) &&
+			!BashRules.ForcesStagger(CombatState.Idle, guarding: false) &&
+			!BashRules.ForcesStagger(CombatState.Recovery, guarding: false);
+
 		var passed = accepted &&
 					 fsm.State == CombatState.Windup &&
 					 MathF.Abs(stats.Stamina - 85f) < 1e-4f &&
-					 stagger.Staggered &&
-					 MathF.Abs(stagger.Duration - CombatTuning.StaggerSmallDuration) < 1e-4f;
+					 !stagger.Staggered &&
+					 interrupts;
 
 		return new SelfTestResult("bash", passed,
-			$"accepted={accepted} stamina={stats.Stamina:0.0} stagger={stagger.Staggered}");
+			$"accepted={accepted} stamina={stats.Stamina:0.0} " +
+			$"idleStagger={stagger.Staggered} interrupts={interrupts}");
 	}
 
 	private static SelfTestResult DefenseOutcomes()

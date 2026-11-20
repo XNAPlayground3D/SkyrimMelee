@@ -95,6 +95,5 @@ public static class CombatTuning
 	/// <summary>A quick guard shove; only available while guarding and rooted in place.</summary>
 	public static readonly AttackTuning Bash =
 		new(0.16f, 0.08f, 0.30f, 15f, 0.5f, 40f,
-			RequiresStamina: true, AlwaysStagger: true, LocksMovement: true,
-			StaggerDuration: StaggerSmallDuration);
+			RequiresStamina: true, LocksMovement: true);
 }

@@ -629,10 +629,20 @@ public sealed class SkyrimMeleeGame : Game
 		}
 
 		var large = defense.GuardBroken;
-		_opponentCombat.ApplyStagger(large
-			? _tuning.Value(TuningKey.StaggerLarge)
-			: _tuning.Value(TuningKey.StaggerSmall));
-		PlayOpponentClip(large ? "StaggerLarge" : "StaggerSmall");
+		var stagger = BashRules.ForcesStagger(_opponentCombat.State, guarding)
+			? new StaggerResult(
+				true,
+				large
+					? _tuning.Value(TuningKey.StaggerLarge)
+					: _tuning.Value(TuningKey.StaggerSmall),
+				_opponentStats.Poise)
+			: StaggerRules.Resolve(hitEvent.Attack, _opponentStats);
+
+		if (stagger.Staggered)
+		{
+			_opponentCombat.ApplyStagger(stagger.Duration);
+			PlayOpponentClip(large ? "StaggerLarge" : "StaggerSmall");
+		}
 
 		if (_options.ScreenShake)
 		{

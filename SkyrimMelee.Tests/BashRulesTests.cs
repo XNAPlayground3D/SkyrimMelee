@@ -34,6 +34,25 @@ public class BashRulesTests
 		Assert.False(BashRules.InRange(Origin, Forward, side));
 	}
 
+	[Theory]
+	[InlineData(CombatState.Idle, false)]
+	[InlineData(CombatState.Windup, true)]
+	[InlineData(CombatState.Active, true)]
+	[InlineData(CombatState.Recovery, false)]
+	[InlineData(CombatState.GuardRaise, false)]
+	[InlineData(CombatState.GuardHold, false)]
+	[InlineData(CombatState.Stagger, false)]
+	public void OnlyAnAttackOrHeldGuardForcesAStagger(CombatState state, bool expected)
+	{
+		Assert.Equal(expected, BashRules.ForcesStagger(state, guarding: false));
+	}
+
+	[Fact]
+	public void AHeldGuardIsAlwaysShoved()
+	{
+		Assert.True(BashRules.ForcesStagger(CombatState.GuardHold, guarding: true));
+	}
+
 	[Fact]
 	public void RangeIsTheWeaponMeleeReachNotTheBladeTip()
 	{
