@@ -127,6 +127,18 @@ public class CameraTests
 	}
 
 	[Fact]
+	public void FovStaysInsideProjectionLimits()
+	{
+		var camera = new Camera();
+		camera.PunchFov(1000f, 1f);
+		camera.Update(Focus, 0f);
+		camera.GetProjection(16f / 9f);
+
+		Assert.True(camera.FieldOfView > 0f);
+		Assert.True(camera.FieldOfView < MathF.PI);
+	}
+
+	[Fact]
 	public void ShakeMovesTheEyeAndDecays()
 	{
 		var camera = new Camera();

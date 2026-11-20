@@ -82,8 +82,14 @@ public sealed class Camera
 	}
 
 	/// <summary>Third person keeps a fixed FOV; first person has its own zoomable FOV.</summary>
-	public float FieldOfView =>
-		(FirstPerson ? _firstPersonFov : ThirdPersonFov) + _fovPunch;
+	public float FieldOfView
+	{
+		get
+		{
+			var fov = (FirstPerson ? _firstPersonFov : ThirdPersonFov) + _fovPunch;
+			return Math.Clamp(fov, 0.05f, MathF.PI - 0.05f);
+		}
+	}
 
 	public Vector3 Eye => _eye;
 	public Vector3 LookAt => _lookAt;
@@ -126,10 +132,12 @@ public sealed class Camera
 		}
 	}
 
-	/// <summary>Short additive FOV kick, e.g. on a power attack.</summary>
+	/// <summary>Short additive FOV kick in degrees, e.g. on a power attack.</summary>
 	public void PunchFov(float degrees, float duration)
 	{
-		_fovPunchAmplitude = MathF.Max(_fovPunchAmplitude, degrees);
+		_fovPunchAmplitude = MathF.Max(
+			_fovPunchAmplitude,
+			MathHelper.ToRadians(Math.Clamp(degrees, 0f, 30f)));
 		_fovPunchDuration = MathF.Max(_fovPunchDuration, duration);
 		_fovPunchRemaining = MathF.Max(_fovPunchRemaining, duration);
 		_fovPunch = _fovPunchAmplitude;
